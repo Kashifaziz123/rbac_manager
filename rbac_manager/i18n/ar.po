@@ -1,0 +1,249 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* rbac_manager
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-11 06:57+0000\n"
+"PO-Revision-Date: 2024-12-11 06:57+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "<strong>The contact linked to this user is still active</strong>"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.model,name:rbac_manager.model_res_groups
+msgid "Access Groups"
+msgstr "مجموعات الوصول"
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Access Rights"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Add a language"
+msgstr ""
+
+#. module: rbac_manager
+#: model:res.groups,name:rbac_manager.permission_group_admin
+msgid "Admin Permission Management"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Allowed Companies"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.model,name:rbac_manager.model_ir_module_category
+msgid "Application"
+msgstr "التطبيق "
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Archived"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Automations"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Companies count"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Default Company"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Email Address"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.model.fields,field_description:rbac_manager.field_ir_module_category__child_group_ids
+#: model:ir.model.fields,field_description:rbac_manager.field_res_users__perm_groups_id
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Groups"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Inspection"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "JobCard Access Rights"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "JobCard Roles"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Localization"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Menus Customization"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.actions.act_window,name:rbac_manager.action_module_category
+#: model:ir.ui.menu,name:rbac_manager.menu_module_category
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_module_category_tree
+msgid "Module Categories"
+msgstr "فئات الوحدات"
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Multi Companies"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Parts"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.model.fields,field_description:rbac_manager.field_res_groups__is_child_permission
+msgid "Permission"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.model.fields,field_description:rbac_manager.field_ir_module_category__is_permission_menu
+msgid "Permission Menu"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Preferences"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "Record Rules"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Sales"
+msgstr ""
+
+#. module: rbac_manager
+#. odoo-python
+#: code:addons/rbac_manager/models/res_users.py:0
+#, python-format
+msgid "Security Control"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Service"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Service Packages"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Subcontracting"
+msgstr ""
+
+#. module: rbac_manager
+#. odoo-python
+#: code:addons/rbac_manager/models/res_users.py:0
+#, python-format
+msgid "This method can only be accessed over HTTP"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.model,name:rbac_manager.model_res_users
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "User"
+msgstr "المستخدم"
+
+#. module: rbac_manager
+#. odoo-python
+#: code:addons/rbac_manager/models/res_users.py:0
+#: model:ir.ui.menu,name:rbac_manager.menu_parent_user_permission
+#: model:ir.ui.menu,name:rbac_manager.menu_user_permission
+#, python-format
+msgid "User Permission"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "User Type"
+msgstr ""
+
+#. module: rbac_manager
+#: model:ir.actions.server,name:rbac_manager.server_action_res_users_custom
+msgid "Users"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Vehicle Master"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Vehicle Model"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Vehicle Sale"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Vehicle Variants"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "You can archive the contact"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.user_groups_view_custom
+msgid "Zatca Groups"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "e.g. John Doe"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_users_form_custom
+msgid "e.g. email@yourcompany.com"
+msgstr ""
+
+#. module: rbac_manager
+#: model_terms:ir.ui.view,arch_db:rbac_manager.view_module_category_form_inherit
+msgid "is permission"
+msgstr ""

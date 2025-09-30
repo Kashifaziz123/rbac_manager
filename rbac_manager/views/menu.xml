@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="base.menu_custom" model="ir.ui.menu">
+            <field name="name">Technical</field>
+            <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
+        </record>
+        <menuitem id="menu_user_permission"
+                  name="User Permission"
+                  parent="base.menu_users"
+                  action="rbac_manager.server_action_res_users_custom"
+                  groups="rbac_manager.permission_group_admin"
+                  sequence="1"/>
+
+        <menuitem id="menu_module_category"
+                  name="Module Categories"
+                  parent="base.menu_users"
+                  action="rbac_manager.action_module_category"
+                  groups="base.group_system"/>
+        <menuitem id="menu_user_roles"
+                  name="User Roles"
+                  parent="base.menu_users"
+                  action="rbac_manager.server_action_users_roles"
+                  groups="base.group_system"/>
+        <menuitem id="menu_role_templates"
+                  name="Role Templates"
+                  parent="base.menu_users"
+                  action="rbac_manager.act_window_res_users_list_role_templates"
+                  groups="base.group_system"/>
+        <menuitem id="base.menu_administration"
+                  name="Settings"
+                  groups="permission_group_admin"/>
+        <menuitem id="base.menu_action_res_users"
+                  name="Users"
+                  parent="base.menu_users"
+                  groups="base.group_system"/>
+        <menuitem id="base.menu_action_res_groups"
+                  name="Groups"
+                  parent="base.menu_users"
+                  groups="base.group_system"/>
+    </data>
+</odoo>

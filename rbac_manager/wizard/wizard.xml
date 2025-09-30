@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_user_template_wizard_form" model="ir.ui.view">
+            <field name="name">user.template.wizard.form</field>
+            <field name="model">user.template.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Map from User Templates">
+                    <group>
+                        <field name="type"/>
+                        <field name="template_id"
+                               invisible="type == 'User'"
+                               required="type == 'Template'"/>
+                        <field name="user_id"
+                               invisible="type == 'Template'"
+                               required="type == 'User'"/>
+                    </group>
+                    <group>
+                        <field name="display_group_names"
+                               string="Access Rights to Assign"
+                               options="{'no_create': True, 'no_quick_create': True}">
+                            <list create="0" delete="1">
+                                <field name="full_name"/>
+                            </list>
+                        </field>
+                    </group>
+                    <footer>
+                        <button name="apply_template"
+                                string="Apply"
+                                type="object"
+                                class="btn-primary"/>
+                        <button string="Cancel"
+                                class="btn-secondary"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>
