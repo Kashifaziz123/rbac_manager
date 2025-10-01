@@ -155,16 +155,16 @@
                         <label>Select Permission</label>
                         <div class="permission-search">
                             <span class="search-icon">🔍</span>
-                            <input type="text" placeholder="Search for permissions..." id="permissionSearch">
+                            <input type="text" placeholder="Search for permissions..." id="permissionSearch"/>
                             <div class="permission-suggestions" id="suggestions" style="display: none;">
                                 <div class="suggestion-item">
                                     <strong>Delete Student Records</strong>
-                                    <br>
+                                    <br/>
                                     <span class="permission-code">student.delete</span>
                                 </div>
                                 <div class="suggestion-item">
                                     <strong>Financial Reports Access</strong>
-                                    <br>
+                                    <br/>
                                     <span class="permission-code">finance.reports.all</span>
                                 </div>
                             </div>
