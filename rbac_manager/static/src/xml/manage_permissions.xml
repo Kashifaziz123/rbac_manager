@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.ManagePermissions">
+        <div class="container manage_permission">
+            <div class="header">
+                <div class="user-info">
+                    <div class="user-avatar">EP</div>
+                    <div class="user-details">
+                        <h1>Manage Permissions: Emma Parker</h1>
+                        <p>Mathematics Department • Employee ID: #EMP001</p>
+                    </div>
+                    <div class="access-level">Permission Manager View</div>
+                </div>
+                <div class="header-actions">
+                    <a href="#" class="btn btn-secondary">← Back to Details</a>
+                    <button class="btn btn-primary">💾 Save Changes</button>
+                </div>
+            </div>
+
+            <!-- Pending Requests (visible to Super Admin) -->
+            <div class="pending-requests">
+                <h2>📋 Pending Permission Requests</h2>
+                <div class="request-item">
+                    <div class="request-info">
+                        <h4>Extra Permission Request #REQ-001</h4>
+                        <div class="request-meta">
+                            <span>📅 Requested: 2 hours ago</span>
+                            <span>👤 By: John Smith (Dept. Manager)</span>
+                            <span>⏰ Expires: 30 days</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <div class="status-badge pending">pending</div>
+                        <button class="btn btn-primary btn-small">✓ Approve</button>
+                        <button class="btn btn-danger btn-small">✗ Reject</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <!-- Current Roles Section -->
+                <div class="section">
+                    <h2>👥 Assigned Roles</h2>
+
+                    <div class="role-item">
+                        <div class="role-info">
+                            <div class="role-icon teacher">T</div>
+                            <div class="role-details">
+                                <h4>Teacher</h4>
+                                <p>29 permissions • Assigned 3 months ago</p>
+                            </div>
+                        </div>
+                        <div class="role-actions">
+                            <button class="btn btn-secondary btn-small">👁️ View</button>
+                            <button class="btn btn-danger btn-small">✗ Remove</button>
+                        </div>
+                    </div>
+
+                    <div class="role-item">
+                        <div class="role-info">
+                            <div class="role-icon attendance">A</div>
+                            <div class="role-details">
+                                <h4>Attendance Manager</h4>
+                                <p>12 permissions • Assigned 1 month ago</p>
+                            </div>
+                        </div>
+                        <div class="role-actions">
+                            <button class="btn btn-secondary btn-small">👁️ View</button>
+                            <button class="btn btn-danger btn-small">✗ Remove</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Roles Section -->
+                <div class="section">
+                    <h2>➕ Available Roles</h2>
+                    <div class="available-roles">
+                        <div class="role-item available">
+                            <div class="role-info">
+                                <div class="role-icon" style="background: #8b5cf6;">L</div>
+                                <div class="role-details">
+                                    <h4>Librarian</h4>
+                                    <p>15 permissions • Library management access</p>
+                                </div>
+                            </div>
+                            <div class="role-actions">
+                                <button class="btn btn-primary btn-small">+ Assign</button>
+                            </div>
+                        </div>
+
+                        <div class="role-item available">
+                            <div class="role-info">
+                                <div class="role-icon" style="background: #f59e0b;">E</div>
+                                <div class="role-details">
+                                    <h4>Event Coordinator</h4>
+                                    <p>8 permissions • Event and activity management</p>
+                                </div>
+                            </div>
+                            <div class="role-actions">
+                                <button class="btn btn-primary btn-small">+ Assign</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Exceptions Section -->
+            <div class="section" style="margin-bottom: 24px;">
+                <h2>⚠️ Current Exceptions</h2>
+
+                <div class="exception-item">
+                    <div class="exception-info">
+                        <h4>Publish Results</h4>
+                        <div class="exception-code">academic.result.publish</div>
+                        <div class="exception-meta">
+                            <div class="exception-type extra">Extra Permission</div>
+                            <div class="exception-date">Added: 2 weeks ago</div>
+                            <div class="exception-date">Expires: 45 days</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-small">📝 Edit</button>
+                        <button class="btn btn-danger btn-small">🗑️ Remove</button>
+                    </div>
+                </div>
+
+                <div class="exception-item">
+                    <div class="exception-info">
+                        <h4>Create Fee Documents</h4>
+                        <div class="exception-code">fee.create</div>
+                        <div class="exception-meta">
+                            <div class="exception-type exclusion">Exclusion</div>
+                            <div class="exception-date">Added: 1 month ago</div>
+                            <div class="exception-date">Permanent</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-small">📝 Edit</button>
+                        <button class="btn btn-danger btn-small">🗑️ Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Additional Permissions Section -->
+            <div class="request-section">
+                <h2>📝 Request Additional Permission</h2>
+
+                <div class="alert warning">
+                    ⚠️ <strong>Permission Manager Notice:</strong> Requests for permissions outside assigned roles
+                    require Super Admin approval.
+                </div>
+
+                <form class="request-form">
+                    <div class="form-group">
+                        <label>Select Permission</label>
+                        <div class="permission-search">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" placeholder="Search for permissions..." id="permissionSearch">
+                            <div class="permission-suggestions" id="suggestions" style="display: none;">
+                                <div class="suggestion-item">
+                                    <strong>Delete Student Records</strong>
+                                    <br>
+                                    <span class="permission-code">student.delete</span>
+                                </div>
+                                <div class="suggestion-item">
+                                    <strong>Financial Reports Access</strong>
+                                    <br>
+                                    <span class="permission-code">finance.reports.all</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Request Type</label>
+                            <select>
+                                <option>Extra Permission (Grant)</option>
+                                <option>Exclusion (Deny)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration</label>
+                            <select>
+                                <option>30 days</option>
+                                <option>60 days</option>
+                                <option>90 days</option>
+                                <option>6 months</option>
+                                <option>1 year</option>
+                                <option>Permanent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Business Justification</label>
+                        <textarea rows="3"
+                                  placeholder="Please provide a detailed justification for this permission request..."></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">📨 Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </t>
+</templates>

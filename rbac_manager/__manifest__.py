@@ -15,11 +15,11 @@
     "data": [
         'security/groups.xml',
         'security/ir.model.access.csv',
-        'views/role_templates.xml',
+        'views/res_users_views_user_roles.xml',
+        'views/res_users_views_user_permissions.xml',
         'views/res_groups_view.xml',
 
         'views/views.xml',
-        'views/user_roles.xml',
         'views/ir_module_category.xml',
         'views/menu.xml',
         'wizard/wizard.xml',

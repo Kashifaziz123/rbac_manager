@@ -1,0 +1,27 @@
+<odoo>
+    <data>
+        <record id="view_res_users_list_user_role" model="ir.ui.view">
+            <field name="name">User Roles Form</field>
+            <field name="model">res.users</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="active" column_invisible="True"/>
+                    <field name="is_user_role" column_invisible="True"/>
+                    <field name="name"/>
+                    <button name="client_action_view_user_role" type="object" class="p-0" icon="fa-bar-chart pe-1"
+                            string="Form view"/>
+                </list>
+            </field>
+        </record>
+        <record id="act_window_res_users_list_user_role" model="ir.actions.act_window">
+            <field name="name">User Roles</field>
+            <field name="res_model">res.users</field>
+            <field name="path">user_roles</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('active', '=', False), ('is_user_role', '=', True)]</field>
+            <field name="context">{'default_active': False, 'default_is_user_role': True, 'default_name': 'New User Role'}</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_res_users_list_user_role')})]"/>
+        </record>
+    </data>
+</odoo>

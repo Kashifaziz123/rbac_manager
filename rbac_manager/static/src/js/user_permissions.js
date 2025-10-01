@@ -9,38 +9,38 @@ import {registry} from "@web/core/registry";
 import {loadCSS} from "@web/core/assets";
 
 
-export class RBACRoleTemplates extends Component {
-    static template = "rbac.RoleTemplates";
+export class RBACUserPermissions extends Component {
+    static template = "rbac.UserPermissions";
 
     setup() {
         super.setup();
         this.dialogService = useService("dialog");
         this.orm = useService("orm");
-        this.form = useRef("RoleTemplatesForm");
+        this.form = useRef("UserRolesForm");
         this.searchInput = useRef("searchInput");
         this.categories = useState({});
-        this.record_id = this.props?.action?.context?.self_id;
+        this.record_id = this.props?.action?.context?.active_id;
         this.custom_props = {
             'original_data': {},
             'changed_data': {},
         }
 
-        useEffect(
-            () => {
-                this.enabled_inputs_length();
-            },
-            () => [this.categories]  // Dependency function - runs when this.form.el changes
-        );
+        // useEffect(
+        //     () => {
+        //         this.enabled_inputs_length();
+        //     },
+        //     () => [this.categories]  // Dependency function - runs when this.form.el changes
+        // );
 
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
-            loadCSS('/rbac_manager/static/src/js/role_templates.css');
+            loadCSS('/rbac_manager/static/src/js/user_permissions.css');
         });
 
-        onMounted(() => {
-            this.enabled_inputs_length();
-        });
+        // onMounted(() => {
+        //     this.enabled_inputs_length();
+        // });
 
     }
 
@@ -196,7 +196,8 @@ export class RBACRoleTemplates extends Component {
     //  model CRUD functions
     //
     async fetch_data() {
-        this.categories = await this.orm.call("res.groups", "get_categories_groups_json", [], {'user_id': this.record_id});
+        this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name"]);
+        this.data = await this.orm.call("res.users", "get_user_permissions_json", [this.record_id]);
 
         this.custom_props.original_data = JSON.parse(JSON.stringify(this.categories));
         this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
@@ -263,4 +264,4 @@ export class RBACRoleTemplates extends Component {
     }
 }
 
-registry.category("actions").add("rbac.role_templates", RBACRoleTemplates);
+registry.category("actions").add("rbac.user_permission", RBACUserPermissions);

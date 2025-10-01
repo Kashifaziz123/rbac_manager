@@ -11,6 +11,7 @@ class ResUsers(models.Model):
 
     perm_groups_id = fields.Many2many('res.groups', 'res_groups_users_rel', 'uid', 'gid',
                                       string='Groups ', default=lambda s: s._default_groups())
+    is_user_role = fields.Boolean(string='User Role', default=False)
 
     def open_permission_window(self):
         domain = []
@@ -33,33 +34,33 @@ class ResUsers(models.Model):
             'domain': domain,
         }
 
-    def open_user_templates_window(self):
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'User Templates',
-            'res_model': 'res.users',
-            'view_mode': 'list,form',
-            'domain': [('active', '=', False), ('name', 'ilike', 'template')],
-            'context': {'default_active': False, 'default_name': 'New Template'},
-        }
-
-    def client_action_view_role_template(self):
+    def client_action_view_user_role(self):
         return {
             'type': 'ir.actions.client',
-            'name': 'Role Templates',
-            'tag': 'rbac.role_templates',
+            'name': 'User Roles',
+            'tag': 'rbac.user_role',
             'target': 'self',
             'context': {'self_name': self.name, 'self_id': self.id},
         }
 
-    def open_role_templates_window(self):
+    def client_action_view_user_permission(self):
+        return {
+            'type': 'ir.actions.client',
+            'name': 'User Permissions',
+            'tag': 'rbac.user_permission',
+            'target': 'self',
+            'context': {'self_name': self.name, 'self_id': self.id},
+        }
+
+    def open_user_role_window(self):
+        view = self.env.ref('rbac_manager.act_window_res_users_list_user_role')
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Role Templates',
+            'name': 'User Roles',
             'res_model': 'res.users',
             'view_mode': 'list',
-            'domain': [('active', '=', False), ('name', 'ilike', 'template')],
-            'context': {'default_active': False, 'default_name': 'New Template'},
+            'domain': [('active', '=', False), ('is_user_role', '=', True)],
+            'context': {'default_active': False, 'default_name': 'New User Role'},
         }
 
     def open_template_wizard(self):
@@ -108,21 +109,46 @@ class ResUsers(models.Model):
 
     #  Name must end with 'User Template'
     #
-    def write(self, vals):
-        result = super().write(vals)
-        if (self._context.get('default_name', '') == 'New Template' and
-                vals.get('name') and not self.name.endswith("User Template")):
-            raise exceptions.AccessDenied(_("Name must end with 'User Template'"))
-        return result
+    # def write(self, vals):
+    #     result = super().write(vals)
+    #     if (self._context.get('default_name', '') == 'New User Role' and
+    #             vals.get('name') and not self.name.endswith("User Template")):
+    #         raise exceptions.AccessDenied(_("Name must end with 'User Template'"))
+    #     return result
 
     @api.model_create_multi
     def create(self, vals_list):
-        if self._context.get('default_name', '') == 'New Template':
+        if self._context.get('default_name', '') == 'New User Role':
             for vals in vals_list:
-                if vals.get('name') and not vals['name'].endswith("User Template"):
-                    vals.update({'name': vals['name'] + ' User Template'})
+                # if vals.get('name') and not vals['name'].endswith("User Template"):
+                #     vals.update({'name': vals['name'] + ' User Template'})
                 vals.update({'login': vals['name']})
         records = super().create(vals_list)
-        for record in records:
-            record.groups_id = [(5, 0, 0)]
+        if self._context.get('default_name', '') == 'New User Role':
+            for record in records:
+                record.groups_id = [(5, 0, 0)]
         return records
+
+    def get_user_permissions_json(self):
+        if self.is_user_role:
+            groups = self.env['res.groups']
+        else:
+            groups = self.sudo().groups_id
+            categ_dict = {}
+            categories = groups.get_categories_groups_json(self.id)
+            for category in categories:
+                categ_dict[category] = {
+                    'granted': len([c for c in categories[category].keys() if categories[category][c]['value'] != False]),
+                    'total': len(categories[category].keys())
+                }
+
+        return {
+            'total': {
+                'granted': len(groups),
+                'denied': len(self.env['res.groups'].sudo().search([])) - len(groups),
+                'high_risk_granted': len(groups.filtered(lambda g: g.risk_level == 'high')),
+            },
+            'updated_on': self.write_date,
+            'categories': categ_dict,
+            'all_categories': categories,
+        }

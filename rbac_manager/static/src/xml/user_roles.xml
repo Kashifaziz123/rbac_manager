@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--<templates id="template" xml:space="preserve">-->
 <templates id="template">
-    <t t-name="rbac.RoleTemplates">
+    <t t-name="rbac.UserRoles">
         <!--        <div class="container" style="overflow-y: auto;height: 100%;">-->
         <!--            <div class="row">-->
         <!--                <div class="col-3">-->
@@ -44,7 +43,7 @@
         <!--                        </div>-->
         <!--                    </div>-->
 
-        <!--                    <form t-ref="RoleTemplatesForm">-->
+        <!--                    <form t-ref="UserRolesForm">-->
         <!--                        <t t-foreach="categories" t-as="category" t-key="category">-->
         <!--                            <div style="width:100%;border: 1px solid black;border-radius: 20px;padding: 6px 15px;margin: 15px;">-->
         <!--                                <div class="row">-->
@@ -109,10 +108,10 @@
         <div class="container role_template">
             <div class="header">
                 <p>
-                    <a href="/odoo/role_templates">Role Template</a>
+                    <a href="/odoo/user_roles">Role Template</a>
                 </p>
                 <h1>Define Role Template:
-                    <t t-esc="this.props?.action?.context?.self_name"/>
+                    <t t-esc="this.user[0]?.name"/>
                 </h1>
                 <p>Configure permissions and access rights for this role template</p>
             </div>
@@ -149,7 +148,7 @@
                     <div>Actions</div>
                 </div>
 
-                <form t-ref="RoleTemplatesForm">
+                <form t-ref="UserRolesForm">
                     <t t-foreach="categories" t-as="category" t-key="category">
                         <div class="category-section">
                             <div class="category-header" t-on-click="(ev) => this.toggle_category_section(ev.target)">
