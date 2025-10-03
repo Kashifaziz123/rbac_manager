@@ -1,0 +1,9 @@
+<odoo>
+    <data>
+        <record id="view_res_users_client_manage_permission" model="ir.actions.client">
+            <field name="name">Manage Permissions</field>
+            <field name="tag">rbac.manage_permission</field>
+            <field name="path">manage_permission</field>
+        </record>
+    </data>
+</odoo>

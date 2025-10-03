@@ -9,6 +9,7 @@
 
 body.o_web_client div.o_action_manager div.user_permission {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: normal;
     background: #f5f7fa;
     color: #333;
 }

@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.SuperAdmin">
+        <div class="container rbac_super_admin">
+            <div class="header">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <t t-esc="this.getInitials(this.user[0]?.name)"/>
+                    </div>
+                    <div class="user-details">
+                        <h1>Manage Permissions:
+                            <t t-esc="this.user[0]?.name"/>
+                        </h1>
+                        <p>Mathematics Department • Employee ID: #EMP001</p>
+                    </div>
+                    <div class="access-level">
+                        👑 Super Admin Access
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="/odoo/super_admin" class="btn btn-secondary">← Back to Details</a>
+                    <button class="btn btn-warning">📊 Generate Report</button>
+                    <button class="btn btn-primary">💾 Save Changes</button>
+                </div>
+            </div>
+
+            <!-- Super Admin Toolbar -->
+            <div class="admin-toolbar">
+                <div class="toolbar-header">
+                    <div class="toolbar-title">
+                        ⚡ Super Admin Controls
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn btn-secondary btn-small">📋 View Change Log</button>
+                        <button class="btn btn-warning btn-small">🔄 Sync with HR</button>
+                        <button class="btn btn-danger btn-small">🚨 Emergency Override</button>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="quick-action" t-on-click="(ev) => this.toggle_all_checked_enabled(1)">
+                        ✅ Grant All Permissions
+                    </div>
+                    <div class="quick-action" t-on-click="(ev) => this.toggle_all_checked_enabled(0)">
+                        ❌ Revoke All Permissions
+                    </div>
+                    <div class="quick-action" onclick="cloneFromUser()">
+                        👤 Clone from Another User
+                    </div>
+                    <div class="quick-action" onclick="bulkRoleAssignment()">
+                        📦 Bulk Role Assignment
+                    </div>
+                    <div class="quick-action" onclick="temporaryElevation()">
+                        ⏰ Temporary Elevation
+                    </div>
+                    <div class="quick-action" onclick="exportPermissions()">
+                        📤 Export Permissions
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <!-- Current Roles Section -->
+                <div class="section">
+                    <h2>👥 Assigned Roles</h2>
+                </div>
+
+                <!-- Available Roles Section -->
+                <div class="section">
+                    <h2>➕ Available Roles</h2>
+                    <div class="available-roles">
+                        <t t-foreach="this.data?.available_roles" t-as="role" t-key="role">
+                            <div class="role-item available">
+                                <div class="role-info">
+                                    <div class="role-icon librarian">
+                                        <t t-esc="role?.name[0]"/>
+                                    </div>
+                                    <div class="role-details">
+                                        <h4>
+                                            <t t-esc="role.name"/>
+                                        </h4>
+                                        <p>
+                                            <t t-esc="role.permissions_count"/>
+                                            permissions •
+                                            <t t-esc="role.description"/>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="role-actions">
+                                    <button class="btn btn-primary btn-small">+ Assign</button>
+                                    <button class="btn btn-secondary btn-small"
+                                            t-on-click="(ev) => this.view_user_role(role.id)">👁️ Preview
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direct Permission Management -->
+            <div class="permissions-section">
+                <div class="permissions-header">
+                    <h2>🔐 Direct Permission Management</h2>
+                    <div class="permissions-filters">
+                        <div class="filter-tab active all" t-on-click="(ev) => this.toggle_filters(ev.target)">
+                            All (<t t-esc="this.data?.all_groups_count"/>)
+                        </div>
+                        <div class="filter-tab granted" t-on-click="(ev) => this.toggle_filters(ev.target)">
+                            Granted (<t t-esc="this.data?.is_granted"/>)
+                        </div>
+                        <div class="filter-tab denied" t-on-click="(ev) => this.toggle_filters(ev.target)">
+                            Denied (<t t-esc="this.data?.is_denied"/>)
+                        </div>
+                        <div class="filter-tab high_risk" t-on-click="(ev) => this.toggle_filters(ev.target)">
+                            High Risk (<t t-esc="this.data?.is_high_risk"/>)
+                        </div>
+                        <div class="filter-tab">
+                            Overrides (??)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permissions-grid">
+                    <t t-set="categories" t-value="this.data?.all_categories || {}"/>
+                    <t t-foreach="categories" t-as="category" t-key="category">
+                        <div class="permission-category">
+                            <div class="category-header" t-on-click="(ev) => this.toggle_category_section(ev.target)">
+                                <div class="category-info">
+                                    <div class="category-icon academics">
+                                        <t t-esc="this.getInitials(category)"/>
+                                    </div>
+                                    <div class="category-title">
+                                        <t t-esc="category"/>
+                                    </div>
+                                </div>
+                                <div class="category-stats">
+                                    <span>
+                                        <t t-esc="Object.keys(categories[category]).length"/>
+                                        permissions
+                                    </span>
+                                    <span>
+                                        <span class="enabled_count"/>
+                                        enabled
+                                    </span>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="btn btn-secondary btn-small"
+                                            t-on-click="(ev) => this.toggle_category_all_checked_enabled(1, ev.target)">
+                                        ✅ Enable All
+                                    </button>
+                                    <button class="btn btn-danger btn-small"
+                                            t-on-click="(ev) => this.toggle_category_all_checked_enabled(0, ev.target)">
+                                        ❌ Disable All
+                                    </button>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                            </div>
+
+                            <div class="category-content">
+                                <t t-foreach="categories[category]" t-as="field" t-key="field">
+                                    <t t-if="categories[category][field]['group']">
+                                        <div class="permission-item">
+                                            <div class="permission-details">
+                                                <h5>
+                                                    <t t-esc="categories[category][field]['group']['name']"/>
+                                                </h5>
+                                                <div class="permission-code"></div>
+                                            </div>
+                                            <div t-att-class="'risk-badge ' +  categories[category][field]['group']['risk_level']">
+                                                <t t-esc="categories[category][field]['group']['risk_level']"/>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox"
+                                                       t-att-name="field"
+                                                       t-att-checked="categories[category][field]['value']"
+                                                       t-on-change="(ev) => this.update_values(ev.target)"
+                                                />
+                                                <span class="slider"/>
+                                            </label>
+                                            <button class="btn btn-secondary btn-small">⚙️ Configure</button>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-foreach="categories[category][field]['groups']" t-as="group"
+                                           t-key="group.id">
+                                            <div class="permission-item">
+                                                <div class="permission-details">
+                                                    <h5>
+                                                        <t t-esc="group.name"/>
+                                                    </h5>
+                                                    <div class="permission-code"></div>
+                                                </div>
+                                                <div t-att-class="'risk-badge ' +  group.risk_level">
+                                                    <t t-esc="group.risk_level"/>
+                                                </div>
+                                                <label class="toggle-switch">
+                                                    <input type="radio"
+                                                           t-att-name="field"
+                                                           t-att-value="group.id"
+                                                           t-att-checked="group.id === categories[category][field]['value'] ? 'checked' : undefined"
+                                                           t-on-change="(ev) => this.update_values(ev.target)"
+                                                    />
+                                                    <span class="slider"/>
+                                                </label>
+                                                <button class="btn btn-secondary btn-small">⚙️ Configure</button>
+                                            </div>
+                                        </t>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+
+                </div>
+            </div>
+
+            <!-- Recent Activity Audit Log -->
+            <div class="audit-log">
+                <h2>📋 Recent Permission Changes</h2>
+            </div>
+
+            <!-- Floating Super Admin Panel -->
+            <div class="floating-admin-panel">
+                <div class="admin-panel-header">🔥 SUPER ADMIN</div>
+                <div class="admin-quick-actions">
+                    <button class="admin-action-btn grant-all" t-on-click="(ev) => this.toggle_all_checked_enabled(1)">
+                        ⚡ Emergency Grant All
+                    </button>
+                    <button class="admin-action-btn revoke-all" t-on-click="(ev) => this.toggle_all_checked_enabled(0)">
+                        🚨 Emergency Revoke All
+                    </button>
+                    <button class="admin-action-btn bulk-edit" onclick="bulkEditor()">
+                        📝 Bulk Permission Editor
+                    </button>
+                    <button class="admin-action-btn audit" onclick="fullAuditReport()">
+                        📊 Full Audit Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

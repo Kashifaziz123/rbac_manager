@@ -1,114 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template">
     <t t-name="rbac.UserRoles">
-        <!--        <div class="container" style="overflow-y: auto;height: 100%;">-->
-        <!--            <div class="row">-->
-        <!--                <div class="col-3">-->
-        <!--                    <h5 style="padding: 26px 0px 10px 0px;">Categories</h5>-->
-        <!--                    <div style="width:100%;border: 1px solid black;border-radius: 20px;padding: 6px 15px;margin: 5px;">-->
-        <!--                        All (final review)-->
-        <!--                    </div>-->
-        <!--                    <t t-foreach="categories" t-as="category" t-key="category">-->
-        <!--                        <div style="width:100%;border: 1px solid black;border-radius: 20px;padding: 6px 15px;margin: 5px;"-->
-        <!--                             t-esc="category"/>-->
-        <!--                    </t>-->
-        <!--                </div>-->
-        <!--                <div class="col-9">-->
-        <!--                    <div style="width:100%;border: 1px solid black;border-radius: 20px;padding: 6px 15px;margin: 15px;"-->
-        <!--                         class="row">-->
-        <!--                        <div class="col-8">-->
-        <!--                            <span style="font-size: small;">-->
-        <!--                                <a href="/odoo/role_templates">Role Template</a>-->
-        <!--                                /-->
-        <!--                                <t t-esc="this.props?.action?.context?.self_name"/>-->
-        <!--                            </span>-->
-        <!--                            <br/>-->
-        <!--                            <span style="font-size: large;font-weight: bold;">-->
-        <!--                                Define Role Template-->
-        <!--                            </span>-->
-        <!--                            <br/>-->
-        <!--                            <span style="font-weight: 300;">-->
-        <!--                                Enable or disable groups and access rights for this role.-->
-        <!--                            </span>-->
-        <!--                        </div>-->
-        <!--                        <div class="col-4" style="align-content: center;">-->
-        <!--                            <div style="justify-self: center;" t-if="this.props?.action?.context?.self_name">-->
-        <!--                                <button class="btn btn-outline-danger" t-on-click="discardRecord">-->
-        <!--                                    Discard-->
-        <!--                                </button>-->
-        <!--                                <button class="btn btn-outline-primary" t-on-click="writeRecord">-->
-        <!--                                    Save Template-->
-        <!--                                </button>-->
-        <!--                            </div>-->
-        <!--                        </div>-->
-        <!--                    </div>-->
-
-        <!--                    <form t-ref="UserRolesForm">-->
-        <!--                        <t t-foreach="categories" t-as="category" t-key="category">-->
-        <!--                            <div style="width:100%;border: 1px solid black;border-radius: 20px;padding: 6px 15px;margin: 15px;">-->
-        <!--                                <div class="row">-->
-        <!--                                    <div class="col-8">-->
-        <!--                                        <div style="padding: 6px 0px;" t-esc="category"/>-->
-        <!--                                    </div>-->
-        <!--                                    <div class="col-4" style="text-align-last: right;">-->
-        <!--                                        ?/-->
-        <!--                                        <t t-esc="Object.keys(categories[category]).length"/>-->
-        <!--                                        <span>enabled</span>-->
-        <!--                                    </div>-->
-        <!--                                </div>-->
-        <!--                                <table style="width:100%">-->
-        <!--                                    <thead>-->
-        <!--                                        <tr>-->
-        <!--                                            <th style="width:80%;">Group</th>-->
-        <!--                                            <th style="width:10%;">Risk</th>-->
-        <!--                                            <th style="width:10%;">Enabled</th>-->
-        <!--                                        </tr>-->
-        <!--                                    </thead>-->
-        <!--                                    <tbody>-->
-        <!--                                        <t t-foreach="categories[category]" t-as="field" t-key="field">-->
-        <!--                                            <tr t-if="categories[category][field]['group']">-->
-        <!--                                                <td style="padding: 0px 12px;"-->
-        <!--                                                    t-esc="categories[category][field]['group']['name']"/>-->
-        <!--                                                <td style="padding: 0px 12px;">-->
-        <!--                                                    N/A-->
-        <!--                                                </td>-->
-        <!--                                                <td style="padding: 0px 12px;">-->
-        <!--                                                    <input type="checkbox"-->
-        <!--                                                           t-att-name="field"-->
-        <!--                                                           t-att-checked="categories[category][field]['value']"/>-->
-        <!--                                                </td>-->
-        <!--                                            </tr>-->
-        <!--                                            <t t-else="">-->
-        <!--                                                <tr t-foreach="categories[category][field]['groups']" t-as="group"-->
-        <!--                                                    t-key="group.id">-->
-        <!--                                                    <td style="padding: 0px 12px;">-->
-        <!--                                                        <t t-esc="group.name"/>-->
-        <!--                                                    </td>-->
-        <!--                                                    <td style="padding: 0px 12px;">-->
-        <!--                                                        N/A-->
-        <!--                                                    </td>-->
-        <!--                                                    <td style="padding: 0px 12px;">-->
-        <!--                                                        <input type="radio"-->
-        <!--                                                               t-att-name="field"-->
-        <!--                                                               t-att-value="group.id"-->
-        <!--                                                               t-att-checked="categories[category][field]['value']"/>-->
-        <!--                                                    </td>-->
-        <!--                                                </tr>-->
-        <!--                                            </t>-->
-        <!--                                        </t>-->
-        <!--                                    </tbody>-->
-        <!--                                </table>-->
-        <!--                            </div>-->
-        <!--                        </t>-->
-        <!--                    </form>-->
-        <!--                </div>-->
-        <!--            </div>-->
-        <!--        </div>-->
-
         <div class="container role_template">
             <div class="header">
                 <p>
-                    <a href="/odoo/user_roles">Role Template</a>
+                    <a t-att-href=" this.is_wizard ? void(0) : '/odoo/user_roles' ">Role Template</a>
                 </p>
                 <h1>Define Role Template:
                     <t t-esc="this.user[0]?.name"/>
@@ -133,9 +29,13 @@
                     </div>
 
                     <div class="risk-filter">
-                        <div class="risk-badge low" t-on-click="(ev) => this.toggle_risk_level(ev.target)">Low Risk</div>
-                        <div class="risk-badge medium" t-on-click="(ev) => this.toggle_risk_level(ev.target)">Medium Risk</div>
-                        <div class="risk-badge high" t-on-click="(ev) => this.toggle_risk_level(ev.target)">High Risk</div>
+                        <div class="risk-badge low" t-on-click="(ev) => this.toggle_risk_level(ev.target)">Low Risk
+                        </div>
+                        <div class="risk-badge medium" t-on-click="(ev) => this.toggle_risk_level(ev.target)">Medium
+                            Risk
+                        </div>
+                        <div class="risk-badge high" t-on-click="(ev) => this.toggle_risk_level(ev.target)">High Risk
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,11 +48,13 @@
                     <div>Actions</div>
                 </div>
 
-                <form t-ref="UserRolesForm">
+                <form>
                     <t t-foreach="categories" t-as="category" t-key="category">
                         <div class="category-section">
                             <div class="category-header" t-on-click="(ev) => this.toggle_category_section(ev.target)">
-                                <!--                        <div class="category-icon academics">AC</div>-->
+                                <div class="category-icon academics">
+                                    <t t-esc="this.getInitials(category)"/>
+                                </div>
                                 <div class="category-title">
                                     <t t-esc="category"/>
                                 </div>

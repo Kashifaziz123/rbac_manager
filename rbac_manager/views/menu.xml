@@ -10,6 +10,8 @@
                   action="rbac_manager.act_window_res_users_list_user_role" groups="base.group_system"/>
         <menuitem id="menu_user_permissions" name="User Permissions" parent="base.menu_users"
                   action="rbac_manager.act_window_res_users_list_user_permission" groups="base.group_system"/>
+        <menuitem id="menu_super_admin" name="Super Admin" parent="base.menu_users"
+                  action="rbac_manager.act_window_res_users_list_super_admin" groups="base.group_system"/>
 
         <!--        Inherit       -->
         <record id="base.menu_custom" model="ir.ui.menu">
@@ -23,9 +25,9 @@
             <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
             <field name="name">Users</field>
         </record>
-        <record id="base.menu_action_res_users" model="ir.ui.menu">
-            <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
-            <field name="name">Groups</field>
-        </record>
+<!--        <record id="base.menu_action_res_users" model="ir.ui.menu">-->
+<!--            <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>-->
+<!--            <field name="name">Groups</field>-->
+<!--        </record>-->
     </data>
 </odoo>

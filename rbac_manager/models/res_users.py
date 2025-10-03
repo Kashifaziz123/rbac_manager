@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, exceptions, _
-
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 # ----------------------------------------------------------
 # Basic res.users
@@ -12,6 +13,7 @@ class ResUsers(models.Model):
     perm_groups_id = fields.Many2many('res.groups', 'res_groups_users_rel', 'uid', 'gid',
                                       string='Groups ', default=lambda s: s._default_groups())
     is_user_role = fields.Boolean(string='User Role', default=False)
+    description = fields.Char(string='Description')
 
     def open_permission_window(self):
         domain = []
@@ -40,7 +42,6 @@ class ResUsers(models.Model):
             'name': 'User Roles',
             'tag': 'rbac.user_role',
             'target': 'self',
-            'context': {'self_name': self.name, 'self_id': self.id},
         }
 
     def client_action_view_user_permission(self):
@@ -48,12 +49,29 @@ class ResUsers(models.Model):
             'type': 'ir.actions.client',
             'name': 'User Permissions',
             'tag': 'rbac.user_permission',
+            'path': 'view_user_permission',
             'target': 'self',
-            'context': {'self_name': self.name, 'self_id': self.id},
+        }
+
+    def client_action_view_manage_permission(self):
+        return {
+            'type': 'ir.actions.client',
+            'name': 'Manage Permissions',
+            'tag': 'rbac.manage_permission',
+            'path': 'manage_permission',
+            'target': 'self',
+        }
+
+    def client_action_view_super_admin(self):
+        return {
+            'type': 'ir.actions.client',
+            'name': 'Super Admin',
+            'tag': 'rbac.super_admin',
+            'path': 'view_super_admin',
+            'target': 'self',
         }
 
     def open_user_role_window(self):
-        view = self.env.ref('rbac_manager.act_window_res_users_list_user_role')
         return {
             'type': 'ir.actions.act_window',
             'name': 'User Roles',
@@ -130,25 +148,112 @@ class ResUsers(models.Model):
         return records
 
     def get_user_permissions_json(self):
-        if self.is_user_role:
-            groups = self.env['res.groups']
-        else:
+        def get_time_passed(dt, now=None):
+            if not dt:
+                return "0minutes"
+
+            if now is None:
+                now = datetime.utcnow()
+
+            future = dt > now
+            start, end = (now, dt) if future else (dt, now)
+            rd = relativedelta(end, start)
+
+            if rd.years >= 1:
+                pair = (("year", rd.years), ("month", rd.months))
+            elif rd.months >= 1:
+                pair = (("month", rd.months), ("day", rd.days))
+            elif rd.days >= 1:
+                pair = (("day", rd.days), ("hour", rd.hours))
+            else:
+                pair = (("hour", rd.hours), ("minute", rd.minutes))
+
+            p = lambda n, s: f"{n}{s}{'s' * (n != 1)}"
+            # build result with only non-zero parts
+            a, b = pair
+            parts = ([p(a[1], a[0])] if a[1] else []) + ([p(b[1], b[0])] if b[1] else [])
+
+            if not parts:
+                parts = ["0minutes"]
+
+            return ("-" if future else "") + " ".join(parts)
+
+        try:
             groups = self.sudo().groups_id
             categ_dict = {}
             categories = groups.get_categories_groups_json(self.id)
             for category in categories:
                 categ_dict[category] = {
-                    'granted': len([c for c in categories[category].keys() if categories[category][c]['value'] != False]),
+                    'granted': len([c for c in categories[category].keys() if
+                                    categories[category][c]['value'] != False]),
                     'total': len(categories[category].keys())
                 }
+            return {
+                'total': {
+                    'granted': len(groups),
+                    'denied': len(self.env['res.groups'].sudo().search([])) - len(groups),
+                    'high_risk_granted': len(
+                        groups.filtered(lambda g: g.risk_level == 'high')),
+                },
+                'updated_on': get_time_passed(self.write_date),
+                'categories': categ_dict,
+                'all_categories': categories,
+                'error': False,
+            }
+        except:
+            return {
+                'total': {
+                    'granted': 0,
+                    'denied': 0,
+                    'high_risk_granted': 0,
+                },
+                'updated_on': '0 seconds',
+                'categories': {},
+                'all_categories': {},
+                'error': True,
+            }
 
-        return {
-            'total': {
-                'granted': len(groups),
-                'denied': len(self.env['res.groups'].sudo().search([])) - len(groups),
-                'high_risk_granted': len(groups.filtered(lambda g: g.risk_level == 'high')),
-            },
-            'updated_on': self.write_date,
-            'categories': categ_dict,
-            'all_categories': categories,
-        }
+    def get_manage_permissions_json(self):
+        try:
+            return {
+                'available_roles': [
+                    {
+                        'id': user.id,
+                        'name': user.name,
+                        'description': user.description or "",
+                        'permissions_count': len(user.sudo().groups_id)
+                    } for user in
+                    self.search([('active', '=', False), ('is_user_role', '=', True)])
+                ],
+                'error': False,
+            }
+        except:
+            return {
+                'available_roles': [],
+                'error': True,
+            }
+
+    def get_rbac_super_admin_json(self):
+        try:
+            groups = self.sudo().groups_id
+            categories = groups.get_categories_groups_json(self.id)
+
+            return {
+                'available_roles': [
+                    {
+                        'id': user.id,
+                        'name': user.name,
+                        'description': user.description or "",
+                        'permissions_count': len(user.sudo().groups_id)
+                    } for user in
+                    self.search([('active', '=', False), ('is_user_role', '=', True)])
+                ],
+                'all_categories': categories,
+                'error': False,
+            }
+        except:
+            return {
+                'available_roles': [],
+                'all_categories': [],
+                'error': True,
+            }

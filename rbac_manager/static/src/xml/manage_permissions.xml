@@ -4,21 +4,27 @@
         <div class="container manage_permission">
             <div class="header">
                 <div class="user-info">
-                    <div class="user-avatar">EP</div>
+                    <div class="user-avatar">
+                        <t t-esc="this.getInitials(this.user[0]?.name)"/>
+                    </div>
                     <div class="user-details">
-                        <h1>Manage Permissions: Emma Parker</h1>
+                        <h1>Manage Permissions:
+                            <t t-esc="this.user[0]?.name"/>
+                        </h1>
                         <p>Mathematics Department • Employee ID: #EMP001</p>
                     </div>
                     <div class="access-level">Permission Manager View</div>
                 </div>
                 <div class="header-actions">
-                    <a href="#" class="btn btn-secondary">← Back to Details</a>
+                    <a t-att-href="'/odoo/view_user_permission/' + this.record_id" class="btn btn-secondary">
+                        ← Back to Details
+                    </a>
                     <button class="btn btn-primary">💾 Save Changes</button>
                 </div>
             </div>
 
             <!-- Pending Requests (visible to Super Admin) -->
-            <div class="pending-requests">
+            <div class="pending-requests" style="display:none;">
                 <h2>📋 Pending Permission Requests</h2>
                 <div class="request-item">
                     <div class="request-info">
@@ -41,65 +47,36 @@
                 <!-- Current Roles Section -->
                 <div class="section">
                     <h2>👥 Assigned Roles</h2>
-
-                    <div class="role-item">
-                        <div class="role-info">
-                            <div class="role-icon teacher">T</div>
-                            <div class="role-details">
-                                <h4>Teacher</h4>
-                                <p>29 permissions • Assigned 3 months ago</p>
-                            </div>
-                        </div>
-                        <div class="role-actions">
-                            <button class="btn btn-secondary btn-small">👁️ View</button>
-                            <button class="btn btn-danger btn-small">✗ Remove</button>
-                        </div>
-                    </div>
-
-                    <div class="role-item">
-                        <div class="role-info">
-                            <div class="role-icon attendance">A</div>
-                            <div class="role-details">
-                                <h4>Attendance Manager</h4>
-                                <p>12 permissions • Assigned 1 month ago</p>
-                            </div>
-                        </div>
-                        <div class="role-actions">
-                            <button class="btn btn-secondary btn-small">👁️ View</button>
-                            <button class="btn btn-danger btn-small">✗ Remove</button>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Available Roles Section -->
                 <div class="section">
                     <h2>➕ Available Roles</h2>
                     <div class="available-roles">
-                        <div class="role-item available">
-                            <div class="role-info">
-                                <div class="role-icon" style="background: #8b5cf6;">L</div>
-                                <div class="role-details">
-                                    <h4>Librarian</h4>
-                                    <p>15 permissions • Library management access</p>
+                        <t t-foreach="this.data?.available_roles" t-as="role" t-key="role">
+                            <div class="role-item available">
+                                <div class="role-info">
+                                    <div class="role-icon" style="background: #8b5cf6;">
+                                        <t t-esc="role?.name[0]"/>
+                                    </div>
+                                    <div class="role-details">
+                                        <h4>
+                                            <t t-esc="role.name"/>
+                                        </h4>
+                                        <p>
+                                            <t t-esc="role.permissions_count"/>
+                                            permissions •
+                                            <t t-esc="role.description"/>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="role-actions">
+                                    <button class="btn btn-primary btn-small role_assign">
+                                        + Assign
+                                    </button>
                                 </div>
                             </div>
-                            <div class="role-actions">
-                                <button class="btn btn-primary btn-small">+ Assign</button>
-                            </div>
-                        </div>
-
-                        <div class="role-item available">
-                            <div class="role-info">
-                                <div class="role-icon" style="background: #f59e0b;">E</div>
-                                <div class="role-details">
-                                    <h4>Event Coordinator</h4>
-                                    <p>8 permissions • Event and activity management</p>
-                                </div>
-                            </div>
-                            <div class="role-actions">
-                                <button class="btn btn-primary btn-small">+ Assign</button>
-                            </div>
-                        </div>
+                        </t>
                     </div>
                 </div>
             </div>
@@ -108,7 +85,7 @@
             <div class="section" style="margin-bottom: 24px;">
                 <h2>⚠️ Current Exceptions</h2>
 
-                <div class="exception-item">
+                <div class="exception-item" style="display:none;">
                     <div class="exception-info">
                         <h4>Publish Results</h4>
                         <div class="exception-code">academic.result.publish</div>
@@ -116,22 +93,6 @@
                             <div class="exception-type extra">Extra Permission</div>
                             <div class="exception-date">Added: 2 weeks ago</div>
                             <div class="exception-date">Expires: 45 days</div>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-small">📝 Edit</button>
-                        <button class="btn btn-danger btn-small">🗑️ Remove</button>
-                    </div>
-                </div>
-
-                <div class="exception-item">
-                    <div class="exception-info">
-                        <h4>Create Fee Documents</h4>
-                        <div class="exception-code">fee.create</div>
-                        <div class="exception-meta">
-                            <div class="exception-type exclusion">Exclusion</div>
-                            <div class="exception-date">Added: 1 month ago</div>
-                            <div class="exception-date">Permanent</div>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">

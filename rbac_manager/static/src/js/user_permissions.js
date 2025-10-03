@@ -1,8 +1,7 @@
 /* @odoo-module */
 
-import {Component, onMounted, onWillStart, useEffect, useRef, useState} from "@odoo/owl";
-import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {ensureJQuery} from '@web/core/ensure_jquery';
+import {Component, onWillStart} from "@odoo/owl";
 import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
@@ -14,184 +13,99 @@ export class RBACUserPermissions extends Component {
 
     setup() {
         super.setup();
-        this.dialogService = useService("dialog");
+        this.notification = useService("notification");
+        this.action = useService("action");
         this.orm = useService("orm");
-        this.form = useRef("UserRolesForm");
-        this.searchInput = useRef("searchInput");
-        this.categories = useState({});
-        this.record_id = this.props?.action?.context?.active_id;
-        this.custom_props = {
-            'original_data': {},
-            'changed_data': {},
-        }
-
-        // useEffect(
-        //     () => {
-        //         this.enabled_inputs_length();
-        //     },
-        //     () => [this.categories]  // Dependency function - runs when this.form.el changes
-        // );
+        this.record_id = this.props?.action?.context?.active_id || this.props?.resId;
+        this.custom_props = {'original_data': {}}
+        this.data = {}
 
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
-            loadCSS('/rbac_manager/static/src/js/user_permissions.css');
-        });
-
-        // onMounted(() => {
-        //     this.enabled_inputs_length();
-        // });
-
-    }
-
-    enabled_inputs_length() {
-        $('.category-section').each(function () {
-            const $inputs = $(this).find('input');
-
-            // Count inputs that are both checked AND enabled
-            const checkedAndEnabledCount = $inputs.filter(':checked:not(:disabled)').length;
-            $(this).find('.enabled_count').text(checkedAndEnabledCount);
+            loadCSS('/rbac_manager/static/src/css/user_permissions.css');
         });
     }
     //
     // toggle functions
     //
-    toggle_risk_level(ev) {
-        $(ev).toggleClass('active');
+    toggle_filters(ev) {
+        var risk_filter = $('.table-filters');
+        risk_filter.find('.filter-tab').removeClass('active');
+        $(ev).addClass('active');
         this.apply_search();
     }
-    toggle_category_section(ev){
-        $(ev).toggleClass('closed');
-    }
+
     //
     // onchange functions
     //
-    update_values(ev) {
-        const fieldName = $(ev).attr('name');
-        var newValue = false;
-        if ($(ev).filter(':checked:not(:disabled)').length) {
-            newValue = $(ev).val();
-        }
-
-        newValue = newValue === 'on' ? true : parseInt(newValue);
-
-        // Search through all categories
-        for (let category in this.custom_props.original_data) {
-            if (this.custom_props.original_data[category][fieldName]) {
-                this.custom_props.changed_data[category][fieldName].value = newValue;
-                break;
-            }
-        }
-    }
-
     apply_search() {
-        var searchStr = this.searchInput.el.value;
-        var risk_filter = $('.risk-filter')
-        var is_low = risk_filter.find('.low.active').length
-        var is_medium = risk_filter.find('.medium.active').length
-        var is_high = risk_filter.find('.high.active').length
+        const $rf = $('.table-filters');
+        const is_all = $rf.find('.all.active').length;
+        const is_granted = $rf.find('.granted.active').length;
+        const is_denied = $rf.find('.denied.active').length;
+        const is_high_risk = $rf.find('.high_risk.active').length;
 
-        function filterByGroupName(js_dict) {
-            let filteredDict = JSON.parse(JSON.stringify(js_dict)); // Deep copy
-            const result = {};
+        const mode = is_all ? 'all' : is_granted ? 'granted' : is_denied ? 'denied' : is_high_risk ? 'high' : null;
 
-            // Step 1: Filter by risk levels if any are specified
-            if (is_low || is_medium || is_high) {
-                const allowedRiskLevels = [];
-                if (is_low) allowedRiskLevels.push('low');
-                if (is_medium) allowedRiskLevels.push('medium');
-                if (is_high) allowedRiskLevels.push('high');
+        const src = this.custom_props.original_data;
 
-                // Iterate through categories
-                for (let categoryName in filteredDict) {
-                    const category = filteredDict[categoryName];
+        if (!mode || mode === 'all') {
+            this.data.all_categories = src;
+        } else {
+            const out = {};
 
-                    // Iterate through fields in each category
-                    for (let fieldName in category) {
-                        const field = category[fieldName];
+            const pick = (sv) => {
+                const hasMulti = sv.values != false;
 
-                        // Handle single 'group'
-                        if (field.group) {
-                            // Remove field if group's risk_level not in allowed levels
-                            if (!allowedRiskLevels.includes(field.group.risk_level)) {
-                                delete category[fieldName];
-                                continue; // Skip to next field
-                            }
-                        }
-
-                        // Handle 'groups' array
-                        if (field.groups && Array.isArray(field.groups)) {
-                            // Filter groups by risk level
-                            field.groups = field.groups.filter(g =>
-                                allowedRiskLevels.includes(g.risk_level)
-                            );
-
-                            // If no groups left after filtering, remove the field
-                            if (field.groups.length === 0) {
-                                delete category[fieldName];
-                            }
-                        }
+                if (mode === 'high') {
+                    if (sv.group?.risk_level === 'high') return sv;
+                    if (sv.groups?.length) {
+                        const hi = sv.groups.filter(g => g.risk_level === 'high');
+                        return hi.length ? {...sv, groups: hi} : null;
                     }
+                    return null;
+                }
 
-                    // Remove empty categories
-                    if (Object.keys(category).length === 0) {
-                        delete filteredDict[categoryName];
+                if (mode === 'granted') {
+                    if (hasMulti && sv.groups?.length) {
+                        const allow = new Set(sv.values);
+                        const keep = sv.groups.filter(g => allow.has(g.id));
+                        return keep.length ? {...sv, groups: keep} : null;
                     }
+                    return sv.value !== false ? sv : null;
+                }
+
+                if (mode === 'denied') {
+                    if (hasMulti && sv.groups?.length) {
+                        const allow = new Set(sv.values);
+                        const keep = sv.groups.filter(g => !allow.has(g.id));
+                        return keep.length ? {...sv, groups: keep} : null;
+                    }
+                    return sv.value === false ? sv : null;
+                }
+
+                return null;
+            };
+
+            for (const mainKey in src) {
+                const bucket = src[mainKey];
+                for (const subKey in bucket) {
+                    const sv = bucket[subKey];
+                    const filtered = pick(sv);
+                    if (!filtered) continue;
+                    (out[mainKey] ||= {})[subKey] = filtered;
                 }
             }
 
-            // Iterate through categories
-            for (let categoryName in filteredDict) {
-                const category = filteredDict[categoryName];
-
-                // Iterate through fields in each category
-                for (let fieldName in category) {
-                    const field = category[fieldName];
-                    let matchFound = false;
-
-                    // Check if field has 'group' (single object)
-                    if (field.group && field.group.name) {
-                        if (field.group.name.toLowerCase().includes(searchStr.toLowerCase())) {
-                            matchFound = true;
-                        }
-                    }
-                    // Check if field has 'groups' (array of objects)
-                    else if (field.groups && Array.isArray(field.groups)) {
-                        const hasMatch = field.groups.some(g =>
-                            g.name && g.name.toLowerCase().includes(searchStr.toLowerCase())
-                        );
-                        if (hasMatch) {
-                            matchFound = true;
-                        }
-                    }
-
-                    // If match found, add the whole chain to result
-                    if (matchFound) {
-                        // Initialize category if it doesn't exist
-                        if (!result[categoryName]) {
-                            result[categoryName] = {};
-                        }
-                        // Add the entire field object
-                        result[categoryName][fieldName] = field;
-                    }
-                }
-            }
-
-            return result;
+            this.data.all_categories = out;
         }
+        this.data.all_groups_count = Object.values(this.data?.all_categories || {})
+            .reduce((total, main) => total + Object.values(main)
+                .reduce((sub, item) => sub + (item.groups?.length || 1), 0), 0);
+        this.render();
+    }
 
-        this.categories = filterByGroupName(this.custom_props.changed_data);
-        this.render();
-    }
-    //
-    // widget reset
-    //
-    reset_data() {
-        $('.risk-filter').find('.risk-badge').removeClass('active');
-        $('.category-header').removeClass('closed');
-        this.searchInput.el.value = '';
-        this.render();
-    }
     //
     //  model CRUD functions
     //
@@ -199,68 +113,21 @@ export class RBACUserPermissions extends Component {
         this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name"]);
         this.data = await this.orm.call("res.users", "get_user_permissions_json", [this.record_id]);
 
-        this.custom_props.original_data = JSON.parse(JSON.stringify(this.categories));
-        this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
-    }
-
-    async writeRecord() {
-        function getChangedValues(original_js_dict, new_js_dict) {
-            const result = {};
-
-            // Build a flat map of original values
-            const originalValues = {};
-            for (let categoryName in original_js_dict) {
-                const category = original_js_dict[categoryName];
-                for (let fieldName in category) {
-                    originalValues[fieldName] = category[fieldName].value;
-                }
-            }
-
-            // Check new_js_dict for changes
-            for (let categoryName in new_js_dict) {
-                const category = new_js_dict[categoryName];
-
-                for (let fieldName in category) {
-                    const newValue = category[fieldName].value;
-
-                    // Only add if field existed in original AND value changed
-                    if (fieldName in originalValues && originalValues[fieldName] !== newValue) {
-                        result[fieldName] = newValue;
-                    }
-                }
-            }
-
-            return result;
+        if (this.data.error) {
+            var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
+            this.notification.add(message, {sticky: true, type: "danger"});
+            this.action.doAction('rbac_manager.act_window_res_users_list_user_permission', {clearBreadcrumbs: true});
         }
 
-        this.dialogService.add(ConfirmationDialog, {
-            body: _t("Are you sure that you save the changes ?"),
-            cancelLabel: _t("No"),
-            confirmLabel: _t("Yes"),
-            confirm: async () => {
-                const changedValues = getChangedValues(this.custom_props.original_data, this.custom_props.changed_data);
-                await this.orm.write("res.users", [this.record_id], changedValues);
-                await this.fetch_data();
-                this.reset_data();
-            },
-            cancel: () => {
-            },
-        });
+        this.custom_props.original_data = JSON.parse(JSON.stringify(this.data?.all_categories || {}));
+        this.data.all_groups_count = Object.values(this.data?.all_categories || {})
+            .reduce((total, main) => total + Object.values(main)
+                .reduce((sub, item) => sub + (item.groups?.length || 1), 0), 0);
     }
 
-    discardRecord() {
-        this.dialogService.add(ConfirmationDialog, {
-            body: _t("Are you sure that you discard the changes ?"),
-            cancelLabel: _t("No"),
-            confirmLabel: _t("Yes"),
-            confirm: () => {
-                this.categories = JSON.parse(JSON.stringify(this.custom_props.original_data));
-                this.custom_props.changed_data = JSON.parse(JSON.stringify(this.categories));
-                this.reset_data();
-            },
-            cancel: () => {
-            },
-        });
+    getInitials(text) {
+        const words = text?.trim().split(/\s+/) || ['', ''];
+        return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
 }
 

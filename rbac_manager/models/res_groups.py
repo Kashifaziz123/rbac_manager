@@ -189,6 +189,7 @@ class ResGroups(models.Model):
                         'group': {'id': g.id, 'name': g.name, 'risk_level': g.risk_level},
                         'groups': False,
                         'value': get_toggle_value(g.id),
+                        'values': False,
                         'category_name': str(category_name),
                     }
                     for g in gs
@@ -197,14 +198,15 @@ class ResGroups(models.Model):
             elif kind == 'selection':
                 field_name = name_selection_groups(gs.ids)
                 user_group_ids = set(res_user.groups_id.ids)
-                last_match = next((g for g in reversed(gs) if g.id in user_group_ids), None)
+                group_ids = [g.id for g in reversed(gs) if g.id in user_group_ids]
+                last_match = group_ids[0] if len(group_ids) > 0 else False
 
                 json_dict.setdefault(app_name, {}).setdefault(field_name, {}).update({
-                    # json_dict[app_name][field_name] = {
                     'group': False,
                     'groups': [{'id': group.id, 'name': group.name, 'risk_level': group.risk_level}
                                for group in gs],
-                    'value': last_match.id if last_match else False,
+                    'value': last_match,
+                    'values': list(group_ids),
                     'category_name': str(category_name),
                 })
 

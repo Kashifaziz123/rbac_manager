@@ -1,0 +1,647 @@
+.rbac_super_admin *,
+.rbac_super_admin *::before,
+.rbac_super_admin *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.o_web_client div.o_action_manager div.rbac_super_admin {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: normal;
+    background: #f5f7fa;
+    color: #333;
+}
+
+body.o_web_client div.o_action_manager div.rbac_super_admin * {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.rbac_super_admin.container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.rbac_super_admin .header {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rbac_super_admin .user-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.rbac_super_admin .user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.rbac_super_admin .user-details h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.rbac_super_admin .user-details p {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.rbac_super_admin .access-level {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rbac_super_admin .header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.rbac_super_admin .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbac_super_admin .btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.rbac_super_admin .btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.rbac_super_admin .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.rbac_super_admin .btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+.rbac_super_admin .btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.rbac_super_admin .btn-danger:hover {
+    background: #b91c1c;
+}
+
+.rbac_super_admin .btn-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.rbac_super_admin .btn-warning:hover {
+    background: #d97706;
+}
+
+.rbac_super_admin .admin-toolbar {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #dc2626;
+}
+
+.rbac_super_admin .toolbar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.rbac_super_admin .toolbar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbac_super_admin .toolbar-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.rbac_super_admin .btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+.rbac_super_admin .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.rbac_super_admin .quick-action {
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-size: 13px;
+}
+
+.rbac_super_admin .quick-action:hover {
+    background: #f3f4f6;
+    border-color: #2563eb;
+}
+
+.rbac_super_admin .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.rbac_super_admin .section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.rbac_super_admin .section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbac_super_admin .role-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+}
+
+.rbac_super_admin .role-item:hover {
+    background: #fafbfc;
+}
+
+.rbac_super_admin .role-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rbac_super_admin .role-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.rbac_super_admin .role-icon.teacher {
+    background: #3b82f6;
+}
+
+.rbac_super_admin .role-icon.attendance {
+    background: #10b981;
+}
+
+.rbac_super_admin .role-icon.librarian {
+    background: #8b5cf6;
+}
+
+.rbac_super_admin .role-icon.event {
+    background: #f59e0b;
+}
+
+.rbac_super_admin .role-details h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 2px;
+}
+
+.rbac_super_admin .role-details p {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.rbac_super_admin .role-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rbac_super_admin .available-roles {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.rbac_super_admin .role-item.available {
+    background: #f9fafb;
+    border-style: dashed;
+}
+
+.rbac_super_admin .role-item.available:hover {
+    background: #f3f4f6;
+}
+
+.rbac_super_admin .permissions-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 24px;
+}
+
+.rbac_super_admin .permissions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.rbac_super_admin .permissions-filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.rbac_super_admin .filter-tab {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.rbac_super_admin .filter-tab.active {
+    background: #2563eb;
+    color: white;
+}
+
+.rbac_super_admin .filter-tab:not(.active) {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.rbac_super_admin .filter-tab:not(.active):hover {
+    background: #e5e7eb;
+}
+
+.rbac_super_admin .permissions-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.rbac_super_admin .permission-category {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rbac_super_admin .category-header {
+    background: #f9fafb;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.rbac_super_admin .category-header:hover {
+    background: #f3f4f6;
+}
+
+.rbac_super_admin .category-header.closed .expand-icon {
+    transform: rotate(-90deg);
+}
+
+.rbac_super_admin .category-header.closed + .category-content {
+    display: none;
+}
+
+.rbac_super_admin .category-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rbac_super_admin .category-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.rbac_super_admin .category-icon.academics {
+    background: #3b82f6;
+}
+
+.rbac_super_admin .category-icon.reception {
+    background: #10b981;
+}
+
+.rbac_super_admin .category-icon.activity {
+    background: #f59e0b;
+}
+
+.rbac_super_admin .category-icon.inventory {
+    background: #8b5cf6;
+}
+
+.rbac_super_admin .category-icon.finance {
+    background: #ef4444;
+}
+
+.rbac_super_admin .category-title {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.rbac_super_admin .category-stats {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    gap: 12px;
+}
+
+.rbac_super_admin .category-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rbac_super_admin .permission-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 16px;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.rbac_super_admin .permission-item:hover {
+    background: #fafbfc;
+}
+
+.rbac_super_admin .permission-item:last-child {
+    border-bottom: none;
+}
+
+.rbac_super_admin .permission-details h5 {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.rbac_super_admin .permission-code {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.rbac_super_admin .risk-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.rbac_super_admin .risk-badge.low {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.rbac_super_admin .risk-badge.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.rbac_super_admin .risk-badge.high {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.rbac_super_admin .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+}
+
+.rbac_super_admin .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.rbac_super_admin .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #d1d5db;
+    transition: .3s;
+    border-radius: 22px;
+}
+
+.rbac_super_admin .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+.rbac_super_admin input:checked + .slider {
+    background-color: #2563eb;
+}
+
+.rbac_super_admin input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.rbac_super_admin .override-indicator {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+}
+
+.rbac_super_admin .audit-log {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 24px;
+}
+
+.rbac_super_admin .log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid #f3f4f6;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.rbac_super_admin .log-action {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.rbac_super_admin .log-meta {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: right;
+}
+
+.rbac_super_admin .floating-admin-panel {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 2px solid #dc2626;
+    min-width: 200px;
+}
+
+.rbac_super_admin .admin-panel-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: #dc2626;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.rbac_super_admin .admin-quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rbac_super_admin .admin-action-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rbac_super_admin .admin-action-btn.grant-all {
+    background: #10b981;
+    color: white;
+}
+
+.rbac_super_admin .admin-action-btn.revoke-all {
+    background: #ef4444;
+    color: white;
+}
+
+.rbac_super_admin .admin-action-btn.bulk-edit {
+    background: #f59e0b;
+    color: white;
+}
+
+.rbac_super_admin .admin-action-btn.audit {
+    background: #6366f1;
+    color: white;
+}
+
+@media (max-width: 1024px) {
+    .rbac_super_admin .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rbac_super_admin .permission-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .rbac_super_admin .floating-admin-panel {
+        position: static;
+        margin-top: 24px;
+    }
+}

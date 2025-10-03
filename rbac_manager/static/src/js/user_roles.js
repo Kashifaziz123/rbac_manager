@@ -1,7 +1,7 @@
 /* @odoo-module */
 
 import {Component, onMounted, onWillStart, useEffect, useRef, useState} from "@odoo/owl";
-import {AlertDialog, ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
+import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {ensureJQuery} from '@web/core/ensure_jquery';
 import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
@@ -16,10 +16,10 @@ export class RBACUserRoles extends Component {
         super.setup();
         this.dialogService = useService("dialog");
         this.orm = useService("orm");
-        this.form = useRef("UserRolesForm");
         this.searchInput = useRef("searchInput");
         this.categories = useState({});
         this.record_id = this.props?.action?.context?.active_id;
+        this.is_wizard = this.props?.action?.context?.is_wizard;
         this.user = [];
         this.custom_props = {
             'original_data': {},
@@ -30,28 +30,25 @@ export class RBACUserRoles extends Component {
             () => {
                 this.enabled_inputs_length();
             },
-            () => [this.categories]  // Dependency function - runs when this.form.el changes
+            () => [this.categories]
         );
 
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
-            loadCSS('/rbac_manager/static/src/js/user_roles.css');
+            loadCSS('/rbac_manager/static/src/css/user_roles.css');
         });
 
         onMounted(() => {
             this.enabled_inputs_length();
         });
-
     }
 
     enabled_inputs_length() {
         $('.category-section').each(function () {
             const $inputs = $(this).find('input');
-
             // Count inputs that are both checked AND enabled
-            const checkedAndEnabledCount = $inputs.filter(':checked:not(:disabled)').length;
-            $(this).find('.enabled_count').text(checkedAndEnabledCount);
+            $(this).find('.enabled_count').text($inputs.filter(':checked:not(:disabled)').length);
         });
     }
 
@@ -106,61 +103,44 @@ export class RBACUserRoles extends Component {
                 if (is_medium) allowedRiskLevels.push('medium');
                 if (is_high) allowedRiskLevels.push('high');
 
-                // Iterate through categories
                 for (let categoryName in filteredDict) {
                     const category = filteredDict[categoryName];
 
-                    // Iterate through fields in each category
                     for (let fieldName in category) {
                         const field = category[fieldName];
 
-                        // Handle single 'group'
                         if (field.group) {
-                            // Remove field if group's risk_level not in allowed levels
                             if (!allowedRiskLevels.includes(field.group.risk_level)) {
                                 delete category[fieldName];
-                                continue; // Skip to next field
+                                continue;
                             }
-                        }
-
-                        // Handle 'groups' array
-                        if (field.groups && Array.isArray(field.groups)) {
-                            // Filter groups by risk level
+                        } else if (field.groups && Array.isArray(field.groups)) {
                             field.groups = field.groups.filter(g =>
                                 allowedRiskLevels.includes(g.risk_level)
                             );
-
-                            // If no groups left after filtering, remove the field
                             if (field.groups.length === 0) {
                                 delete category[fieldName];
                             }
                         }
                     }
-
-                    // Remove empty categories
                     if (Object.keys(category).length === 0) {
                         delete filteredDict[categoryName];
                     }
                 }
             }
 
-            // Iterate through categories
             for (let categoryName in filteredDict) {
                 const category = filteredDict[categoryName];
 
-                // Iterate through fields in each category
                 for (let fieldName in category) {
                     const field = category[fieldName];
                     let matchFound = false;
 
-                    // Check if field has 'group' (single object)
                     if (field.group && field.group.name) {
                         if (field.group.name.toLowerCase().includes(searchStr.toLowerCase())) {
                             matchFound = true;
                         }
-                    }
-                    // Check if field has 'groups' (array of objects)
-                    else if (field.groups && Array.isArray(field.groups)) {
+                    } else if (field.groups && Array.isArray(field.groups)) {
                         const hasMatch = field.groups.some(g =>
                             g.name && g.name.toLowerCase().includes(searchStr.toLowerCase())
                         );
@@ -169,13 +149,10 @@ export class RBACUserRoles extends Component {
                         }
                     }
 
-                    // If match found, add the whole chain to result
                     if (matchFound) {
-                        // Initialize category if it doesn't exist
                         if (!result[categoryName]) {
                             result[categoryName] = {};
                         }
-                        // Add the entire field object
                         result[categoryName][fieldName] = field;
                     }
                 }
@@ -204,18 +181,19 @@ export class RBACUserRoles extends Component {
     async fetch_data() {
         this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', true], ['active', '=', false]], ["name"]);
         if (this.user[0]?.name === undefined) {
-            await this.dialogService.add(AlertDialog, {
-                body: _t("Record not found"),
-                confirm: () => {
-                    window.location.href = "/odoo/user_roles";
-                },
-                confirmLabel: _t("Ok"),
-            });
+            var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
+            this.notification.add(message, {sticky: true, type: "danger"});
+            this.action.doAction('rbac_manager.act_window_res_users_list_user_role', {clearBreadcrumbs: true});
         }
         this.categories = await this.orm.call("res.groups", "get_categories_groups_json", [], {'user_id': this.record_id});
 
         this.custom_props.original_data = JSON.parse(JSON.stringify(this.categories));
         this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
+    }
+
+    getInitials(text) {
+        const words = text?.trim().split(/\s+/) || ['', ''];
+        return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
 
     async writeRecord() {

@@ -17,6 +17,8 @@
         'security/ir.model.access.csv',
         'views/res_users_views_user_roles.xml',
         'views/res_users_views_user_permissions.xml',
+        'views/res_users_views_manage_permissions.xml',
+        'views/res_users_views_super_admin.xml',
         'views/res_groups_view.xml',
 
         'views/views.xml',
