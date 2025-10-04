@@ -45,18 +45,20 @@
                     <div>Permission</div>
                     <div>Risk Level</div>
                     <div>Enabled</div>
-                    <div>Actions</div>
+                    <!--                    <div>Actions</div>-->
                 </div>
 
-                <form>
+                <div class="permissions-grids">
                     <t t-foreach="categories" t-as="category" t-key="category">
                         <div class="category-section">
                             <div class="category-header" t-on-click="(ev) => this.toggle_category_section(ev.target)">
-                                <div class="category-icon academics">
-                                    <t t-esc="this.getInitials(category)"/>
-                                </div>
-                                <div class="category-title">
-                                    <t t-esc="category"/>
+                                <div class="category-info">
+                                    <div class="category-icon academics">
+                                        <t t-esc="this.getInitials(category)"/>
+                                    </div>
+                                    <div class="category-title">
+                                        <t t-esc="category"/>
+                                    </div>
                                 </div>
                                 <div class="category-stats">
                                     <span>
@@ -68,7 +70,17 @@
                                         enabled
                                     </span>
                                 </div>
-                                <span class="expand-icon">▼</span>
+                                <div class="category-actions">
+                                    <button class="btn btn-secondary btn-small"
+                                            t-on-click="(ev) => this.toggle_category_all_checked_enabled(1, ev.target)">
+                                        ✅ Enable All
+                                    </button>
+                                    <button class="btn btn-danger btn-small"
+                                            t-on-click="(ev) => this.toggle_category_all_checked_enabled(0, ev.target)">
+                                        ❌ Disable All
+                                    </button>
+                                    <span class="expand-icon">▼</span>
+                                </div>
                             </div>
                             <t t-foreach="categories[category]" t-as="field" t-key="field">
                                 <t t-if="categories[category][field]['group']">
@@ -93,12 +105,12 @@
                                                 <span class="slider"/>
                                             </label>
                                         </div>
-                                        <div>
-                                            <button class="btn btn-secondary"
-                                                    style="padding: 6px 12px; font-size: 12px;">
-                                                Configure
-                                            </button>
-                                        </div>
+                                        <!--                                        <div>-->
+                                        <!--                                            <button class="btn btn-secondary"-->
+                                        <!--                                                    style="padding: 6px 12px; font-size: 12px;">-->
+                                        <!--                                                Configure-->
+                                        <!--                                            </button>-->
+                                        <!--                                        </div>-->
                                     </div>
                                 </t>
                                 <t t-else="">
@@ -126,19 +138,19 @@
                                                     <span class="slider"/>
                                                 </label>
                                             </div>
-                                            <div>
-                                                <button class="btn btn-secondary"
-                                                        style="padding: 6px 12px; font-size: 12px;">
-                                                    Configure
-                                                </button>
-                                            </div>
+                                            <!--                                            <div>-->
+                                            <!--                                                <button class="btn btn-secondary"-->
+                                            <!--                                                        style="padding: 6px 12px; font-size: 12px;">-->
+                                            <!--                                                    Configure-->
+                                            <!--                                                </button>-->
+                                            <!--                                            </div>-->
                                         </div>
                                     </t>
                                 </t>
                             </t>
                         </div>
                     </t>
-                </form>
+                </div>
             </div>
 
 

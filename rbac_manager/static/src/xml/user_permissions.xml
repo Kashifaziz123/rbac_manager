@@ -11,8 +11,8 @@
                         <h1>
                             <t t-esc="this.user[0]?.name"/>
                         </h1>
-                        <p>Senior Teacher • Mathematics Department • Employee ID: #EMP001</p>
-                    </div>
+                        <p><t t-esc="this.user[0]?.email"/> • Employee ID: <t t-esc="this.data?.employee?.barcode || 'N/A'"/></p>
+                        </div>
                 </div>
                 <div class="header-actions">
                     <a t-att-href="'/odoo/user_permission/'" class="btn btn-secondary">

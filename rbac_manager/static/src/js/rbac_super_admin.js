@@ -73,11 +73,12 @@ export class RBACSuperAdmin extends Component {
     }
 
     toggle_category_section(ev) {
-        $(ev).toggleClass('closed');
+        if ($(ev).closest('button').length) return;
+        $(ev).closest('.category-header').toggleClass('closed');
     }
 
     toggle_category_all_checked_enabled(check, ev) {
-        this.toggle_all_checked_enabled(check, $(ev).parent().parent().parent());
+        this.toggle_all_checked_enabled(check, $(ev).closest('.permission-category'));
     }
 
     toggle_all_checked_enabled(check, section = false) {
@@ -198,7 +199,7 @@ export class RBACSuperAdmin extends Component {
     //  model CRUD functions
     //
     async fetch_data() {
-        this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name"]);
+        this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
         this.data = await this.orm.call("res.users", "get_rbac_super_admin_json", [this.record_id]);
 
         if (this.user[0]?.name === undefined) {

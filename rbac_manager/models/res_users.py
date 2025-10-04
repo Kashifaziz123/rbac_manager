@@ -3,6 +3,7 @@ from odoo import api, fields, models, exceptions, _
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
+
 # ----------------------------------------------------------
 # Basic res.users
 # ----------------------------------------------------------
@@ -136,6 +137,7 @@ class ResUsers(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        default_user = self.env.ref('base.default_user', raise_if_not_found=False)
         if self._context.get('default_name', '') == 'New User Role':
             for vals in vals_list:
                 # if vals.get('name') and not vals['name'].endswith("User Template"):
@@ -144,7 +146,7 @@ class ResUsers(models.Model):
         records = super().create(vals_list)
         if self._context.get('default_name', '') == 'New User Role':
             for record in records:
-                record.groups_id = [(5, 0, 0)]
+                record.groups_id = default_user.sudo().groups_id if default_user else [(5, 0, 0)]
         return records
 
     def get_user_permissions_json(self):
@@ -188,6 +190,12 @@ class ResUsers(models.Model):
                                     categories[category][c]['value'] != False]),
                     'total': len(categories[category].keys())
                 }
+            try:
+                employee = self.env['hr.employee'].sudo().search([('user_id', '=', self.id)])
+                employee = {'barcode': employee.barcode}
+            except:
+                employee = {}
+
             return {
                 'total': {
                     'granted': len(groups),
@@ -198,6 +206,7 @@ class ResUsers(models.Model):
                 'updated_on': get_time_passed(self.write_date),
                 'categories': categ_dict,
                 'all_categories': categories,
+                'employee': employee,
                 'error': False,
             }
         except:
@@ -210,11 +219,18 @@ class ResUsers(models.Model):
                 'updated_on': '0 seconds',
                 'categories': {},
                 'all_categories': {},
+                'employee': {},
                 'error': True,
             }
 
     def get_manage_permissions_json(self):
         try:
+            try:
+                employee = self.env['hr.employee'].sudo().search([('user_id', '=', self.id)])
+                employee = {'barcode': employee.barcode}
+            except:
+                employee = {}
+
             return {
                 'available_roles': [
                     {
@@ -225,11 +241,13 @@ class ResUsers(models.Model):
                     } for user in
                     self.search([('active', '=', False), ('is_user_role', '=', True)])
                 ],
+                'employee': employee,
                 'error': False,
             }
         except:
             return {
                 'available_roles': [],
+                'employee': {},
                 'error': True,
             }
 
@@ -237,6 +255,11 @@ class ResUsers(models.Model):
         try:
             groups = self.sudo().groups_id
             categories = groups.get_categories_groups_json(self.id)
+            try:
+                employee = self.env['hr.employee'].sudo().search([('user_id', '=', self.id)])
+                employee = {'barcode': employee.barcode}
+            except:
+                employee = {}
 
             return {
                 'available_roles': [
@@ -249,11 +272,13 @@ class ResUsers(models.Model):
                     self.search([('active', '=', False), ('is_user_role', '=', True)])
                 ],
                 'all_categories': categories,
+                'employee': employee,
                 'error': False,
             }
         except:
             return {
                 'available_roles': [],
                 'all_categories': [],
+                'employee': {},
                 'error': True,
             }

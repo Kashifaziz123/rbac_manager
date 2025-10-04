@@ -149,12 +149,18 @@ body.o_web_client div.o_action_manager div.role_template * {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.role_template .permissions-grids {
+    display: grid;
+    gap: 12px;
+}
+
 .role_template .grid-header {
     background: #f9fafb;
     padding: 16px 24px;
     border-bottom: 1px solid #e5e7eb;
     display: grid;
-    grid-template-columns: 2fr 1fr 100px 100px;
+    /*grid-template-columns: 2fr 1fr 100px 100px;*/
+    grid-template-columns: 2fr 1fr 1fr;
     gap: 16px;
     font-weight: 600;
     font-size: 14px;
@@ -162,32 +168,61 @@ body.o_web_client div.o_action_manager div.role_template * {
 }
 
 .role_template .category-section {
-    border-bottom: 1px solid #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
 }
 
 .role_template .category-header {
-    background: #fafbfc;
     padding: 16px 24px;
+    display: grid;
+    /*grid-template-columns: 2fr 1fr 100px 100px;*/
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    align-items: center;
+    border-bottom: 1px solid #f9fafb;
+    transition: background 0.2s;
+}
+/*.role_template .category-header {*/
+/*    background: #f9fafb;*/
+/*    padding: 12px 16px;*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*    cursor: pointer;*/
+/*    transition: background 0.2s;*/
+/*}*/
+
+.role_template .category-header:hover {
+    background: #f3f4f6;
+}
+
+.role_template .expand-icon {
+    transition: transform 0.2s;
+}
+
+.role_template .category-header.closed .expand-icon {
+    transform: rotate(-90deg);
+}
+
+.role_template .category-header.closed + .category-content {
+    display: none;
+}
+
+.role_template .category-info {
     display: flex;
     align-items: center;
     gap: 12px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.role_template .category-header:hover {
-    background: #f0f1f2;
 }
 
 .role_template .category-icon {
     width: 24px;
     height: 24px;
-    border-radius: 6px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
 }
 
@@ -212,24 +247,22 @@ body.o_web_client div.o_action_manager div.role_template * {
 }
 
 .role_template .category-title {
-    font-weight: 600;
+    font-weight: 500;
     color: #1f2937;
 }
 
 .role_template .category-stats {
-    margin-left: auto;
     font-size: 12px;
     color: #6b7280;
     display: flex;
-    gap: 16px;
+    gap: 12px;
 }
 
-.role_template .expand-icon {
-    transition: transform 0.2s;
-}
-
-.role_template .category-header.closed .expand-icon{
-    transform: rotate(-90deg);
+.role_template .category-actions {
+    display: flex;
+    justify-self: flex-end;
+    align-items: center;
+    gap: 8px;
 }
 
 /*.role_template .category-header.closed + .permission-item {*/
@@ -240,7 +273,8 @@ body.o_web_client div.o_action_manager div.role_template * {
 .role_template .permission-item {
     padding: 16px 24px;
     display: grid;
-    grid-template-columns: 2fr 1fr 100px 100px;
+    /*grid-template-columns: 2fr 1fr 100px 100px;*/
+    grid-template-columns: 2fr 1fr 1fr;
     gap: 16px;
     align-items: center;
     border-bottom: 1px solid #f9fafb;
@@ -251,16 +285,20 @@ body.o_web_client div.o_action_manager div.role_template * {
     background: #fafbfc;
 }
 
+.role_template .permission-item:last-child {
+    border-bottom: none;
+}
+
 .role_template .permission-info h4 {
     font-weight: 500;
     color: #1f2937;
     margin-bottom: 4px;
-    font-size: unset;
+    font-size: 13px;
 }
 
 .role_template .permission-code {
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 11px;
     color: #6b7280;
     background: #f3f4f6;
     padding: 2px 6px;
@@ -336,6 +374,12 @@ body.o_web_client div.o_action_manager div.role_template * {
     transition: all 0.2s;
     border: none;
     font-size: 14px;
+}
+
+.role_template .btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
 }
 
 .role_template .btn-primary {

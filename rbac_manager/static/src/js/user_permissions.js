@@ -110,7 +110,7 @@ export class RBACUserPermissions extends Component {
     //  model CRUD functions
     //
     async fetch_data() {
-        this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name"]);
+        this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
         this.data = await this.orm.call("res.users", "get_user_permissions_json", [this.record_id]);
 
         if (this.data.error) {

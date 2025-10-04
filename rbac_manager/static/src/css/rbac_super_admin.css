@@ -368,6 +368,10 @@ body.o_web_client div.o_action_manager div.rbac_super_admin * {
     background: #f3f4f6;
 }
 
+.rbac_super_admin .expand-icon {
+    transition: transform 0.2s;
+}
+
 .rbac_super_admin .category-header.closed .expand-icon {
     transform: rotate(-90deg);
 }
@@ -428,6 +432,7 @@ body.o_web_client div.o_action_manager div.rbac_super_admin * {
 
 .rbac_super_admin .category-actions {
     display: flex;
+    align-items: center;
     gap: 8px;
 }
 

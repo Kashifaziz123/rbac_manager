@@ -11,7 +11,7 @@
                         <h1>Manage Permissions:
                             <t t-esc="this.user[0]?.name"/>
                         </h1>
-                        <p>Mathematics Department • Employee ID: #EMP001</p>
+                        <p><t t-esc="this.user[0]?.email"/> • Employee ID: <t t-esc="this.data?.employee?.barcode || 'N/A'"/></p>
                     </div>
                     <div class="access-level">Permission Manager View</div>
                 </div>

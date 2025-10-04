@@ -30,7 +30,7 @@ export class RBACUserRoles extends Component {
             () => {
                 this.enabled_inputs_length();
             },
-            () => [this.categories]
+            () => [this.categories, this.custom_props.changed_data]
         );
 
         onWillStart(async () => {
@@ -61,8 +61,35 @@ export class RBACUserRoles extends Component {
     }
 
     toggle_category_section(ev) {
-        $(ev).toggleClass('closed');
+        if ($(ev).closest('button').length) return;
+        $(ev).closest('.category-header').toggleClass('closed');
     }
+
+    toggle_category_all_checked_enabled(check, ev) {
+        this.toggle_all_checked_enabled(check, $(ev).closest('.category-section'));
+    }
+
+    toggle_all_checked_enabled(check, section = false) {
+        if (!section) {
+            section = $('.permissions-grid');
+        }
+        section.find('input[type="checkbox"]').prop({checked: check, indeterminate: false});
+        const $radios = section.find('input[type="radio"]');
+        if (check) {
+            const names = [...new Set($radios.map((_, el) => el.name).get().filter(Boolean))];
+            names.forEach((name) => {
+                section.find(`input[type="radio"][name="${name}"]`).last().prop('checked', true);
+            });
+        } else {
+            $radios.prop('checked', false);
+        }
+
+        const all_inputs = section.find('input[type="checkbox"], input[type="radio"]');
+        all_inputs.each((_, el) => {
+            this.update_values(el);
+        });
+    }
+
 
     //
     // onchange functions
