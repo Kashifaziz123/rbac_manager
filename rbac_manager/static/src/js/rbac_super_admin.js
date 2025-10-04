@@ -1,5 +1,6 @@
 /* @odoo-module */
 
+import {RBACUserSelectionDialog, RBACRoleSelectionDialog} from "@rbac_manager/js/selection_dialog";
 import {Component, onMounted, onWillStart, useEffect, useRef, useState} from "@odoo/owl";
 import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {ensureJQuery} from '@web/core/ensure_jquery';
@@ -15,22 +16,22 @@ export class RBACSuperAdmin extends Component {
     setup() {
         super.setup();
         this.notification = useService("notification");
+        this.dialogService = useService("dialog");
         this.action = useService("action");
         this.orm = useService("orm");
-
-        this.data = useState({});
         this.record_id = this.props?.action?.context?.active_id;
         this.user = [];
+        this.data = useState({});
         this.custom_props = {
             'original_data': {},
-            'changed_data': {},
+            'changed_data': useState({}),
         }
 
         useEffect(
             () => {
                 this.enabled_inputs_length();
             },
-            () => [this.data]
+            () => [this.data, this.custom_props]
         );
 
         onWillStart(async () => {
@@ -60,6 +61,36 @@ export class RBACSuperAdmin extends Component {
         view['target'] = 'new';
         view['context'] = {'active_id': user_role_id, 'is_wizard': true};
         this.action.doAction(view);
+    }
+
+    async clone_from_another_user() {
+        let users = await this.orm.searchRead("res.users", [['is_user_role', '=', false]], ["id", "name"]);
+        await this.dialogService.add(RBACUserSelectionDialog, {
+            users: users,
+            title: _t('Clone User'),
+            cancelLabel: _t("Close"),
+            confirmLabel: _t("Copy"),
+            confirm: async () => {
+                let clone_user = $('.rbac_super_admin.rbac_dialog').find('input:checked').val();
+                await this.orm.call("res.users", "clone_groups_from_user", [this.record_id], {'clone_user_id': parseInt(clone_user)});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+    async multi_apply_roles() {
+        await this.dialogService.add(RBACRoleSelectionDialog, {
+            roles: this.data.available_roles,
+            title: _t('Bulk Role Assignment'),
+            cancelLabel: _t("Close"),
+            confirmLabel: _t("Apply"),
+            confirm: async () => {
+            },
+            cancel: () => {
+            },
+        });
     }
 
     //
@@ -96,12 +127,33 @@ export class RBACSuperAdmin extends Component {
             $radios.prop('checked', false);
         }
 
-        this.enabled_inputs_length();
+        const all_inputs = section.find('input[type="checkbox"], input[type="radio"]');
+        all_inputs.each((_, el) => {
+            this.update_values(el);
+        });
     }
 
     //
     // onchange functions
     //
+    update_values(ev) {
+        const fieldName = $(ev).attr('name');
+        var newValue = false;
+        if ($(ev).filter(':checked:not(:disabled)').length) {
+            newValue = $(ev).val();
+        }
+
+        newValue = newValue === 'on' ? true : parseInt(newValue);
+
+        // Search through all categories
+        for (let category in this.custom_props.original_data.all_categories) {
+            if (this.custom_props.original_data.all_categories[category][fieldName]) {
+                this.custom_props.changed_data.all_categories[category][fieldName].value = newValue;
+                break;
+            }
+        }
+    }
+
     apply_search(mode = false) {
         var src = this.custom_props.original_data.all_categories;
         let no_save = true;
@@ -196,6 +248,17 @@ export class RBACSuperAdmin extends Component {
     }
 
     //
+    // widget reset
+    //
+    reset_data() {
+        $('.category-header').removeClass('closed');
+        var risk_filter = $('.permissions-filters');
+        risk_filter.find('.filter-tab').removeClass('active');
+        risk_filter.find('.filter-tab.all').addClass('active');
+        this.render();
+    }
+
+    //
     //  model CRUD functions
     //
     async fetch_data() {
@@ -216,6 +279,51 @@ export class RBACSuperAdmin extends Component {
     getInitials(text) {
         const words = text?.trim().split(/\s+/) || ['', ''];
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
+    }
+
+    async writeRecord() {
+        function getChangedValues(original_js_dict, new_js_dict) {
+            const result = {};
+
+            // Build a flat map of original values
+            const originalValues = {};
+            for (let categoryName in original_js_dict) {
+                const category = original_js_dict[categoryName];
+                for (let fieldName in category) {
+                    originalValues[fieldName] = category[fieldName].value;
+                }
+            }
+
+            // Check new_js_dict for changes
+            for (let categoryName in new_js_dict) {
+                const category = new_js_dict[categoryName];
+
+                for (let fieldName in category) {
+                    const newValue = category[fieldName].value;
+
+                    // Only add if field existed in original AND value changed
+                    if (fieldName in originalValues && originalValues[fieldName] !== newValue) {
+                        result[fieldName] = newValue;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t("Are you sure that you save the changes ?"),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Yes"),
+            confirm: async () => {
+                const changedValues = getChangedValues(this.custom_props.original_data.all_categories, this.custom_props.changed_data.all_categories);
+                await this.orm.write("res.users", [this.record_id], changedValues);
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
     }
 }
 

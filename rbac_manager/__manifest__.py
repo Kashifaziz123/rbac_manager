@@ -11,7 +11,7 @@
     "application": True,
     "installable": True,
     "auto_install": False,
-    "depends": ['base', 'web', 'auth_signup'],
+    "depends": ['base', 'web', 'auth_signup', 'account'],
     "data": [
         'security/groups.xml',
         'security/ir.model.access.csv',

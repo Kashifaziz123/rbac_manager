@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.UserSelectionDialog">
+        <Dialog size="'sm'" title="props.title">
+            <div class="rbac_super_admin rbac_dialog">
+                <t t-foreach="props.users" t-as="user" t-key="user.id + '_selection_dialog' ">
+                    <div class="permission-item">
+                        <div class="permission-details">
+                            <h5>
+                                <t t-esc="user.name"/>
+                            </h5>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="radio" t-att-name="'user'" t-att-value="user.id"/>
+                            <span class="slider"/>
+                        </label>
+                    </div>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel"/>
+                <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel"/>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="rbac.RoleSelectionDialog">
+        <Dialog size="'sm'" title="props.title">
+            <div class="rbac_super_admin rbac_dialog">
+                <t t-foreach="props.roles" t-as="role" t-key="role.id + '_selection_dialog' ">
+                    <div class="permission-item">
+                        <div class="permission-details">
+                            <h5>
+                                <t t-esc="role.name"/>
+                            </h5>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" t-att-name="'user'" t-att-value="role.id"/>
+                            <span class="slider"/>
+                        </label>
+                    </div>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel"/>
+                <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel"/>
+            </t>
+        </Dialog>
+    </t>
+</templates>

@@ -14,17 +14,19 @@ export class RBACUserRoles extends Component {
 
     setup() {
         super.setup();
+        this.notification = useService("notification");
         this.dialogService = useService("dialog");
+        this.action = useService("action");
         this.orm = useService("orm");
         this.searchInput = useRef("searchInput");
         this.categories = useState({});
         this.record_id = this.props?.action?.context?.active_id;
         this.is_wizard = this.props?.action?.context?.is_wizard;
         this.user = [];
-        this.custom_props = {
+        this.custom_props = useState({
             'original_data': {},
             'changed_data': {},
-        }
+        })
 
         useEffect(
             () => {

@@ -17,7 +17,6 @@ class ResUsers(models.Model):
     description = fields.Char(string='Description')
 
     def open_permission_window(self):
-        domain = []
         is_admin = self.env.user.has_group('base.group_system')
         if is_admin:
             domain = [(1, '=', 1)]
@@ -282,3 +281,7 @@ class ResUsers(models.Model):
                 'employee': {},
                 'error': True,
             }
+
+    def clone_groups_from_user(self, clone_user_id):
+        clone_user_id = self.browse(clone_user_id)
+        self.groups_id += clone_user_id.groups_id

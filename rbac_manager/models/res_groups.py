@@ -18,7 +18,7 @@ class ResGroups(models.Model):
     is_child_permission = fields.Boolean('Permission', default=False)
     full_name = fields.Char(compute='_compute_full_name', store=False, string="Group Name")
     risk_level = fields.Selection([('low', 'low'), ('medium', 'medium'), ('high', 'high')],
-                                  string="Risk Level", default='low', required=True)
+                                  string="Risk Level", default='low', required=False)
     description = fields.Text(string="Description")
 
     @api.depends('category_id', 'name')

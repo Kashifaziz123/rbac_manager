@@ -19,7 +19,7 @@
                 </div>
                 <div class="header-actions">
                     <a href="/odoo/super_admin" class="btn btn-secondary">← Back to Details</a>
-                    <button class="btn btn-primary">💾 Save Changes</button>
+                    <button class="btn btn-primary" t-on-click="writeRecord">💾 Save Changes</button>
                 </div>
             </div>
 
@@ -41,10 +41,10 @@
                     <div class="quick-action" t-on-click="(ev) => this.toggle_all_checked_enabled(0)">
                         ❌ Revoke All Permissions
                     </div>
-                    <div class="quick-action" onclick="cloneFromUser()">
+                    <div class="quick-action" t-on-click="clone_from_another_user">
                         👤 Clone from Another User
                     </div>
-                    <div class="quick-action" onclick="bulkRoleAssignment()">
+                    <div class="quick-action" t-on-click="multi_apply_roles">
                         📦 Bulk Role Assignment
                     </div>
                     <div class="quick-action" onclick="exportPermissions()">
@@ -172,7 +172,7 @@
                                                 />
                                                 <span class="slider"/>
                                             </label>
-                                            <button class="btn btn-secondary btn-small">⚙️ Configure</button>
+<!--                                            <button class="btn btn-secondary btn-small">⚙️ Configure</button>-->
                                         </div>
                                     </t>
                                     <t t-else="">
@@ -197,7 +197,7 @@
                                                     />
                                                     <span class="slider"/>
                                                 </label>
-                                                <button class="btn btn-secondary btn-small">⚙️ Configure</button>
+<!--                                                <button class="btn btn-secondary btn-small">⚙️ Configure</button>-->
                                             </div>
                                         </t>
                                     </t>

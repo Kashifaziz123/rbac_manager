@@ -11,7 +11,11 @@
                         <h1>Manage Permissions:
                             <t t-esc="this.user[0]?.name"/>
                         </h1>
-                        <p><t t-esc="this.user[0]?.email"/> • Employee ID: <t t-esc="this.data?.employee?.barcode || 'N/A'"/></p>
+                        <p>
+                            <t t-esc="this.user[0]?.email"/>
+                            • Employee ID:
+                            <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
+                        </p>
                     </div>
                     <div class="access-level">Permission Manager View</div>
                 </div>
@@ -53,7 +57,7 @@
                 <div class="section">
                     <h2>➕ Available Roles</h2>
                     <div class="available-roles">
-                        <t t-foreach="this.data?.available_roles" t-as="role" t-key="role">
+                        <t t-foreach="this.data?.available_roles" t-as="role" t-key="role.id + '_rbac_manage_per' ">
                             <div class="role-item available">
                                 <div class="role-info">
                                     <div class="role-icon" style="background: #8b5cf6;">
@@ -113,6 +117,14 @@
 
                 <form class="request-form">
                     <div class="form-group">
+                        <label>Request Type</label>
+                        <select>
+                            <option>Extra Permission (Grant)</option>
+                            <option>Exclusion (Deny)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label>Select Permission</label>
                         <div class="permission-search">
                             <span class="search-icon">🔍</span>
@@ -132,26 +144,6 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Request Type</label>
-                            <select>
-                                <option>Extra Permission (Grant)</option>
-                                <option>Exclusion (Deny)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Duration</label>
-                            <select>
-                                <option>30 days</option>
-                                <option>60 days</option>
-                                <option>90 days</option>
-                                <option>6 months</option>
-                                <option>1 year</option>
-                                <option>Permanent</option>
-                            </select>
-                        </div>
-                    </div>
 
                     <div class="form-group">
                         <label>Business Justification</label>

@@ -5,4 +5,14 @@
             <field name="name">Admin Permission Management</field>
         </record>
     </data>
+
+    <record id="base.group_system" model="res.groups">
+        <field name="risk_level">high</field>
+    </record>
+    <record id="base.group_erp_manager" model="res.groups">
+        <field name="risk_level">high</field>
+    </record>
+    <record id="account.group_account_manager" model="res.groups">
+        <field name="risk_level">high</field>
+    </record>
 </odoo>
