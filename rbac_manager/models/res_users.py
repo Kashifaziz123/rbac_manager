@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from lib2to3.fixes.fix_input import context
-
 from odoo import api, fields, models, exceptions, _
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
