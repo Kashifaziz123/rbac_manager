@@ -23,7 +23,7 @@ export class RBACUserPermissions extends Component {
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
-            loadCSS('/rbac_manager/static/src/css/user_permissions.css');
+            // loadCSS('/rbac_manager/static/src/css/user_permissions.css');
         });
     }
     //

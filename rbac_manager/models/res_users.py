@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from lib2to3.fixes.fix_input import context
+
 from odoo import api, fields, models, exceptions, _
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
+import json
 
 
 # ----------------------------------------------------------
@@ -207,6 +210,16 @@ class ResUsers(models.Model):
                 'all_categories': categories,
                 'employee': employee,
                 'error': False,
+                'rbac_permissions': [{
+                    'id': rbac.id,
+                    'description': rbac.description,
+                    'group': {'id': rbac.group_id.id, 'name': rbac.group_id.name},
+                    'type': rbac.type,
+                    'state': rbac.state,
+                    'created_by': rbac.requested_by.name,
+                    'created_on': get_time_passed(rbac.create_date),
+                } for rbac in
+                    self.env['request.rbac.permission'].search([('user_id', '=', self.id)])],
             }
         except:
             return {
@@ -220,10 +233,41 @@ class ResUsers(models.Model):
                 'all_categories': {},
                 'employee': {},
                 'error': True,
+                'rbac_permissions': [],
             }
 
     def get_manage_permissions_json(self):
         try:
+            def get_time_passed(dt, now=None):
+                if not dt:
+                    return "0minutes"
+
+                if now is None:
+                    now = datetime.utcnow()
+
+                future = dt > now
+                start, end = (now, dt) if future else (dt, now)
+                rd = relativedelta(end, start)
+
+                if rd.years >= 1:
+                    pair = ((" year", rd.years), (" month", rd.months))
+                elif rd.months >= 1:
+                    pair = ((" month", rd.months), (" day", rd.days))
+                elif rd.days >= 1:
+                    pair = ((" day", rd.days), (" hour", rd.hours))
+                else:
+                    pair = ((" hour", rd.hours), (" minute", rd.minutes))
+
+                p = lambda n, s: f"{n}{s}{'s' * (n != 1)}"
+                # build result with only non-zero parts
+                a, b = pair
+                parts = ([p(a[1], a[0])] if a[1] else []) + ([p(b[1], b[0])] if b[1] else [])
+
+                if not parts:
+                    parts = ["0minutes"]
+
+                return ("-" if future else "") + " ".join(parts)
+
             try:
                 employee = self.env['hr.employee'].sudo().search([('user_id', '=', self.id)])
                 employee = {'barcode': employee.barcode}
@@ -242,12 +286,21 @@ class ResUsers(models.Model):
                 ],
                 'employee': employee,
                 'error': False,
+                'permissions': {
+                    'deny': [{'id': group.id, 'name': group.name} for group in self.groups_id],
+                    'grant': [{'id': group.id, 'name': group.name} for group in
+                              (self.env['res.groups'].search([]) - self.groups_id)]
+                },
             }
-        except:
+        except Exception as e:
             return {
                 'available_roles': [],
                 'employee': {},
                 'error': True,
+                'permissions': {
+                    'deny': [],
+                    'grant': []
+                },
             }
 
     def get_rbac_super_admin_json(self):
@@ -283,5 +336,43 @@ class ResUsers(models.Model):
             }
 
     def clone_groups_from_user(self, clone_user_id):
-        clone_user_id = self.browse(clone_user_id)
-        self.groups_id += clone_user_id.groups_id
+        try:
+            clone_user_id = self.browse(clone_user_id)
+            self.groups_id += clone_user_id.groups_id
+            return {'error': 0,
+                    'message': _('Cloned successfully from user %s') % clone_user_id.name}
+        except Exception as e:
+            return {'error': ("Clone from user %s ERROR: " + str(e)) % clone_user_id.name}
+
+    def clone_users_list(self):
+        users = self.search([('is_user_role', '=', False), ('id', '!=', self.id)])
+        ret_list = []
+        for user in users:
+            ret_list.append({
+                'id': user.id,
+                'name': user.name,
+                'categories': json.dumps(user.groups_id.mapped('category_id.name'))
+            })
+        return ret_list
+
+    def export_permissions_csv(self):
+        context = dict(self._context)
+        context.update({
+            "params": {"action": "super_admin", "actionStack": [{"action": "super_admin"}]}
+        })
+        data = {
+            "import_compat": False,
+            "context": context,
+            "domain": [["is_user_role", "=", False]],
+            "fields": [
+                {"name": ".id", "label": "ID", "type": "integer"},
+                {"name": "id", "label": "External ID", "type": "integer"},
+                {"name": "name", "label": "Name", "type": "char"},
+                {"name": "groups_id/.id", "label": "Groups/ID", "type": "integer"},
+                {"name": "groups_id/id", "label": "Groups/External ID", "type": "many2many"},
+                {"name": "groups_id/name", "label": "Groups/Name", "type": "char"},
+                {"name": "groups_id/risk_level", "label": "Groups/Risk Level", "type": "selection"}
+            ], "groupby": [], "ids": [self.id],
+            "model": "res.users"
+        }
+        return data

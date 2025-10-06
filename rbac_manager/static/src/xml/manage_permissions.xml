@@ -27,26 +27,6 @@
                 </div>
             </div>
 
-            <!-- Pending Requests (visible to Super Admin) -->
-            <div class="pending-requests" style="display:none;">
-                <h2>📋 Pending Permission Requests</h2>
-                <div class="request-item">
-                    <div class="request-info">
-                        <h4>Extra Permission Request #REQ-001</h4>
-                        <div class="request-meta">
-                            <span>📅 Requested: 2 hours ago</span>
-                            <span>👤 By: John Smith (Dept. Manager)</span>
-                            <span>⏰ Expires: 30 days</span>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <div class="status-badge pending">pending</div>
-                        <button class="btn btn-primary btn-small">✓ Approve</button>
-                        <button class="btn btn-danger btn-small">✗ Reject</button>
-                    </div>
-                </div>
-            </div>
-
             <div class="content-grid">
                 <!-- Current Roles Section -->
                 <div class="section">
@@ -118,42 +98,35 @@
                 <form class="request-form">
                     <div class="form-group">
                         <label>Request Type</label>
-                        <select>
-                            <option>Extra Permission (Grant)</option>
-                            <option>Exclusion (Deny)</option>
+                        <select name="type">
+                            <option t-att-value="'grant'" t-att-selected="selected">Extra Permission (Grant)</option>
+                            <option t-att-value="'deny'">Exclusion (Deny)</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label>Select Permission</label>
                         <div class="permission-search">
                             <span class="search-icon">🔍</span>
-                            <input type="text" placeholder="Search for permissions..." id="permissionSearch"/>
+                            <input type="text" placeholder="Search for permissions..." id="permissionSearch"
+                                   t-on-keyup="search_permissions"/>
                             <div class="permission-suggestions" id="suggestions" style="display: none;">
-                                <div class="suggestion-item">
-                                    <strong>Delete Student Records</strong>
-                                    <br/>
-                                    <span class="permission-code">student.delete</span>
-                                </div>
-                                <div class="suggestion-item">
-                                    <strong>Financial Reports Access</strong>
-                                    <br/>
-                                    <span class="permission-code">finance.reports.all</span>
-                                </div>
                             </div>
                         </div>
+                        <div id="selectedPermission" class="selected-permission"
+                             style="display:none; margin-top:8px;"/>
+                        <input type="hidden" id="permissionId" name="group_id" required="required"/>
                     </div>
-
-
                     <div class="form-group">
                         <label>Business Justification</label>
-                        <textarea rows="3"
-                                  placeholder="Please provide a detailed justification for this permission request..."></textarea>
+                        <textarea rows="3" name="description" required="required"
+                                  placeholder="Please provide a detailed justification for this permission request..."/>
                     </div>
 
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <button type="button" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" class="btn btn-primary">📨 Submit Request</button>
+                        <button type="button" class="btn btn-primary" t-on-click="submitRecord">📨 Submit
+                            Request
+                        </button>
                     </div>
                 </form>
             </div>

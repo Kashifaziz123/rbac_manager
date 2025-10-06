@@ -47,7 +47,7 @@
                     <div class="quick-action" t-on-click="multi_apply_roles">
                         📦 Bulk Role Assignment
                     </div>
-                    <div class="quick-action" onclick="exportPermissions()">
+                    <div class="quick-action" t-on-click="export_permissions">
                         📤 Export Permissions
                     </div>
                 </div>
@@ -160,6 +160,7 @@
                                                     <t t-esc="categories[category][field]['group']['name']"/>
                                                 </h5>
                                                 <div class="permission-code"></div>
+                                                <div class="override-indicator">EXCLUSION OVERRIDE</div>
                                             </div>
                                             <div t-att-class="'risk-badge ' +  categories[category][field]['group']['risk_level']">
                                                 <t t-esc="categories[category][field]['group']['risk_level']"/>

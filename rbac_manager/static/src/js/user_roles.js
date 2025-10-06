@@ -38,7 +38,7 @@ export class RBACUserRoles extends Component {
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
-            loadCSS('/rbac_manager/static/src/css/user_roles.css');
+            // loadCSS('/rbac_manager/static/src/css/user_roles.css');
         });
 
         onMounted(() => {

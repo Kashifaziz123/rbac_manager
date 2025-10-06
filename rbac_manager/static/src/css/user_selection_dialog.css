@@ -1,0 +1,328 @@
+.rbac_dialog.user_selection_dialog *,
+.rbac_dialog.user_selection_dialog *::after,
+.rbac_dialog.user_selection_dialog *::before {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.rbac_dialog.user_selection_dialog {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f5f7;
+}
+
+.rbac_dialog.user_selection_dialog .current-user {
+    background: #f5f5f7;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 28px;
+    border-left: 3px solid #6366f1;
+}
+
+.rbac_dialog.user_selection_dialog .current-user-label {
+    font-size: 11px;
+    color: #86868b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.rbac_dialog.user_selection_dialog .current-user-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1d1d1f;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rbac_dialog.user_selection_dialog .user-badge {
+    background: #6366f1;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.rbac_dialog.user_selection_dialog .search-section {
+    margin-bottom: 20px;
+}
+
+.rbac_dialog.user_selection_dialog .search-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 10px;
+}
+
+.rbac_dialog.user_selection_dialog .search-box {
+    position: relative;
+}
+
+.rbac_dialog.user_selection_dialog .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #86868b;
+}
+
+.rbac_dialog.user_selection_dialog .search-input {
+    width: 100%;
+    padding: 12px 14px 12px 42px;
+    border: 1.5px solid #d2d2d7;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: white;
+}
+
+.rbac_dialog.user_selection_dialog .search-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.rbac_dialog.user_selection_dialog .user-list {
+    max-height: 320px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.rbac_dialog.user_selection_dialog .user-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rbac_dialog.user_selection_dialog .user-list::-webkit-scrollbar-track {
+    background: #f5f5f7;
+    border-radius: 3px;
+}
+
+.rbac_dialog.user_selection_dialog .user-list::-webkit-scrollbar-thumb {
+    background: #d2d2d7;
+    border-radius: 3px;
+}
+
+.rbac_dialog.user_selection_dialog .user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 1.5px solid #e8e8ed;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+}
+
+.rbac_dialog.user_selection_dialog .user-item:hover {
+    border-color: #6366f1;
+    background: #fafafc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.rbac_dialog.user_selection_dialog .user-item.selected {
+    border-color: #6366f1;
+    background: #f0f0ff;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.15);
+}
+
+.rbac_dialog.user_selection_dialog .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rbac_dialog.user_selection_dialog .user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.rbac_dialog.user_selection_dialog .user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rbac_dialog.user_selection_dialog .user-name {
+    font-weight: 600;
+    color: #1d1d1f;
+    font-size: 14px;
+}
+
+.rbac_dialog.user_selection_dialog .user-role {
+    font-size: 12px;
+    color: #86868b;
+}
+
+.rbac_dialog.user_selection_dialog .radio-btn {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #d2d2d7;
+    border-radius: 50%;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.rbac_dialog.user_selection_dialog .user-item.selected .radio-btn {
+    border-color: #6366f1;
+    border-width: 2px;
+}
+
+.rbac_dialog.user_selection_dialog .user-item.selected .radio-btn::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #6366f1;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.rbac_dialog.user_selection_dialog .preview-section {
+    background: #fffbeb;
+    border: 1.5px solid #fbbf24;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+    display: none;
+}
+
+.rbac_dialog.user_selection_dialog .preview-section.active {
+    display: block;
+}
+
+.rbac_dialog.user_selection_dialog .preview-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rbac_dialog.user_selection_dialog .roles-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rbac_dialog.user_selection_dialog .role-tag {
+    background: white;
+    border: 1px solid #fbbf24;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #92400e;
+    font-weight: 500;
+}
+
+.rbac_dialog.user_selection_dialog .modal-footer {
+    padding: 20px 32px;
+    border-top: 1px solid #e8e8ed;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    background: #fafafc;
+}
+
+.rbac_dialog.user_selection_dialog .btn {
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rbac_dialog.user_selection_dialog .btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.rbac_dialog.user_selection_dialog .btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.rbac_dialog.user_selection_dialog .btn-primary:disabled {
+    background: #d2d2d7;
+    cursor: not-allowed;
+    color: #86868b;
+}
+
+.rbac_dialog.user_selection_dialog .btn-secondary {
+    background: white;
+    color: #1d1d1f;
+    border: 1.5px solid #d2d2d7;
+}
+
+.rbac_dialog.user_selection_dialog .btn-secondary:hover {
+    background: #f5f5f7;
+    border-color: #86868b;
+}
+
+.rbac_dialog.user_selection_dialog .no-results {
+    text-align: center;
+    padding: 48px 20px;
+    color: #86868b;
+    font-size: 14px;
+}
+
+.rbac_dialog.user_selection_dialog .success-message {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #10b981;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 14px;
+    animation: slideIn 0.3s ease-out;
+    z-index: 1000;
+}
+
+.rbac_dialog.user_selection_dialog .success-message.show {
+    display: flex;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

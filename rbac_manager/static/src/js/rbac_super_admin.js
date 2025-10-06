@@ -3,6 +3,7 @@
 import {RBACUserSelectionDialog, RBACRoleSelectionDialog} from "@rbac_manager/js/selection_dialog";
 import {Component, onMounted, onWillStart, useEffect, useRef, useState} from "@odoo/owl";
 import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
+import {download} from "@web/core/network/download";
 import {ensureJQuery} from '@web/core/ensure_jquery';
 import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
@@ -37,7 +38,7 @@ export class RBACSuperAdmin extends Component {
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
-            loadCSS('/rbac_manager/static/src/css/rbac_super_admin.css');
+            // loadCSS('/rbac_manager/static/src/css/rbac_super_admin.css');
         });
 
         onMounted(() => {
@@ -64,15 +65,20 @@ export class RBACSuperAdmin extends Component {
     }
 
     async clone_from_another_user() {
-        let users = await this.orm.searchRead("res.users", [['is_user_role', '=', false]], ["id", "name"]);
+        let clone_users = await this.orm.call("res.users", "clone_users_list", [this.record_id], {});
+        // let users = await this.orm.searchRead("res.users", [['is_user_role', '=', false]], ["id", "name"]);
         await this.dialogService.add(RBACUserSelectionDialog, {
-            users: users,
+            clone_users: clone_users,
             title: _t('Clone User'),
             cancelLabel: _t("Close"),
-            confirmLabel: _t("Copy"),
+            confirmLabel: _t("Apply Permissions"),
             confirm: async () => {
-                let clone_user = $('.rbac_super_admin.rbac_dialog').find('input:checked').val();
-                await this.orm.call("res.users", "clone_groups_from_user", [this.record_id], {'clone_user_id': parseInt(clone_user)});
+                let clone_user = $('.rbac_dialog.user_selection_dialog').find('.user-item.selected').attr('data-id');
+                let res = await this.orm.call("res.users", "clone_groups_from_user", [this.record_id], {'clone_user_id': parseInt(clone_user)});
+                if (res.error)
+                    this.notification.add(res.error, {sticky: false, type: "danger"});
+                else
+                    this.notification.add(res.message, {sticky: false, type: "info"});
                 await this.fetch_data();
                 this.reset_data();
             },
@@ -80,6 +86,16 @@ export class RBACSuperAdmin extends Component {
             },
         });
     }
+
+    async export_permissions() {
+        await download({
+            data: {
+                data: JSON.stringify(await this.orm.call("res.users", "export_permissions_csv", [this.record_id], {}))
+            },
+            url: "/web/export/csv",
+        });
+    }
+
     async multi_apply_roles() {
         await this.dialogService.add(RBACRoleSelectionDialog, {
             roles: this.data.available_roles,

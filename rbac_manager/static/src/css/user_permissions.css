@@ -106,6 +106,60 @@ body.o_web_client div.o_action_manager div.user_permission *{
     background: #e5e7eb;
 }
 
+.user_permission .pending-requests {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 24px;
+}
+
+.user_permission .request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.user_permission .request-info h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.user_permission .request-meta {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    gap: 12px;
+}
+
+.user_permission .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.user_permission .status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.user_permission .status-badge.approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.user_permission .status-badge.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
 .user_permission .role-badges {
     background: white;
     border-radius: 12px;

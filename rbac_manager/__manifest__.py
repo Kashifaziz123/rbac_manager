@@ -29,6 +29,7 @@
     'assets': {
         'web.assets_backend': [
             'rbac_manager/static/src/xml/*.xml',
+            'rbac_manager/static/src/css/*.css',
             'rbac_manager/static/src/js/*.js',
         ],
     },

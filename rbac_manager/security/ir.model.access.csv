@@ -6,3 +6,4 @@ access_company_user_edit,access_company_user_edit,base.model_res_company,rbac_ma
 access_ir_ui_view_user,access_ir_ui_view_user,base.model_ir_ui_view,base.group_user,1,1,1,1
 access_user_template_wizard,access_user_template_wizard,model_user_template_wizard,base.group_system,1,1,1,1
 access_ir_module_category_permission_admin,access_ir_module_category_permission_admin,model_ir_module_category,rbac_manager.permission_group_admin,1,0,0,0
+access_request_rbac_permission,access_request_rbac_permission,model_request_rbac_permission,,1,1,1,1

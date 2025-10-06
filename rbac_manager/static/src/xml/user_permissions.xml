@@ -11,8 +11,12 @@
                         <h1>
                             <t t-esc="this.user[0]?.name"/>
                         </h1>
-                        <p><t t-esc="this.user[0]?.email"/> • Employee ID: <t t-esc="this.data?.employee?.barcode || 'N/A'"/></p>
-                        </div>
+                        <p>
+                            <t t-esc="this.user[0]?.email"/>
+                            • Employee ID:
+                            <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
+                        </p>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <a t-att-href="'/odoo/user_permission/'" class="btn btn-secondary">
@@ -21,17 +25,48 @@
                     <a t-att-href="'/odoo/manage_permission/' + this.record_id" class="btn btn-primary">
                         ✏️ Manage Permissions
                     </a>
-                    <!--                    <a href="#" class="btn btn-primary" t-on-click="(ev) => this.manage_permission(ev)">✏️ Manage Permissions</a>-->
                 </div>
+            </div>
+
+            <div class="pending-requests">
+                <h2>📋 Pending Permission Requests</h2>
+                <t t-foreach="this.data?.rbac_permissions" t-as="rbac_permission"
+                   t-key="rbac_permission.id + '_manage_permissions' ">
+                    <div class="request-item">
+                        <div class="request-info">
+                            <h4>
+                                <t t-esc="rbac_permission.type === 'grant' ? 'Extra Permission' : 'Exclusion' "/>
+                                Request ::
+                                <t t-esc="rbac_permission.group.name"/>
+                            </h4>
+                            <div class="request-meta">
+                                <span>📅 Requested:
+                                    <t t-esc="rbac_permission.created_on"/>
+                                    ago
+                                </span>
+                                <span>👤 By:
+                                    <t t-esc="rbac_permission.created_by"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <div t-att-class=" 'status-badge ' + rbac_permission.state">
+                                <t t-esc="rbac_permission.state"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
             </div>
 
             <div class="role-badges">
                 <h3>Assigned Roles &amp; Exceptions</h3>
                 <div class="badges-container">
-                    <div class="role-badge teacher">👩‍🏫 Role: Teacher</div>
-                    <div class="role-badge attendance">📊 Role: Attendance Manager</div>
-                    <div class="role-badge exclusion">❌ 1 Exclusion</div>
-                    <div class="role-badge extra">➕ 1 Extra Permission</div>
+                    <div class="role-badge attendance">📊 Role: N/A</div>
+                    <div class="role-badge exclusion">❌
+                        <t t-esc="this.data?.all_groups_count"/>
+                        Exclusions
+                    </div>
+                    <div class="role-badge extra">➕ 0 Extra Permissions</div>
                 </div>
             </div>
 
@@ -132,7 +167,7 @@
                                         <div t-att-class="'risk-badge ' +  this.data?.all_categories[category][field]['group']['risk_level']">
                                             <t t-esc="this.data?.all_categories[category][field]['group']['risk_level']"/>
                                         </div>
-                                        <div class="source-tag role">Role: ???</div>
+                                        <div class="source-tag excluded">Excluded (User Exception)</div>
                                         <t t-if="this.data?.all_categories[category][field]['value']">
                                             <div class="status-badge granted">granted</div>
                                         </t>
@@ -157,7 +192,7 @@
                                             <div t-att-class="'risk-badge ' +  group.risk_level">
                                                 <t t-esc="group.risk_level"/>
                                             </div>
-                                            <div class="source-tag role">Role: ???</div>
+                                            <div class="source-tag excluded">Excluded (User Exception)</div>
                                             <t t-if="group.id === this.data?.all_categories[category][field]['value'] || this.data?.all_categories[category][field]['values']?.includes(group.id)">
                                                 <div class="status-badge granted">granted</div>
                                             </t>
@@ -169,82 +204,6 @@
                                 </t>
                             </t>
                         </t>
-                        <!--                        <div class="permission-row">-->
-                        <!--                            <div class="permission-category">Academics</div>-->
-                        <!--                            <div class="permission-details">-->
-                        <!--                                <h4>Teacher Access</h4>-->
-                        <!--                                <div class="permission-code">academic.teacher</div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="risk-badge low">low</div>-->
-                        <!--                            <div class="source-tag role">Role: Teacher</div>-->
-                        <!--                            <div class="status-badge granted">granted</div>-->
-                        <!--                        </div>-->
-
-                        <!--                        <div class="permission-row">-->
-                        <!--                            <div class="permission-category">Academics</div>-->
-                        <!--                            <div class="permission-details">-->
-                        <!--                                <h4>Publish Results</h4>-->
-                        <!--                                <div class="permission-code">academic.result.publish</div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="risk-badge high">high</div>-->
-                        <!--                            <div class="source-tag extra">Extra (User Exception)</div>-->
-                        <!--                            <div class="status-badge granted">granted</div>-->
-                        <!--                        </div>-->
-
-                        <!--                        <div class="permission-row">-->
-                        <!--                            <div class="permission-category">Academics</div>-->
-                        <!--                            <div class="permission-details">-->
-                        <!--                                <h4>All Report Views</h4>-->
-                        <!--                                <div class="permission-code">academic.report.all</div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="risk-badge medium">medium</div>-->
-                        <!--                            <div class="source-tag role">Role: Teacher</div>-->
-                        <!--                            <div class="status-badge granted">granted</div>-->
-                        <!--                        </div>-->
-
-                        <!--                        <div class="permission-row">-->
-                        <!--                            <div class="permission-category">Attendance</div>-->
-                        <!--                            <div class="permission-details">-->
-                        <!--                                <h4>Attendance - Teacher</h4>-->
-                        <!--                                <div class="permission-code">attendance.teacher</div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="risk-badge low">low</div>-->
-                        <!--                            <div class="source-tag role">Role: Teacher</div>-->
-                        <!--                            <div class="status-badge granted">granted</div>-->
-                        <!--                        </div>-->
-
-                        <!--                        <div class="permission-row">-->
-                        <!--                            <div class="permission-category">Finance</div>-->
-                        <!--                            <div class="permission-details">-->
-                        <!--                                <h4>Create Fee Documents</h4>-->
-                        <!--                                <div class="permission-code">fee.create</div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="risk-badge high">high</div>-->
-                        <!--                            <div class="source-tag excluded">Excluded (User Exception)</div>-->
-                        <!--                            <div class="status-badge denied">denied</div>-->
-                        <!--                        </div>-->
-
-                        <!--                        <div class="permission-row">-->
-                        <!--                            <div class="permission-category">Reception</div>-->
-                        <!--                            <div class="permission-details">-->
-                        <!--                                <h4>Receptionist Access</h4>-->
-                        <!--                                <div class="permission-code">reception.receptionist</div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="risk-badge low">low</div>-->
-                        <!--                            <div class="source-tag role">Role: Teacher</div>-->
-                        <!--                            <div class="status-badge granted">granted</div>-->
-                        <!--                        </div>-->
-
-                        <!--                        <div class="permission-row">-->
-                        <!--                            <div class="permission-category">Inventory</div>-->
-                        <!--                            <div class="permission-details">-->
-                        <!--                                <h4>Inventory Manager</h4>-->
-                        <!--                                <div class="permission-code">inventory.manager</div>-->
-                        <!--                            </div>-->
-                        <!--                            <div class="risk-badge medium">medium</div>-->
-                        <!--                            <div class="source-tag role">Role: Teacher</div>-->
-                        <!--                            <div class="status-badge denied">denied</div>-->
-                        <!--                        </div>-->
                     </div>
                 </div>
             </div>

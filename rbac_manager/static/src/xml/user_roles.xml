@@ -17,9 +17,7 @@
                     <div class="search-box">
                         <span class="search-icon">🔍</span>
                         <input type="text" placeholder="Search permissions by name, code, or description..."
-                               t-ref="searchInput"
-                               t-on-keyup="apply_search"
-                        />
+                               t-ref="searchInput" t-on-keyup="apply_search"/>
                     </div>
 
                     <div class="filter-dropdown">
