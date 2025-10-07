@@ -54,14 +54,14 @@ class ResUsers(models.Model):
             'target': 'self',
         }
 
-    def client_action_view_manage_permission(self):
-        return {
-            'type': 'ir.actions.client',
-            'name': 'Manage Permissions',
-            'tag': 'rbac.manage_permission',
-            'path': 'manage_permission',
-            'target': 'self',
-        }
+    # def client_action_view_manage_permission(self):
+    #     return {
+    #         'type': 'ir.actions.client',
+    #         'name': 'Manage Permissions',
+    #         'tag': 'rbac.manage_permission',
+    #         'path': 'manage_permission',
+    #         'target': 'self',
+    #     }
 
     def client_action_view_super_admin(self):
         return {
@@ -72,15 +72,15 @@ class ResUsers(models.Model):
             'target': 'self',
         }
 
-    def open_user_role_window(self):
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'User Roles',
-            'res_model': 'res.users',
-            'view_mode': 'list',
-            'domain': [('active', '=', False), ('is_user_role', '=', True)],
-            'context': {'default_active': False, 'default_name': 'New User Role'},
-        }
+    # def open_user_role_window(self):
+    #     return {
+    #         'type': 'ir.actions.act_window',
+    #         'name': 'User Roles',
+    #         'res_model': 'res.users',
+    #         'view_mode': 'list',
+    #         'domain': [('active', '=', False), ('is_user_role', '=', True)],
+    #         'context': {'default_active': False, 'default_name': 'New User Role'},
+    #     }
 
     def open_template_wizard(self):
         return {
@@ -148,229 +148,3 @@ class ResUsers(models.Model):
             for record in records:
                 record.groups_id = default_user.sudo().groups_id if default_user else [(5, 0, 0)]
         return records
-
-    def get_user_permissions_json(self):
-        def get_time_passed(dt, now=None):
-            if not dt:
-                return "0minutes"
-
-            if now is None:
-                now = datetime.utcnow()
-
-            future = dt > now
-            start, end = (now, dt) if future else (dt, now)
-            rd = relativedelta(end, start)
-
-            if rd.years >= 1:
-                pair = (("year", rd.years), ("month", rd.months))
-            elif rd.months >= 1:
-                pair = (("month", rd.months), ("day", rd.days))
-            elif rd.days >= 1:
-                pair = (("day", rd.days), ("hour", rd.hours))
-            else:
-                pair = (("hour", rd.hours), ("minute", rd.minutes))
-
-            p = lambda n, s: f"{n}{s}{'s' * (n != 1)}"
-            # build result with only non-zero parts
-            a, b = pair
-            parts = ([p(a[1], a[0])] if a[1] else []) + ([p(b[1], b[0])] if b[1] else [])
-
-            if not parts:
-                parts = ["0minutes"]
-
-            return ("-" if future else "") + " ".join(parts)
-
-        try:
-            groups = self.sudo().groups_id
-            categ_dict = {}
-            categories = groups.get_categories_groups_json(self.id)
-            for category in categories:
-                categ_dict[category] = {
-                    'granted': len([c for c in categories[category].keys() if
-                                    categories[category][c]['value'] != False]),
-                    'total': len(categories[category].keys())
-                }
-            try:
-                employee = self.env['hr.employee'].sudo().search([('user_id', '=', self.id)])
-                employee = {'barcode': employee.barcode}
-            except:
-                employee = {}
-
-            return {
-                'total': {
-                    'granted': len(groups),
-                    'denied': len(self.env['res.groups'].sudo().search([])) - len(groups),
-                    'high_risk_granted': len(
-                        groups.filtered(lambda g: g.risk_level == 'high')),
-                },
-                'updated_on': get_time_passed(self.write_date),
-                'categories': categ_dict,
-                'all_categories': categories,
-                'employee': employee,
-                'error': False,
-                'rbac_permissions': [{
-                    'id': rbac.id,
-                    'description': rbac.description,
-                    'group': {'id': rbac.group_id.id, 'name': rbac.group_id.name},
-                    'type': rbac.type,
-                    'state': rbac.state,
-                    'created_by': rbac.requested_by.name,
-                    'created_on': get_time_passed(rbac.create_date),
-                } for rbac in
-                    self.env['request.rbac.permission'].search([('user_id', '=', self.id)])],
-            }
-        except:
-            return {
-                'total': {
-                    'granted': 0,
-                    'denied': 0,
-                    'high_risk_granted': 0,
-                },
-                'updated_on': '0 seconds',
-                'categories': {},
-                'all_categories': {},
-                'employee': {},
-                'error': True,
-                'rbac_permissions': [],
-            }
-
-    def get_manage_permissions_json(self):
-        try:
-            def get_time_passed(dt, now=None):
-                if not dt:
-                    return "0minutes"
-
-                if now is None:
-                    now = datetime.utcnow()
-
-                future = dt > now
-                start, end = (now, dt) if future else (dt, now)
-                rd = relativedelta(end, start)
-
-                if rd.years >= 1:
-                    pair = ((" year", rd.years), (" month", rd.months))
-                elif rd.months >= 1:
-                    pair = ((" month", rd.months), (" day", rd.days))
-                elif rd.days >= 1:
-                    pair = ((" day", rd.days), (" hour", rd.hours))
-                else:
-                    pair = ((" hour", rd.hours), (" minute", rd.minutes))
-
-                p = lambda n, s: f"{n}{s}{'s' * (n != 1)}"
-                # build result with only non-zero parts
-                a, b = pair
-                parts = ([p(a[1], a[0])] if a[1] else []) + ([p(b[1], b[0])] if b[1] else [])
-
-                if not parts:
-                    parts = ["0minutes"]
-
-                return ("-" if future else "") + " ".join(parts)
-
-            try:
-                employee = self.env['hr.employee'].sudo().search([('user_id', '=', self.id)])
-                employee = {'barcode': employee.barcode}
-            except:
-                employee = {}
-
-            return {
-                'available_roles': [
-                    {
-                        'id': user.id,
-                        'name': user.name,
-                        'description': user.description or "",
-                        'permissions_count': len(user.sudo().groups_id)
-                    } for user in
-                    self.search([('active', '=', False), ('is_user_role', '=', True)])
-                ],
-                'employee': employee,
-                'error': False,
-                'permissions': {
-                    'deny': [{'id': group.id, 'name': group.name} for group in self.groups_id],
-                    'grant': [{'id': group.id, 'name': group.name} for group in
-                              (self.env['res.groups'].search([]) - self.groups_id)]
-                },
-            }
-        except Exception as e:
-            return {
-                'available_roles': [],
-                'employee': {},
-                'error': True,
-                'permissions': {
-                    'deny': [],
-                    'grant': []
-                },
-            }
-
-    def get_rbac_super_admin_json(self):
-        try:
-            groups = self.sudo().groups_id
-            categories = groups.get_categories_groups_json(self.id)
-            try:
-                employee = self.env['hr.employee'].sudo().search([('user_id', '=', self.id)])
-                employee = {'barcode': employee.barcode}
-            except:
-                employee = {}
-
-            return {
-                'available_roles': [
-                    {
-                        'id': user.id,
-                        'name': user.name,
-                        'description': user.description or "",
-                        'permissions_count': len(user.sudo().groups_id)
-                    } for user in
-                    self.search([('active', '=', False), ('is_user_role', '=', True)])
-                ],
-                'all_categories': categories,
-                'employee': employee,
-                'error': False,
-            }
-        except:
-            return {
-                'available_roles': [],
-                'all_categories': [],
-                'employee': {},
-                'error': True,
-            }
-
-    def clone_groups_from_user(self, clone_user_id):
-        try:
-            clone_user_id = self.browse(clone_user_id)
-            self.groups_id += clone_user_id.groups_id
-            return {'error': 0,
-                    'message': _('Cloned successfully from user %s') % clone_user_id.name}
-        except Exception as e:
-            return {'error': ("Clone from user %s ERROR: " + str(e)) % clone_user_id.name}
-
-    def clone_users_list(self):
-        users = self.search([('is_user_role', '=', False), ('id', '!=', self.id)])
-        ret_list = []
-        for user in users:
-            ret_list.append({
-                'id': user.id,
-                'name': user.name,
-                'categories': json.dumps(user.groups_id.mapped('category_id.name'))
-            })
-        return ret_list
-
-    def export_permissions_csv(self):
-        context = dict(self._context)
-        context.update({
-            "params": {"action": "super_admin", "actionStack": [{"action": "super_admin"}]}
-        })
-        data = {
-            "import_compat": False,
-            "context": context,
-            "domain": [["is_user_role", "=", False]],
-            "fields": [
-                {"name": ".id", "label": "ID", "type": "integer"},
-                {"name": "id", "label": "External ID", "type": "integer"},
-                {"name": "name", "label": "Name", "type": "char"},
-                {"name": "groups_id/.id", "label": "Groups/ID", "type": "integer"},
-                {"name": "groups_id/id", "label": "Groups/External ID", "type": "many2many"},
-                {"name": "groups_id/name", "label": "Groups/Name", "type": "char"},
-                {"name": "groups_id/risk_level", "label": "Groups/Risk Level", "type": "selection"}
-            ], "groupby": [], "ids": [self.id],
-            "model": "res.users"
-        }
-        return data

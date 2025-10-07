@@ -32,7 +32,7 @@ export class RBACSuperAdmin extends Component {
             () => {
                 this.enabled_inputs_length();
             },
-            () => [this.data, this.custom_props]
+            () => [this.data, this.custom_props.changed_data]
         );
 
         onWillStart(async () => {
@@ -65,7 +65,7 @@ export class RBACSuperAdmin extends Component {
     }
 
     async clone_from_another_user() {
-        let clone_users = await this.orm.call("res.users", "clone_users_list", [this.record_id], {});
+        let clone_users = await this.orm.call("rbac.model", "clone_users_list", [], {'user_id': this.record_id});
         // let users = await this.orm.searchRead("res.users", [['is_user_role', '=', false]], ["id", "name"]);
         await this.dialogService.add(RBACUserSelectionDialog, {
             clone_users: clone_users,
@@ -74,7 +74,10 @@ export class RBACSuperAdmin extends Component {
             confirmLabel: _t("Apply Permissions"),
             confirm: async () => {
                 let clone_user = $('.rbac_dialog.user_selection_dialog').find('.user-item.selected').attr('data-id');
-                let res = await this.orm.call("res.users", "clone_groups_from_user", [this.record_id], {'clone_user_id': parseInt(clone_user)});
+                let res = await this.orm.call("rbac.model", "clone_groups_from_user", [], {
+                    'user_id': this.record_id,
+                    'clone_user_id': parseInt(clone_user)
+                });
                 if (res.error)
                     this.notification.add(res.error, {sticky: false, type: "danger"});
                 else
@@ -90,7 +93,7 @@ export class RBACSuperAdmin extends Component {
     async export_permissions() {
         await download({
             data: {
-                data: JSON.stringify(await this.orm.call("res.users", "export_permissions_csv", [this.record_id], {}))
+                data: JSON.stringify(await this.orm.call("rbac.model", "export_permissions_csv", [], {'user_id': this.record_id}))
             },
             url: "/web/export/csv",
         });
@@ -168,6 +171,8 @@ export class RBACSuperAdmin extends Component {
                 break;
             }
         }
+
+        this.enabled_inputs_length();
     }
 
     apply_search(mode = false) {
@@ -279,7 +284,7 @@ export class RBACSuperAdmin extends Component {
     //
     async fetch_data() {
         this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
-        this.data = await this.orm.call("res.users", "get_rbac_super_admin_json", [this.record_id]);
+        this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
 
         if (this.user[0]?.name === undefined) {
             var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)

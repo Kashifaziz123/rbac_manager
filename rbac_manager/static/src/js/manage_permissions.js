@@ -108,7 +108,7 @@ export class RBACManagePermissions extends Component {
     //
     async fetch_data() {
         this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
-        this.data = await this.orm.call("res.users", "get_manage_permissions_json", [this.record_id]);
+        this.data = await this.orm.call("rbac.model", "get_manage_permissions_json", [this.record_id]);
 
         if (this.data.error) {
             var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
