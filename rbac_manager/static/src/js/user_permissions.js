@@ -119,6 +119,7 @@ export class RBACUserPermissions extends Component {
             this.action.doAction('rbac_manager.act_window_res_users_list_user_permission', {clearBreadcrumbs: true});
         }
 
+        this.data.group_sources = JSON.parse(this.data.group_sources);
         this.custom_props.original_data = JSON.parse(JSON.stringify(this.data?.all_categories || {}));
         this.data.all_groups_count = Object.values(this.data?.all_categories || {})
             .reduce((total, main) => total + Object.values(main)

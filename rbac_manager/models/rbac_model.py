@@ -90,8 +90,8 @@ class RbacModel(models.Model):
     @api.model
     def get_user_permissions_json(self, user_id):
         try:
-            user = self.env['res.users'].browse([user_id])
-            groups = user.sudo().groups_id
+            self_user = self.env['res.users'].with_context(active_test=False).browse([user_id])
+            groups = self_user.sudo().groups_id
             categ_dict = {}
             categories = groups.get_categories_groups_json(user_id)
             for category in categories:
@@ -108,7 +108,7 @@ class RbacModel(models.Model):
                     'high_risk_granted': len(
                         groups.filtered(lambda g: g.risk_level == 'high')),
                 },
-                'updated_on': self._get_time_passed(user.write_date),
+                'updated_on': self._get_time_passed(self_user.write_date),
                 'categories': categ_dict,
                 'all_categories': categories,
                 'employee': self._get_employee(),
@@ -123,6 +123,21 @@ class RbacModel(models.Model):
                     'created_on': self._get_time_passed(rbac.create_date),
                 } for rbac in
                     self.env['request.rbac.permission'].search([('user_id', '=', user_id)])],
+                'assigned_roles': [
+                    {
+                        'id': user.id,
+                        'name': user.name,
+                        'description': user.description or "",
+                        'permissions_count': len(user.sudo().groups_id)
+                    } for user in self_user.role_user_ids
+                ],
+                'exclusion': len(self_user.direct_group_exclusions),
+                'extra': len(self_user.direct_group_additions),
+                'group_sources': self_user.group_sources,
+                "roles": {
+                    user.id: user.name
+                    for user in
+                    self_user.search([('active', '=', False), ('is_user_role', '=', True)])},
             }
         except:
             return {
@@ -133,12 +148,17 @@ class RbacModel(models.Model):
                 'employee': {},
                 'error': True,
                 'rbac_permissions': [],
+                'assigned_roles': [],
+                'exclusion': 0,
+                'extra': 0,
+                'group_sources': json.dumps({}),
+                "roles": {},
             }
 
     @api.model
     def get_manage_permissions_json(self, user_id):
         try:
-            user = self.env['res.users'].browse([user_id])
+            self_user = self.env['res.users'].with_context(active_test=False).browse([user_id])
             return {
                 'available_roles': [
                     {
@@ -147,19 +167,29 @@ class RbacModel(models.Model):
                         'description': user.description or "",
                         'permissions_count': len(user.sudo().groups_id)
                     } for user in
-                    user.search([('active', '=', False), ('is_user_role', '=', True)])
+                    (self_user.search([('active', '=', False),
+                                       ('is_user_role', '=', True)]) - self_user.role_user_ids)
+                ],
+                'assigned_roles': [
+                    {
+                        'id': user.id,
+                        'name': user.name,
+                        'description': user.description or "",
+                        'permissions_count': len(user.sudo().groups_id)
+                    } for user in self_user.role_user_ids
                 ],
                 'employee': self._get_employee(),
                 'error': False,
                 'permissions': {
-                    'deny': [{'id': group.id, 'name': group.name} for group in user.groups_id],
+                    'deny': [{'id': group.id, 'name': group.name} for group in self_user.groups_id],
                     'grant': [{'id': group.id, 'name': group.name} for group in
-                              (self.env['res.groups'].search([]) - user.groups_id)]
+                              (self.env['res.groups'].search([]) - self_user.groups_id)]
                 },
             }
         except Exception as e:
             return {
                 'available_roles': [],
+                'assigned_roles': [],
                 'employee': {},
                 'error': True,
                 'permissions': {'deny': [], 'grant': []},
@@ -168,8 +198,8 @@ class RbacModel(models.Model):
     @api.model
     def get_rbac_super_admin_json(self, user_id):
         try:
-            user = self.env['res.users'].browse([user_id])
-            groups = user.sudo().groups_id
+            self_user = self.env['res.users'].with_context(active_test=False).browse([user_id])
+            groups = self_user.sudo().groups_id
             categories = groups.get_categories_groups_json(user_id)
 
             return {
@@ -180,18 +210,35 @@ class RbacModel(models.Model):
                         'description': user.description or "",
                         'permissions_count': len(user.sudo().groups_id)
                     } for user in
-                    user.search([('active', '=', False), ('is_user_role', '=', True)])
+                    (self_user.search([('active', '=', False),
+                                       ('is_user_role', '=', True)]) - self_user.role_user_ids)
+                ],
+                'assigned_roles': [
+                    {
+                        'id': user.id,
+                        'name': user.name,
+                        'description': user.description or "",
+                        'permissions_count': len(user.sudo().groups_id)
+                    } for user in self_user.role_user_ids
                 ],
                 'all_categories': categories,
                 'employee': self._get_employee(),
                 'error': False,
+                'group_sources': self_user.group_sources,
+                "roles": {
+                    user.id: user.name
+                    for user in
+                    self_user.search([('active', '=', False), ('is_user_role', '=', True)])},
             }
         except:
             return {
                 'available_roles': [],
+                'assigned_roles': [],
                 'all_categories': [],
                 'employee': {},
                 'error': True,
+                'group_sources': json.dumps({}),
+                'roles': {},
             }
 
     @api.model

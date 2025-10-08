@@ -2,6 +2,7 @@
 <templates id="template">
     <t t-name="rbac.UserPermissions">
         <div class="container user_permission">
+            <!--            <t t-set="permission_type_id" t-value="0"/>-->
             <div class="header">
                 <div class="user-info">
                     <div class="user-avatar">
@@ -61,12 +62,20 @@
             <div class="role-badges">
                 <h3>Assigned Roles &amp; Exceptions</h3>
                 <div class="badges-container">
-                    <div class="role-badge attendance">📊 Role: N/A</div>
+                    <t t-foreach="this.data?.assigned_roles" t-as="assigned_role"
+                       t-key="assigned_role.id + '_user_permission' ">
+                        <div class="role-badge role_name">Role:
+                            <t t-esc="assigned_role.name"/>
+                        </div>
+                    </t>
                     <div class="role-badge exclusion">❌
-                        <t t-esc="this.data?.all_groups_count"/>
+                        <t t-esc="this.data?.exclusion"/>
                         Exclusions
                     </div>
-                    <div class="role-badge extra">➕ 0 Extra Permissions</div>
+                    <div class="role-badge extra">➕
+                        <t t-esc="this.data?.extra"/>
+                        Extra Permissions
+                    </div>
                 </div>
             </div>
 
@@ -103,7 +112,7 @@
 
                     <div class="category-breakdown">
                         <h3>By Category</h3>
-                        <t t-foreach="this.data?.categories" t-as="category" t-key="category">
+                        <t t-foreach="this.data?.categories" t-as="category" t-key="category + '_by_category' ">
                             <div class="category-item" t-if="this.data?.categories[category].granted !== 0">
                                 <span class="category-name">
                                     <t t-esc="category"/>
@@ -151,8 +160,9 @@
                     </div>
 
                     <div class="table-content">
-                        <t t-foreach="this.data?.all_categories" t-as="category" t-key="category">
-                            <t t-foreach="this.data?.all_categories[category]" t-as="field" t-key="field">
+                        <t t-foreach="this.data?.all_categories" t-as="category" t-key="category + '_all_category' ">
+                            <t t-foreach="this.data?.all_categories[category]" t-as="field"
+                               t-key="field + '_all_category' ">
                                 <t t-if="this.data?.all_categories[category][field]['group']">
                                     <div class="permission-row">
                                         <div class="permission-category">
@@ -167,7 +177,9 @@
                                         <div t-att-class="'risk-badge ' +  this.data?.all_categories[category][field]['group']['risk_level']">
                                             <t t-esc="this.data?.all_categories[category][field]['group']['risk_level']"/>
                                         </div>
-                                        <div class="source-tag excluded">Excluded (User Exception)</div>
+                                        <t t-set="permission_type_id"
+                                           t-value="this.data.all_categories[category][field]['group']['id']"/>
+                                        <t t-call="rbac.permission_type"/>
                                         <t t-if="this.data?.all_categories[category][field]['value']">
                                             <div class="status-badge granted">granted</div>
                                         </t>
@@ -192,7 +204,8 @@
                                             <div t-att-class="'risk-badge ' +  group.risk_level">
                                                 <t t-esc="group.risk_level"/>
                                             </div>
-                                            <div class="source-tag excluded">Excluded (User Exception)</div>
+                                            <t t-set="permission_type_id" t-value="group.id"/>
+                                            <t t-call="rbac.permission_type"/>
                                             <t t-if="group.id === this.data?.all_categories[category][field]['value'] || this.data?.all_categories[category][field]['values']?.includes(group.id)">
                                                 <div class="status-badge granted">granted</div>
                                             </t>
@@ -213,5 +226,31 @@
                 <button class="fab" title="Generate Report">📊</button>
             </div>
         </div>
+    </t>
+
+    <t t-name="rbac.permission_type">
+        <t t-if="this.data?.group_sources[permission_type_id]">
+            <t t-foreach="this.data?.group_sources[permission_type_id]" t-as="tag"
+               t-key="tag + '_permission_type_' + permission_type_id ">
+                <t t-if="tag.startsWith('role_')">
+                    <div class="source-tag role">Role:
+                        <t t-esc="this.data?.roles[tag.substring(5)]"/>
+                    </div>
+                </t>
+                <t t-elif="tag.startsWith('excluded')">
+                    <div class="source-tag excluded">Excluded (User Exception)</div>
+                </t>
+                <t t-elif="tag.startsWith('direct_add')">
+                    <div class="source-tag extra">Extra (User Exception)</div>
+                </t>
+                <t t-else="">
+                    <div class="source-tag unknown">Unknown (<t t-esc="tag"/>)
+                    </div>
+                </t>
+            </t>
+        </t>
+        <t t-else="">
+            <div class="source-tag"/>
+        </t>
     </t>
 </templates>

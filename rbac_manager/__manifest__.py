@@ -11,6 +11,7 @@
     "application": True,
     "installable": True,
     "auto_install": False,
+    'post_init_hook': 'post_init_hook',
     "depends": ['base', 'web', 'auth_signup', 'account'],
     "data": [
         'security/groups.xml',

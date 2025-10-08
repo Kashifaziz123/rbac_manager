@@ -1,5 +1,6 @@
 /* @odoo-module */
 
+import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {ensureJQuery} from '@web/core/ensure_jquery';
 import {Component, onWillStart} from "@odoo/owl";
 import {useService} from "@web/core/utils/hooks";
@@ -14,6 +15,7 @@ export class RBACManagePermissions extends Component {
     setup() {
         super.setup();
         this.notification = useService("notification");
+        this.dialogService = useService("dialog");
         this.action = useService("action");
         this.orm = useService("orm");
         this.record_id = this.props?.resId;
@@ -26,6 +28,46 @@ export class RBACManagePermissions extends Component {
             await this.fetch_data();
             await ensureJQuery();
             // loadCSS('/rbac_manager/static/src/css/manage_permissions.css');
+        });
+    }
+
+    //
+    // view models
+    //
+    async view_user_role(user_role_id) {
+        var view = await this.orm.call("res.users", "client_action_view_user_role", [this.record_id]);
+        view['target'] = 'new';
+        view['context'] = {'active_id': user_role_id, 'is_wizard': true};
+        this.action.doAction(view);
+    }
+
+    assign_role(role) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to assign role  ${role.name} ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Assign"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'assign_role', [this.record_id], {'role_id': role.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    remove_role(role) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to remove role  ${role.name} ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Remove"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'remove_role', [this.record_id], {'role_id': role.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
         });
     }
 

@@ -106,6 +106,42 @@ export class RBACSuperAdmin extends Component {
             cancelLabel: _t("Close"),
             confirmLabel: _t("Apply"),
             confirm: async () => {
+                let roles_assign = $('.rbac_super_admin.rbac_dialog').find('input:checked');
+                for (const el of roles_assign) {
+                    await this.orm.call("res.users", 'assign_role', [this.record_id], {'role_id': parseInt(el.value)});
+                }
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    assign_role(role) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to assign role  ${role.name} ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Assign"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'assign_role', [this.record_id], {'role_id': role.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    remove_role(role) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to remove role  ${role.name} ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Remove"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'remove_role', [this.record_id], {'role_id': role.id});
+                await this.fetch_data();
+                this.reset_data();
             },
             cancel: () => {
             },

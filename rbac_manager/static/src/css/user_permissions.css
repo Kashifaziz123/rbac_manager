@@ -190,14 +190,9 @@ body.o_web_client div.o_action_manager div.user_permission *{
     gap: 8px;
 }
 
-.user_permission .role-badge.teacher {
+.user_permission .role-badge.role_name {
     background: #e0e7ff;
     color: #3730a3;
-}
-
-.user_permission .role-badge.attendance {
-    background: #dbeafe;
-    color: #1e40af;
 }
 
 .user_permission .role-badge.exclusion {
