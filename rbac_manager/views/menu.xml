@@ -12,6 +12,8 @@
                   action="rbac_manager.act_window_res_users_list_user_permission" groups="base.group_system"/>
         <menuitem id="menu_super_admin" name="Super Admin" parent="base.menu_users"
                   action="rbac_manager.act_window_res_users_list_super_admin" groups="base.group_system"/>
+        <menuitem id="menu_request_rbac_permission" name="Permission Requests" parent="base.menu_users"
+                  action="rbac_manager.request_rbac_permission_act_window" groups="base.group_system"/>
 
         <!--        Inherit       -->
         <record id="base.menu_custom" model="ir.ui.menu">

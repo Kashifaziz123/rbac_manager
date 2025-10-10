@@ -176,7 +176,7 @@ body.o_web_client div.o_action_manager div.role_template * {
     padding: 16px 24px;
     display: grid;
     /*grid-template-columns: 2fr 1fr 100px 100px;*/
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
     align-items: center;
     border-bottom: 1px solid #f9fafb;

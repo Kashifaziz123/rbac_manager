@@ -57,6 +57,7 @@ class ResUsers(models.Model):
     @api.constrains('is_user_role', 'role_user_ids')
     def _check_role_not_self_assigned(self):
         """Ensure roles don't have roles assigned to them"""
+        self = self.with_context(active_test=False)
         for user in self:
             if user.is_user_role and user.role_user_ids:
                 raise exceptions.ValidationError(
@@ -73,6 +74,7 @@ class ResUsers(models.Model):
     def write(self, vals):
         """Handle updates to users and roles"""
         # Track which roles are being modified if groups are changing
+        self = self.with_context(active_test=False)
         roles_groups_changing = self.env['res.users']
         if 'groups_id' in vals:
             roles_groups_changing = self.filtered('is_user_role')
@@ -136,11 +138,12 @@ class ResUsers(models.Model):
 
     def _recompute_all_groups(self):
         """Complete recalculation of user groups based on roles and direct assignments"""
-        for user in self.filtered(lambda u: not u.is_user_role):
+        for user in self.with_context(active_test=False).filtered(lambda u: not u.is_user_role):
             # Start with existing sources to preserve history
             existing_sources = user._get_group_sources()
             new_sources = defaultdict(list)
             final_groups = self.env['res.groups']
+            implied_excluded_groups = self.env['res.groups']
 
             # 1. Collect groups from assigned roles (using their groups_id directly!)
             for role in user.role_user_ids:
@@ -160,6 +163,12 @@ class ResUsers(models.Model):
             for group in user.direct_group_exclusions:
                 group_id_str = str(group.id)
                 new_sources[group_id_str] = ['excluded']
+                implied_groups = self.env['rbac.model']._compute_inverse_implied_ids(
+                    group.inverse_implied_ids)
+                if len(implied_groups):
+                    implied_groups = final_groups.browse([g.id for g in implied_groups])
+                    implied_excluded_groups |= implied_groups
+                    implied_excluded_groups |= implied_groups.implied_ids
                 final_groups -= group
 
             # 4. Preserve 'initial' sources that are still valid
@@ -175,12 +184,16 @@ class ResUsers(models.Model):
                             if 'initial' not in new_sources[group_id_str]:
                                 new_sources[group_id_str].append('initial')
                                 # Only add to final_groups if not excluded
-                                if 'excluded' not in new_sources[group_id_str]:
+                                if 'excluded' not in new_sources[group_id_str] and int(
+                                        group_id_str) not in implied_excluded_groups.ids:
                                     final_groups |= group
                     except:
                         pass
 
-            # 5. Update user groups and tracking
+            # 5. Remove implied_excluded_groups
+            final_groups -= implied_excluded_groups
+
+            # 6. Update user groups and tracking
             user._set_group_sources(dict(new_sources))
             user.groups_id = [(6, 0, final_groups.ids)]
 
@@ -245,8 +258,9 @@ class ResUsers(models.Model):
         self._apply_groups_from_sources(sources)
         return True
 
-    def add_group_directly(self, group):
+    def add_direct_group_additions(self, group_id):
         """Add a group directly (not through role)"""
+        group = self.env['res.groups'].browse(group_id)
         self.ensure_one()
 
         if self.is_user_role:
@@ -279,8 +293,38 @@ class ResUsers(models.Model):
         self._apply_groups_from_sources(sources)
         return True
 
-    def exclude_group_directly(self, group):
+    def remove_direct_group_additions(self, group_id):
+        """Remove a direct group addition (doesn't exclude, just removes the override)"""
+        group = self.env['res.groups'].browse(group_id)
+        self.ensure_one()
+
+        if self.is_user_role:
+            # For roles, just remove from their groups
+            self.groups_id = [(3, group.id)]
+            return True
+
+        # For regular users, remove the direct addition tracking
+        sources = self._get_group_sources()
+
+        # Remove from direct additions
+        self.direct_group_additions = [(3, group.id)]
+
+        # Update sources - remove 'direct_add'
+        group_id_str = str(group.id)
+        if group_id_str in sources and 'direct_add' in sources[group_id_str]:
+            sources[group_id_str].remove('direct_add')
+
+            # Clean up empty source lists
+            if not sources[group_id_str]:
+                del sources[group_id_str]
+
+        self._set_group_sources(sources)
+        self._apply_groups_from_sources(sources)
+        return True
+
+    def add_direct_group_exclusions(self, group_id):
         """Exclude a group (overrides roles)"""
+        group = self.env['res.groups'].browse(group_id)
         self.ensure_one()
 
         if self.is_user_role:
@@ -304,33 +348,134 @@ class ResUsers(models.Model):
 
         self._set_group_sources(sources)
         self._apply_groups_from_sources(sources)
+        self._recompute_all_groups()
+        return True
+
+    def remove_direct_group_exclusions(self, group_id):
+        """Remove a group exclusion (allows role-based groups to apply again)"""
+        group = self.env['res.groups'].browse(group_id)
+        self.ensure_one()
+
+        if self.is_user_role:
+            # For roles, add back to their groups
+            self.groups_id = [(4, group.id)]
+            return True
+
+        # For regular users, remove the exclusion
+        sources = self._get_group_sources()
+
+        # Remove from exclusions
+        self.direct_group_exclusions = [(3, group.id)]
+
+        # Update sources - remove 'excluded'
+        group_id_str = str(group.id)
+        if group_id_str in sources and 'excluded' in sources[group_id_str]:
+            sources[group_id_str].remove('excluded')
+
+            # Clean up empty source lists
+            if not sources[group_id_str]:
+                del sources[group_id_str]
+
+        self._set_group_sources(sources)
+        self._apply_groups_from_sources(sources)
+        self._recompute_all_groups()
+        return True
+
+    def remove_initial_group(self, group_id):
+        """Remove a group initial (allows role-based groups to apply again)"""
+        group = self.env['res.groups'].browse(group_id)
+        self.ensure_one()
+
+        # For regular users, remove the exclusion
+        sources = self._get_group_sources()
+
+        # Update sources - remove 'initial'
+        group_id_str = str(group.id)
+        if group_id_str in sources and 'initial' in sources[group_id_str]:
+            sources[group_id_str].remove('initial')
+
+            # Clean up empty source lists
+            if not sources[group_id_str]:
+                del sources[group_id_str]
+
+        self._set_group_sources(sources)
+        self._apply_groups_from_sources(sources)
         return True
 
     def _apply_groups_from_sources(self, sources):
         """Apply groups based on sources tracking"""
         if self.is_user_role:
-            # Roles manage their own groups directly
             return
 
         final_groups = self.env['res.groups']
+        excluded_groups = self.env['res.groups']
 
+        # First pass: collect explicitly excluded groups and their implications
+        for group_id_str, source_list in sources.items():
+            if 'excluded' in source_list:
+                try:
+                    group = self.env['res.groups'].browse(int(group_id_str))
+                    if group.exists():
+                        excluded_groups |= group
+
+                        # Get all groups that imply this excluded group
+                        inverse_implied_groups = self.env[
+                            'rbac.model']._compute_inverse_implied_ids(group.inverse_implied_ids)
+                        if inverse_implied_groups:
+                            implied_groups = self.env['res.groups'].browse(
+                                [g.id for g in inverse_implied_groups])
+                            excluded_groups |= implied_groups
+                            excluded_groups |= implied_groups.mapped('implied_ids')
+                except:
+                    pass
+
+        # Second pass: add non-excluded groups
         for group_id_str, source_list in sources.items():
             # Skip excluded groups
             if 'excluded' in source_list:
                 continue
 
-            # Add group if it has any valid source
+            # Add group if it has any valid source AND is not in excluded set
             if source_list:
                 try:
                     group = self.env['res.groups'].browse(int(group_id_str))
-                    if group.exists():
+                    if group.exists() and group not in excluded_groups:
                         final_groups |= group
                 except:
                     pass
 
+        # Remove any excluded groups that might have been added
+        final_groups -= excluded_groups
+
         # Avoid unnecessary write if groups haven't changed
         if set(final_groups.ids) != set(self.groups_id.ids):
             self.groups_id = [(6, 0, final_groups.ids)]
+
+    # def _apply_groups_from_sources(self, sources):
+    #     """Apply groups based on sources tracking"""
+    #     if self.is_user_role:
+    #         # Roles manage their own groups directly
+    #         return
+    #
+    #     final_groups = self.env['res.groups']
+    #
+    #     for group_id_str, source_list in sources.items():
+    #         # Skip excluded groups
+    #         if 'excluded' in source_list:
+    #             continue
+    #
+    #         # Add group if it has any valid source
+    #         if source_list:
+    #             try:
+    #                 group = self.env['res.groups'].browse(int(group_id_str))
+    #                 if group.exists():
+    #                     final_groups |= group
+    #             except:
+    #                 pass
+    #
+    #     # Avoid unnecessary write if groups haven't changed
+    #     if set(final_groups.ids) != set(self.groups_id.ids):
+    #         self.groups_id = [(6, 0, final_groups.ids)]
 
     @api.model
     def _init_existing_users_on_module_install(self):

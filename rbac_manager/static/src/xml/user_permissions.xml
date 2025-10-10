@@ -2,7 +2,6 @@
 <templates id="template">
     <t t-name="rbac.UserPermissions">
         <div class="container user_permission">
-            <!--            <t t-set="permission_type_id" t-value="0"/>-->
             <div class="header">
                 <div class="user-info">
                     <div class="user-avatar">
@@ -242,6 +241,9 @@
                 </t>
                 <t t-elif="tag.startsWith('direct_add')">
                     <div class="source-tag extra">Extra (User Exception)</div>
+                </t>
+                <t t-elif="tag.startsWith('initial')">
+                    <div class="source-tag initial">Base</div>
                 </t>
                 <t t-else="">
                     <div class="source-tag unknown">Unknown (<t t-esc="tag"/>)

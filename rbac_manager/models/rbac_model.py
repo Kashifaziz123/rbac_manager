@@ -4,15 +4,28 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime
 import json
 
+max_depth = 10
 
-# ----------------------------------------------------------
-# Basic res.users
-# ----------------------------------------------------------
 
 class RbacModel(models.Model):
     _name = 'rbac.model'
 
-    def _get_time_passed(dt, now=None):
+    def _compute_inverse_implied_ids(self, inverse_implied_ids, max_depth=10):
+        collected = []
+
+        def collect_recursive(groups, depth=0):
+            nonlocal collected
+            if depth >= max_depth or not groups:
+                return
+
+            for group in groups:
+                collected.append(group)
+                collect_recursive(group.inverse_implied_ids, depth + 1)
+
+        collect_recursive(inverse_implied_ids)
+        return collected
+
+    def _get_time_passed(self, dt, now=None):
         if not dt:
             return "0 minutes"
 
@@ -24,13 +37,13 @@ class RbacModel(models.Model):
         rd = relativedelta(end, start)
 
         if rd.years >= 1:
-            pair = (("year", rd.years), ("month", rd.months))
+            pair = ((" year", rd.years), (" month", rd.months))
         elif rd.months >= 1:
-            pair = (("month", rd.months), ("day", rd.days))
+            pair = ((" month", rd.months), (" day", rd.days))
         elif rd.days >= 1:
-            pair = (("day", rd.days), ("hour", rd.hours))
+            pair = (("day", rd.days), (" hour", rd.hours))
         else:
-            pair = (("hour", rd.hours), ("minute", rd.minutes))
+            pair = ((" hour", rd.hours), (" minute", rd.minutes))
 
         p = lambda n, s: f"{n}{s}{'s' * (n != 1)}"
         # build result with only non-zero parts
@@ -38,7 +51,7 @@ class RbacModel(models.Model):
         parts = ([p(a[1], a[0])] if a[1] else []) + ([p(b[1], b[0])] if b[1] else [])
 
         if not parts:
-            parts = ["0minutes"]
+            parts = ["0 minutes"]
 
         return ("-" if future else "") + " ".join(parts)
 
@@ -181,7 +194,8 @@ class RbacModel(models.Model):
                 'employee': self._get_employee(),
                 'error': False,
                 'permissions': {
-                    'deny': [{'id': group.id, 'name': group.name} for group in self_user.groups_id],
+                    'deny': [{'id': group.id, 'name': group.name} for group in
+                             self_user.groups_id],
                     'grant': [{'id': group.id, 'name': group.name} for group in
                               (self.env['res.groups'].search([]) - self_user.groups_id)]
                 },
@@ -229,6 +243,11 @@ class RbacModel(models.Model):
                     user.id: user.name
                     for user in
                     self_user.search([('active', '=', False), ('is_user_role', '=', True)])},
+                'inverse_implied_ids': {
+                    group.id: [g.name for g in
+                               self._compute_inverse_implied_ids(group.inverse_implied_ids)]
+                    for group in self.env['res.groups'].search([])
+                },
             }
         except:
             return {
@@ -239,6 +258,7 @@ class RbacModel(models.Model):
                 'error': True,
                 'group_sources': json.dumps({}),
                 'roles': {},
+                'inverse_implied_ids': {},
             }
 
     @api.model

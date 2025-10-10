@@ -80,6 +80,9 @@
                                     <button class="btn btn-primary btn-small"
                                             t-on-click="(ev) => this.assign_role(role)">+ Assign
                                     </button>
+                                    <button class="btn btn-secondary btn-small"
+                                            t-on-click="(ev) => this.view_user_role(role.id)">👁️ Preview
+                                    </button>
                                 </div>
                             </div>
                         </t>

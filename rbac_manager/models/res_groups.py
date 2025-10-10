@@ -20,6 +20,9 @@ class ResGroups(models.Model):
     risk_level = fields.Selection([('low', 'low'), ('medium', 'medium'), ('high', 'high')],
                                   string="Risk Level", default='low', required=False)
     description = fields.Text(string="Description")
+    inverse_implied_ids = fields.Many2many('res.groups', 'res_groups_implied_rel', 'hid', 'gid',
+        string='Inverse Inherits', help='Users of this group automatically inherit those groups')
+
 
     @api.depends('category_id', 'name')
     def _compute_full_name(self):

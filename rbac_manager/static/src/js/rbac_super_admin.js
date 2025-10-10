@@ -1,7 +1,7 @@
 /* @odoo-module */
 
 import {RBACUserSelectionDialog, RBACRoleSelectionDialog} from "@rbac_manager/js/selection_dialog";
-import {Component, onMounted, onWillStart, useEffect, useRef, useState} from "@odoo/owl";
+import {Component, markup, onMounted, onWillStart, useEffect, useRef, useState} from "@odoo/owl";
 import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {download} from "@web/core/network/download";
 import {ensureJQuery} from '@web/core/ensure_jquery';
@@ -148,6 +148,107 @@ export class RBACSuperAdmin extends Component {
         });
     }
 
+    assign_extra(permission) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to add ${permission.name} as extra permission ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Add"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'add_direct_group_additions', [this.record_id], {'group_id': permission.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    remove_extra(permission) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to remove ${permission.name} as extra permission ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Remove"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'remove_direct_group_additions', [this.record_id], {'group_id': permission.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    assign_exclude(permission) {
+        var self = this;
+        async function assign() {
+            await self.orm.call("res.users", 'add_direct_group_exclusions', [self.record_id], {'group_id': permission.id});
+            await self.fetch_data();
+            self.reset_data();
+        }
+
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to add ${permission.name} as exclude permission ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Add"),
+            confirm: async () => {
+                if (this.data?.inverse_implied_ids[permission.id].length > 0) {
+                    const ids = this.data?.inverse_implied_ids?.[permission.id];
+                    const permissions = ids?.length
+                        ? ids.map(x => `<div class="text-danger">${x}</div>`).join('')
+                        : '';
+                    this.dialogService.add(ConfirmationDialog, {
+                        title: _t('Are you sure ?'),
+                        body: markup(
+                            `<div>This will also remove all these permissions and any future implied permissons of it</div>
+                         <br/>${permissions}`
+                        ),
+                        cancelLabel: _t("Cancel"),
+                        confirmLabel: _t("Remove"),
+                        confirm: async () => {
+                            await assign();
+                        },
+                        cancel: () => {
+                        },
+                    });
+                } else {
+                    await assign();
+                }
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    remove_exclude(permission) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to remove ${permission.name} as exclude permission ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Remove"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'remove_direct_group_exclusions', [this.record_id], {'group_id': permission.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    remove_initial(permission) {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to remove ${permission.name} as base permission ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Remove"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'remove_initial_group', [this.record_id], {'group_id': permission.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
     //
     // toggle functions
     //
@@ -221,7 +322,8 @@ export class RBACSuperAdmin extends Component {
             const is_granted = $rf.find('.granted.active').length;
             const is_denied = $rf.find('.denied.active').length;
             const is_high_risk = $rf.find('.high_risk.active').length;
-            mode = is_all ? 'all' : is_granted ? 'granted' : is_denied ? 'denied' : is_high_risk ? 'high' : null;
+            const is_overrides = $rf.find('.overrides.active').length;
+            mode = is_all ? 'all' : is_granted ? 'granted' : is_denied ? 'denied' : is_high_risk ? 'high' : is_overrides ? 'overrides' : null;
             no_save = false;
         }
 
@@ -249,22 +351,18 @@ export class RBACSuperAdmin extends Component {
                     }
                     const isGrantedSingle = sv.value !== false;
                     return (isGrantedSingle === wantIncluded) ? sv : null;
+                } else if (mode === 'overrides') {
+                    if (hasMulti && sv.groups?.length) {
+                        const keep = sv.groups.filter(g => {
+                            const src = this.data?.group_sources?.[g.id];
+                            return src?.includes('direct_add') || src?.includes('excluded');
+                        });
+                        return keep.length ? {...sv, groups: keep} : null;
+                    }
+                    // For single values, check if overridden
+                    const src = this.data?.group_sources?.[sv.group?.id];
+                    return (src?.includes('direct_add') || src?.includes('excluded')) ? sv : null;
                 }
-                // else if (mode === 'granted') {
-                //     if (hasMulti && sv.groups?.length) {
-                //         const allow = new Set(sv.values);
-                //         const keep = sv.groups.filter(g => allow.has(g.id));
-                //         return keep.length ? {...sv, groups: keep} : null;
-                //     }
-                //     return sv.value !== false ? sv : null;
-                // } else if (mode === 'denied') {
-                //     if (hasMulti && sv.groups?.length) {
-                //         const allow = new Set(sv.values);
-                //         const keep = sv.groups.filter(g => !allow.has(g.id));
-                //         return keep.length ? {...sv, groups: keep} : null;
-                //     }
-                //     return sv.value === false ? sv : null;
-                // }
 
                 return null;
             };
@@ -302,6 +400,7 @@ export class RBACSuperAdmin extends Component {
         this.data.is_granted = get_filtered_count(this.apply_search('granted'));
         this.data.is_denied = get_filtered_count(this.apply_search('denied'));
         this.data.is_high_risk = get_filtered_count(this.apply_search('high'));
+        this.data.is_overrides = get_filtered_count(this.apply_search('overrides'));
     }
 
     //
@@ -328,6 +427,8 @@ export class RBACSuperAdmin extends Component {
             this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
         }
 
+        this.data.json_group_sources = this.data.group_sources;
+        this.data.group_sources = JSON.parse(this.data.group_sources);
         this.custom_props.original_data = JSON.parse(JSON.stringify(this.data || {}));
         this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
         this.total_counts();

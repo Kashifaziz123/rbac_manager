@@ -21,6 +21,7 @@
         'views/res_users_views_manage_permissions.xml',
         'views/res_users_views_super_admin.xml',
         'views/res_groups_view.xml',
+        'views/request_rbac_permission_view.xml',
 
         'views/views.xml',
         'views/ir_module_category.xml',
