@@ -5,7 +5,7 @@ A powerful **RBAC (Role-Based Access Control)** module for Odoo that helps you m
 ## ✨ Features
 - Define reusable **role templates** with access rights.
 - Assign roles to users with one click.
-- Delegate role management to **junior admins**.
+- Delegate role management to **permission manager**.
 - Multi-company support.
 - Audit-ready: consistent & secure role definitions.
 
