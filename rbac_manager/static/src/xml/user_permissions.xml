@@ -220,7 +220,7 @@
                 </div>
             </div>
 
-            <div class="floating-actions">
+            <div class="floating-actions" style="display:none;">
                 <button class="fab" title="Export Permissions">📄</button>
                 <button class="fab" title="Generate Report">📊</button>
             </div>

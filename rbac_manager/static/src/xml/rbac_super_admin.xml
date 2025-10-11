@@ -23,7 +23,7 @@
                 </div>
                 <div class="header-actions">
                     <a href="/odoo/super_admin" class="btn btn-secondary">← Back to Details</a>
-                    <button class="btn btn-primary" t-on-click="writeRecord">💾 Save Changes</button>
+                    <!--                    <button class="btn btn-primary" t-on-click="writeRecord">💾 Save Changes</button>-->
                 </div>
             </div>
 
@@ -39,10 +39,10 @@
                 </div>
 
                 <div class="quick-actions">
-                    <div class="quick-action" t-on-click="(ev) => this.toggle_all_checked_enabled(1)">
+                    <div class="quick-action" t-on-click="grant_all_permissions">
                         ✅ Grant All Permissions
                     </div>
-                    <div class="quick-action" t-on-click="(ev) => this.toggle_all_checked_enabled(0)">
+                    <div class="quick-action" t-on-click="revoke_all_permissions">
                         ❌ Revoke All Permissions
                     </div>
                     <div class="quick-action" t-on-click="clone_from_another_user">
@@ -252,23 +252,28 @@
 
             </div>
             <t t-if="is_checkbox">
-                <label class="toggle-switch">
-                    <input type="checkbox"
-                           t-att-name="field"
-                           t-att-checked="categories[category][field]['value']"
-                           t-on-change="(ev) => this.update_values(ev.target)"
-                    />
+                <label t-att-class=" 'toggle-switch ' +  (categories[category][field]['value'] ? 'checked' : '' ) ">
+                    <!--                    <input type="checkbox"-->
+                    <!--                           t-att-name="field"-->
+                    <!--                           t-att-checked="categories[category][field]['value']"-->
+                    <!--                           t-on-change="(ev) => this.update_values(ev.target)"-->
+                    <!--                    />-->
                     <span class="slider"/>
                 </label>
             </t>
             <t t-else="">
-                <label class="toggle-switch">
-                    <input type="radio"
-                           t-att-name="field"
-                           t-att-value="permission_type.id"
-                           t-att-checked="permission_type.id === categories[category][field]['value'] ? 'checked' : undefined"
-                           t-on-change="(ev) => this.update_values(ev.target)"
-                    />
+                <label t-att-class=" 'toggle-switch ' + (categories[category][field]['values'].includes(permission_type.id) ? 'checked' : '' ) ">
+                    <!--                    <input type="checkbox"-->
+                    <!--                           t-att-name="field"-->
+                    <!--                           t-att-checked="categories[category][field]['values'].includes(permission_type.id)"-->
+                    <!--                           t-on-change="(ev) => this.update_values(ev.target)"-->
+                    <!--                    />-->
+                    <!--                    <input type="radio"-->
+                    <!--                           t-att-name="field"-->
+                    <!--                           t-att-value="permission_type.id"-->
+                    <!--                           t-att-checked="permission_type.id === categories[category][field]['value'] ? 'checked' : undefined"-->
+                    <!--                           t-on-change="(ev) => this.update_values(ev.target)"-->
+                    <!--                    />-->
                     <span class="slider"/>
                 </label>
             </t>

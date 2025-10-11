@@ -197,6 +197,21 @@ class ResUsers(models.Model):
             user._set_group_sources(dict(new_sources))
             user.groups_id = [(6, 0, final_groups.ids)]
 
+    def revoke_all_permissions(self):
+        self.ensure_one()
+        self = self.with_context(active_test=False)
+        user_type = [0]
+        for x in ['base.group_user', 'base.group_portal', 'base.group_public']:
+            if self.env.ref(x).id in self.groups_id.ids:
+                user_type = self.env.ref(x).ids
+
+        self.write({
+            'role_user_ids': [(5, 0)],
+            'direct_group_additions': [(6, 0, user_type)],
+            'direct_group_exclusions': [(5, 0)],
+            'group_sources': json.dumps({}),
+        })
+
     def assign_role(self, role_id):
         role = self.browse(role_id)
         """Assign a role to the user with proper tracking"""

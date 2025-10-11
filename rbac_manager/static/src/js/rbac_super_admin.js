@@ -9,6 +9,7 @@ import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 import {loadCSS} from "@web/core/assets";
+import {RBACRevokeAllPermissions} from "./warning_permissions_dialog";
 
 
 export class RBACSuperAdmin extends Component {
@@ -106,9 +107,11 @@ export class RBACSuperAdmin extends Component {
             cancelLabel: _t("Close"),
             confirmLabel: _t("Apply"),
             confirm: async () => {
-                let roles_assign = $('.rbac_super_admin.rbac_dialog').find('input:checked');
-                for (const el of roles_assign) {
-                    await this.orm.call("res.users", 'assign_role', [this.record_id], {'role_id': parseInt(el.value)});
+                let role_ids = $('.rbac_dialog.user_selection_dialog .user-item.selected')
+                    .map((i, el) => $(el).attr('data-id'))
+                    .get();
+                for (const el of role_ids) {
+                    await this.orm.call("res.users", 'assign_role', [this.record_id], {'role_id': parseInt(el)});
                 }
                 await this.fetch_data();
                 this.reset_data();
@@ -180,6 +183,7 @@ export class RBACSuperAdmin extends Component {
 
     assign_exclude(permission) {
         var self = this;
+
         async function assign() {
             await self.orm.call("res.users", 'add_direct_group_exclusions', [self.record_id], {'group_id': permission.id});
             await self.fetch_data();
@@ -262,6 +266,38 @@ export class RBACSuperAdmin extends Component {
     toggle_category_section(ev) {
         if ($(ev).closest('button').length) return;
         $(ev).closest('.category-header').toggleClass('closed');
+    }
+
+    grant_all_permissions() {
+        this.dialogService.add(ConfirmationDialog, {
+            body: _t(`Are you sure that you want to remove ${permission.name} as base permission ?`),
+            cancelLabel: _t("No"),
+            confirmLabel: _t("Remove"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'remove_initial_group', [this.record_id], {'group_id': permission.id});
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
+    }
+
+    revoke_all_permissions() {
+        this.dialogService.add(RBACRevokeAllPermissions, {
+            total_granted: this.data?.is_granted,
+            assigned_roles: this.data?.assigned_roles,
+            custom_permissions: Object.values(this.data.group_sources).filter(v => v.includes('direct_add')).length,
+            cancelLabel: _t("Cancel"),
+            confirmLabel: _t("Revoke All Permissions"),
+            confirm: async () => {
+                await this.orm.call("res.users", 'revoke_all_permissions', [this.record_id]);
+                await this.fetch_data();
+                this.reset_data();
+            },
+            cancel: () => {
+            },
+        });
     }
 
     toggle_category_all_checked_enabled(check, ev) {

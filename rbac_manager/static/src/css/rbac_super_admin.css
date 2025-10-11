@@ -509,16 +509,19 @@ body.o_web_client div.o_action_manager div.rbac_super_admin * {
 
 .rbac_super_admin .slider {
     position: absolute;
-    cursor: pointer;
+    /*cursor: pointer;*/
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #d1d5db;
+    /*background-color: #d1d5db;*/
     transition: .3s;
     border-radius: 22px;
 }
 
+.rbac_super_admin .toggle-switch.checked .slider:before {
+    background-color: #f59e0b; !important;
+}
 .rbac_super_admin .slider:before {
     position: absolute;
     content: "";
@@ -531,11 +534,11 @@ body.o_web_client div.o_action_manager div.rbac_super_admin * {
     border-radius: 50%;
 }
 
-.rbac_super_admin input:checked + .slider {
-    background-color: #2563eb;
-}
+/*.rbac_super_admin input:checked + .slider {*/
+/*    background-color: #2563eb;*/
+/*}*/
 
-.rbac_super_admin input:checked + .slider:before {
+.rbac_super_admin .toggle-switch:checked .slider:before {
     transform: translateX(22px);
 }
 

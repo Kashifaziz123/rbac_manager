@@ -52,4 +52,26 @@ export class RBACRoleSelectionDialog extends ConfirmationDialog {
         ...ConfirmationDialog.props,
         roles: {type: Array, optional: false},
     };
+
+    setup() {
+        super.setup();
+        this.selectedRoles = [];
+        this.roles = [];
+        this.props.roles.forEach(item => {
+            this.roles[item.id] = item.name;
+        });
+    }
+
+    role_selected(ev) {
+        let role_item_div = $(ev.closest('.user-item'))
+        let role_id = role_item_div.attr('data-id');
+        role_id = parseInt(role_id);
+        if (this.selectedRoles.includes(role_id))
+            this.selectedRoles.splice(this.selectedRoles.indexOf(role_id), 1);
+        else
+            this.selectedRoles.push(role_id);
+
+        this.render();
+    }
+
 }

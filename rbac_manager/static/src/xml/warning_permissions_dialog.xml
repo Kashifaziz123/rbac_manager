@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.revokeAllPermissions">
+        <Dialog size="'md'" title="props.title" contentClass="'rbac_dialog permissions_dialog'">
+            <header t-if="props.header" class="modal-header">
+                <t t-set-slot="header">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="modal-header-text">
+                        <h2>Revoke All Permissions</h2>
+                        <p>This action will remove all access for Joel Willis</p>
+                    </div>
+                </t>
+            </header>
+
+            <div>
+                <div class="warning-message">
+                    <p>
+                        <strong>⚠️ Warning: This is a destructive action!</strong>
+                    </p>
+                    <p>This will remove <strong>ALL permissions</strong> including both role-based permissions and
+                        individually granted custom permissions. The user will have zero access to the system.
+                    </p>
+                </div>
+
+                <div class="total-count">
+                    <div class="total-count-number">
+                        <t t-esc="this.props.total_granted"/>
+                    </div>
+                    <div class="total-count-label">Total Permissions to be Revoked</div>
+                </div>
+
+                <div class="details-section">
+                    <div class="details-title">
+                        <span>📋</span>
+                        <span>What will be removed:</span>
+                    </div>
+                    <div class="details-list">
+                        <div class="detail-item" t-if="this.props.assigned_roles.length > 0">
+                            <div class="detail-icon role">R</div>
+                            <div class="detail-info">
+                                <div class="detail-name">Assigned Roles</div>
+                                <div class="detail-count">
+                                    <t t-esc="this.props.assigned_roles.length"/>
+                                    roles (<t t-esc="this.props.assigned_roles.map(item => item.name).join(', ');"/>)
+                                </div>
+                            </div>
+                            <div class="detail-remove">✕</div>
+                        </div>
+                        <div class="detail-item" t-if="this.props.custom_permissions !== 0">
+                            <div class="detail-icon permission">P</div>
+                            <div class="detail-info">
+                                <div class="detail-name">Custom Permissions</div>
+                                <div class="detail-count">
+                                    <t t-esc="this.props.custom_permissions"/>
+                                    individually granted permissions
+                                </div>
+                            </div>
+                            <div class="detail-remove">✕</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="confirmation-checkbox">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" t-on-change="accept_toggle"/>
+                        <span class="checkbox-label">
+                            I understand this will <strong>permanently remove all permissions</strong> (both role-based
+                            and custom permissions) and the user will lose all access to the system.
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <div class="footer-note">This action can be undone by re-assigning permissions</div>
+                <div class="footer-buttons">
+                    <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel"
+                            t-esc="props.cancelLabel"/>
+                    <button class="btn btn-danger" t-on-click="_confirm"
+                            t-att-disabled="this.accepted ? '' : 'disabled' ">
+                        <span>✕</span>
+                        <span t-esc="props.confirmLabel"/>
+                    </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+</templates>

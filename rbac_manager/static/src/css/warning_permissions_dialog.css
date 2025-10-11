@@ -1,0 +1,333 @@
+.rbac_dialog.permissions_dialog *,
+.rbac_dialog.permissions_dialog *::before,
+.rbac_dialog.permissions_dialog *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.o_web_client div.modal-content.rbac_dialog.permissions_dialog {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+    /*min-height: 100vh;*/
+    display: flex;
+    /*align-items: center;*/
+    justify-content: center;
+    /*padding: 20px;*/
+}
+
+body.o_web_client div.modal-content.rbac_dialog.permissions_dialog * {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.rbac_dialog.permissions_dialog .modal-overlay {
+    background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.rbac_dialog.permissions_dialog .modal {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 550px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: permissions_dialog_slideIn 0.3s ease-out;
+}
+
+@keyframes permissions_dialog_slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.rbac_dialog.permissions_dialog .modal-header {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.rbac_dialog.permissions_dialog .warning-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    animation: permissions_dialog_pulse 2s ease-in-out infinite;
+}
+
+@keyframes permissions_dialog_pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.rbac_dialog.permissions_dialog .modal-header-text h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.rbac_dialog.permissions_dialog .modal-header-text p {
+    font-size: 14px;
+    opacity: 0.95;
+}
+
+.rbac_dialog.permissions_dialog .modal-body {
+    padding: 24px;
+}
+
+.rbac_dialog.permissions_dialog .warning-message {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.rbac_dialog.permissions_dialog .warning-message p {
+    color: #991b1b;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.rbac_dialog.permissions_dialog .warning-message p:last-child {
+    margin-bottom: 0;
+}
+
+.rbac_dialog.permissions_dialog .warning-message strong {
+    font-weight: 700;
+}
+
+.rbac_dialog.permissions_dialog .details-section {
+    margin-bottom: 20px;
+}
+
+.rbac_dialog.permissions_dialog .details-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbac_dialog.permissions_dialog .details-list {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.rbac_dialog.permissions_dialog .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.rbac_dialog.permissions_dialog .detail-item:last-child {
+    border-bottom: none;
+}
+
+.rbac_dialog.permissions_dialog .detail-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+}
+
+.rbac_dialog.permissions_dialog .detail-icon.role {
+    background: #8b5cf6;
+}
+
+.rbac_dialog.permissions_dialog .detail-icon.permission {
+    background: #3b82f6;
+}
+
+.rbac_dialog.permissions_dialog .detail-info {
+    flex: 1;
+}
+
+.rbac_dialog.permissions_dialog .detail-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.rbac_dialog.permissions_dialog .detail-count {
+    font-size: 13px;
+    color: #718096;
+}
+
+.rbac_dialog.permissions_dialog .detail-remove {
+    color: #ef4444;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.rbac_dialog.permissions_dialog .total-count {
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.rbac_dialog.permissions_dialog .total-count-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #dc2626;
+    margin-bottom: 4px;
+}
+
+.rbac_dialog.permissions_dialog .total-count-label {
+    font-size: 14px;
+    color: #991b1b;
+    font-weight: 600;
+}
+
+.rbac_dialog.permissions_dialog .confirmation-checkbox {
+    background: #fffbeb;
+    border: 2px solid #f59e0b;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.rbac_dialog.permissions_dialog .checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.rbac_dialog.permissions_dialog .checkbox-wrapper input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    cursor: pointer;
+    accent-color: #ef4444;
+}
+
+.rbac_dialog.permissions_dialog .checkbox-label {
+    font-size: 14px;
+    color: #92400e;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.rbac_dialog.permissions_dialog .checkbox-label strong {
+    font-weight: 700;
+}
+
+.rbac_dialog.permissions_dialog .modal-footer {
+    padding: 20px 24px;
+    background: #f7fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between !important;
+    align-items: center;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+}
+
+.rbac_dialog.permissions_dialog .footer-note {
+    font-size: 12px;
+    color: #718096;
+    font-style: italic;
+}
+
+.rbac_dialog.permissions_dialog .footer-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.rbac_dialog.permissions_dialog .btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbac_dialog.permissions_dialog .btn-cancel {
+    background: white;
+    color: #4a5568;
+    border: 2px solid #e2e8f0;
+}
+
+.rbac_dialog.permissions_dialog .btn-cancel:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+.rbac_dialog.permissions_dialog .btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.rbac_dialog.permissions_dialog .btn-danger:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.rbac_dialog.permissions_dialog .btn-danger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 640px) {
+    .rbac_dialog.permissions_dialog .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .rbac_dialog.permissions_dialog .footer-buttons {
+        flex-direction: column;
+    }
+
+    .rbac_dialog.permissions_dialog .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

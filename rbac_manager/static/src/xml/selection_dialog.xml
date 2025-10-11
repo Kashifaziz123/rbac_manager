@@ -2,21 +2,6 @@
 <templates id="template">
     <t t-name="rbac.UserSelectionDialog">
         <Dialog size="'md'" title="props.title">
-            <!--            <div class="rbac_super_admin rbac_dialog">-->
-            <!--                <t t-foreach="props.users" t-as="user" t-key="user.id + '_selection_dialog' ">-->
-            <!--                    <div class="permission-item">-->
-            <!--                        <div class="permission-details">-->
-            <!--                            <h5>-->
-            <!--                                <t t-esc="user.name"/>-->
-            <!--                            </h5>-->
-            <!--                        </div>-->
-            <!--                        <label class="toggle-switch">-->
-            <!--                            <input type="radio" t-att-name="'user'" t-att-value="user.id"/>-->
-            <!--                            <span class="slider"/>-->
-            <!--                        </label>-->
-            <!--                    </div>-->
-            <!--                </t>-->
-            <!--            </div>-->
             <div class="rbac_dialog user_selection_dialog">
                 <div class="current-user">
                     <div class="current-user-label">Applying Rights To</div>
@@ -39,7 +24,8 @@
                 </div>
                 <div class="user-list" id="userList">
                     <t t-foreach="clone_users" t-as="user" t-key="user.id + '_user_selection_dialog' ">
-                        <div t-att-class="'user-item' + (selectedUser === user.id ? 'active' : '' )" t-att-data-id="user.id"
+                        <div t-att-class="'user-item' + (selectedUser === user.id ? 'active' : '' )"
+                             t-att-data-id="user.id"
                              t-on-click="(ev) => this.user_selected(ev.target)"
                              t-att-data-categories="user.categories">
                             <div class="user-info">
@@ -65,30 +51,74 @@
                 </div>
             </div>
             <t t-set-slot="footer">
-                <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel" t-att-disabled="this.selectedUser !== 0 ? '' : 'disabled' "/>
+                <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel"
+                        t-att-disabled="this.selectedUser !== 0 ? '' : 'disabled' "/>
                 <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel"/>
             </t>
         </Dialog>
     </t>
+
     <t t-name="rbac.RoleSelectionDialog">
-        <Dialog size="'sm'" title="props.title">
-            <div class="rbac_super_admin rbac_dialog">
-                <t t-foreach="props.roles" t-as="role" t-key="role.id + '_selection_dialog' ">
-                    <div class="permission-item">
-                        <div class="permission-details">
-                            <h5>
-                                <t t-esc="role.name"/>
-                            </h5>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" t-att-name="'user'" t-att-value="role.id"/>
-                            <span class="slider"/>
-                        </label>
+        <Dialog size="'md'" title="props.title">
+            <div class="rbac_dialog user_selection_dialog">
+                <div class="current-user">
+                    <div class="current-user-label">Applying Roles To</div>
+                    <div class="current-user-name">
+                        <div class="user-badge">MD</div>
+                        <span>Marc Demo</span>
                     </div>
-                </t>
+                </div>
+                <div class="user-list" id="userList">
+                    <t t-foreach="props.roles" t-as="role" t-key="role.id + '_role_selection_dialog' ">
+                        <div t-att-class="'user-item ' + (this.selectedRoles.includes(role.id) ? 'selected' : '' )"
+                             t-att-data-id="role.id"
+                             t-on-click="(ev) => this.role_selected(ev.target)">
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <t t-esc="role.name[0]"/>
+                                </div>
+                                <div class="user-details">
+                                    <div class="user-name">
+                                        <t t-esc="role.name"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="radio-btn"></div>
+                        </div>
+                    </t>
+                </div>
+                <div t-att-class=" 'preview-section active' " id="previewSection">
+                    <div class="preview-title">
+                        <span>⚡</span>
+                        <span>Selected Roles</span>
+                    </div>
+                    <div class="roles-preview" id="rolesPreview">
+                        <t t-foreach="selectedRoles" t-as="role" t-key="role_index + '_selected_roles' ">
+                            <span class="role-tag">
+                                <t t-esc="roles[role]"/>
+                            </span>
+                        </t>
+                    </div>
+                </div>
             </div>
+<!--            <div class="rbac_super_admin rbac_dialog">-->
+<!--                <t t-foreach="props.roles" t-as="role" t-key="role.id + '_selection_dialog' ">-->
+<!--                    <div class="permission-item">-->
+<!--                        <div class="permission-details">-->
+<!--                            <h5>-->
+<!--                                <t t-esc="role.name"/>-->
+<!--                            </h5>-->
+<!--                        </div>-->
+<!--                        <label class="toggle-switch">-->
+<!--                            <input type="checkbox" t-att-name="'user'" t-att-value="role.id"/>-->
+<!--                            <span class="slider"/>-->
+<!--                        </label>-->
+<!--                    </div>-->
+<!--                </t>-->
+<!--            </div>-->
             <t t-set-slot="footer">
-                <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel"/>
+                <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel"
+                        t-att-disabled="this.selectedRoles.length !== 0 ? '' : 'disabled' "/>
                 <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel"/>
             </t>
         </Dialog>
