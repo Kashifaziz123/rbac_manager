@@ -62,6 +62,14 @@ class RbacModel(models.Model):
         except:
             return {}
 
+    def _get_user_type(self, user):
+        user_type = ""
+        for x in ['base.group_user', 'base.group_portal', 'base.group_public']:
+            if self.env.ref(x).id in user.groups_id.ids:
+                user_type = self.env.ref(x).name
+        return user_type
+
+
     @api.model
     def clone_users_list(self, user_id):
         ret_list = []
@@ -248,6 +256,7 @@ class RbacModel(models.Model):
                                self._compute_inverse_implied_ids(group.inverse_implied_ids)]
                     for group in self.env['res.groups'].search([])
                 },
+                'user_type': self._get_user_type(self_user),
             }
         except:
             return {
@@ -259,6 +268,7 @@ class RbacModel(models.Model):
                 'group_sources': json.dumps({}),
                 'roles': {},
                 'inverse_implied_ids': {},
+                'user_type': '',
             }
 
     @api.model

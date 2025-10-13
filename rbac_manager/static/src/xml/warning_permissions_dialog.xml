@@ -7,7 +7,9 @@
                     <div class="warning-icon">⚠️</div>
                     <div class="modal-header-text">
                         <h2>Revoke All Permissions</h2>
-                        <p>This action will remove all access for Joel Willis</p>
+                        <p>This action will remove all access for
+                            <t t-esc="props.user_name"/>
+                        </p>
                     </div>
                 </t>
             </header>
@@ -78,6 +80,61 @@
                     <button class="btn btn-danger" t-on-click="_confirm"
                             t-att-disabled="this.accepted ? '' : 'disabled' ">
                         <span>✕</span>
+                        <span t-esc="props.confirmLabel"/>
+                    </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="rbac.grantAllPermissions">
+        <Dialog size="'md'" title="props.title" contentClass="'rbac_dialog permissions_dialog'">
+            <header t-if="props.header" class="modal-header">
+                <t t-set-slot="header">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="modal-header-text">
+                        <h2>Grant All Permissions</h2>
+                        <p>This action will assign all access for
+                            <t t-esc="props.user_name"/>
+                        </p>
+                    </div>
+                </t>
+            </header>
+
+            <div>
+                <div class="warning-message">
+                    <p>
+                        <strong>⚠️ Warning: This is a destructive action!</strong>
+                    </p>
+                    <p>This will grant <strong>ALL permissions</strong> accessible to its user type.
+                        The user will have all access to the system.
+                    </p>
+                </div>
+
+                <div class="total-count">
+                    <div class="total-count-number">
+                        <t t-esc="this.props.user_type"/>
+                    </div>
+                    <div class="total-count-label"> All Permissions accessible to it will be Granted</div>
+                </div>
+
+                <div class="confirmation-checkbox">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" t-on-change="accept_toggle"/>
+                        <span class="checkbox-label">
+                            I understand this will <strong>permanently grant all permissions</strong>
+                            the user will get all access to the system.
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <div class="footer-note">This action can be undone by removing permissions</div>
+                <div class="footer-buttons">
+                    <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel"
+                            t-esc="props.cancelLabel"/>
+                    <button class="btn btn-danger" t-on-click="_confirm"
+                            t-att-disabled="this.accepted ? '' : 'disabled' ">
+                        <span>✓</span>
                         <span t-esc="props.confirmLabel"/>
                     </button>
                 </div>

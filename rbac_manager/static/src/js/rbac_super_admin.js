@@ -9,7 +9,7 @@ import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 import {loadCSS} from "@web/core/assets";
-import {RBACRevokeAllPermissions} from "./warning_permissions_dialog";
+import {RBACGrantAllPermissions, RBACRevokeAllPermissions} from "./warning_permissions_dialog";
 
 
 export class RBACSuperAdmin extends Component {
@@ -269,12 +269,13 @@ export class RBACSuperAdmin extends Component {
     }
 
     grant_all_permissions() {
-        this.dialogService.add(ConfirmationDialog, {
-            body: _t(`Are you sure that you want to remove ${permission.name} as base permission ?`),
-            cancelLabel: _t("No"),
-            confirmLabel: _t("Remove"),
+        this.dialogService.add(RBACGrantAllPermissions, {
+            user_type: this.data?.user_type,
+            user_name: this.user[0]?.name,
+            cancelLabel: _t("Cancel"),
+            confirmLabel: _t("Grant All Permissions"),
             confirm: async () => {
-                await this.orm.call("res.users", 'remove_initial_group', [this.record_id], {'group_id': permission.id});
+                await this.orm.call("res.users", 'grant_all_permissions', [this.record_id]);
                 await this.fetch_data();
                 this.reset_data();
             },
@@ -288,6 +289,7 @@ export class RBACSuperAdmin extends Component {
             total_granted: this.data?.is_granted,
             assigned_roles: this.data?.assigned_roles,
             custom_permissions: Object.values(this.data.group_sources).filter(v => v.includes('direct_add')).length,
+            user_name: this.user[0]?.name,
             cancelLabel: _t("Cancel"),
             confirmLabel: _t("Revoke All Permissions"),
             confirm: async () => {

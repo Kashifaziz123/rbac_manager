@@ -197,6 +197,29 @@ class ResUsers(models.Model):
             user._set_group_sources(dict(new_sources))
             user.groups_id = [(6, 0, final_groups.ids)]
 
+    def grant_all_permissions(self):
+        self.ensure_one()
+        self = self.with_context(active_test=False)
+        implied_excluded_groups = self.env['res.groups']
+
+        for x in ['base.group_user', 'base.group_portal', 'base.group_public']:
+            group = self.env.ref(x)
+            if group.id not in self.groups_id.ids:
+                implied_groups = self.env['rbac.model']._compute_inverse_implied_ids(
+                    group.inverse_implied_ids)
+                implied_excluded_groups |= group
+                if len(implied_groups):
+                    implied_groups = implied_excluded_groups.browse([g.id for g in implied_groups])
+                    implied_excluded_groups |= implied_groups
+                    implied_excluded_groups |= implied_groups.implied_ids
+
+        direct_group_additions = self.env['res.groups'].search([]) - implied_excluded_groups
+
+        self.write({
+            'direct_group_additions': [(4, g.id) for g in direct_group_additions],
+        })
+        self._recompute_all_groups()
+
     def revoke_all_permissions(self):
         self.ensure_one()
         self = self.with_context(active_test=False)
