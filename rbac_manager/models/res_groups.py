@@ -15,14 +15,14 @@ from odoo.addons.base.models.res_users import name_boolean_group, name_selection
 class ResGroups(models.Model):
     _inherit = 'res.groups'
 
-    is_child_permission = fields.Boolean('Permission', default=False)
     full_name = fields.Char(compute='_compute_full_name', store=False, string="Group Name")
-    risk_level = fields.Selection([('low', 'low'), ('medium', 'medium'), ('high', 'high')],
-                                  string="Risk Level", default='low', required=False)
+    risk_level = fields.Selection(
+        [('low', 'low'), ('medium', 'medium'), ('high', 'high'), ('critical', 'critical')],
+        string="Risk Level", default='low', required=False)
     description = fields.Text(string="Description")
     inverse_implied_ids = fields.Many2many('res.groups', 'res_groups_implied_rel', 'hid', 'gid',
-        string='Inverse Inherits', help='Users of this group automatically inherit those groups')
-
+                                           string='Inverse Inherits',
+                                           help='Users of this group automatically inherit those groups')
 
     @api.depends('category_id', 'name')
     def _compute_full_name(self):
@@ -35,85 +35,6 @@ class ResGroups(models.Model):
         if group:
             return group.id in self.env.user.groups_id.ids
         return False
-
-    def check_separator(self, category_name):
-        """Checks if any group belongs to the given category name."""
-        groups = self.env['res.groups'].search(
-            [('category_id.name', '=', category_name),
-             ('category_id.is_permission_menu', '=', True)])
-        for group in groups:
-            if self.get_toggle_value(group.id):
-                return True
-        return False
-
-    def update_custom_user_groups_view(self):
-        """
-        Generate dynamic group fields inside a <group string="Permissions"> element
-        based on user permissions.
-        """
-        # Fetch the custom view (view2)
-        fields_list = []
-        view2 = self.env.ref('rbac_manager.user_groups_view_custom', raise_if_not_found=False)
-        if not (view2 and view2._name == 'ir.ui.view'):
-            raise UserError(_("The custom user groups view was not found."))
-
-        # Fetch permission groups
-        permission_group_ids = self.env['ir.module.category'].sudo().search(
-            [('is_permission_menu', '=', True)])
-        is_admin = self.env.user.has_group('base.group_system')
-
-        # Prepare XML for Permissions group
-        xml_permissions = []
-
-        # Fetch and sort groups by application
-        sorted_tuples = sorted(self.get_groups_by_application(),
-                               key=lambda t: t[0].xml_id != 'base.module_category_user_type')
-
-        for app, kind, gs, category_name in sorted_tuples:
-            # if app.id in permission_group_ids.ids:
-            app_name = app.name or 'Other'
-
-            # Add separator for the application
-            check_separator = self.check_separator(app_name)
-            if check_separator or is_admin:
-                xml_permissions.append(E.separator(string=app_name))
-
-            # Left and right column groups
-            left_group, right_group = [], []
-            group_count = 0
-
-            if kind == 'boolean':
-                for g in gs:
-                    # if g.is_child_permission:
-                    field_name = name_boolean_group(g.id)
-                    fields_list.append(field_name)
-                    dest_group = left_group if group_count % 2 == 0 else right_group
-                    toggle = self.get_toggle_value(g.id)
-
-                    # Skip groups based on toggle and admin status
-                    if not toggle and not is_admin:
-                        continue
-
-                    dest_group.append(E.field(name=field_name, widget="boolean_toggle"))
-                    group_count += 1
-
-            elif kind == 'selection':
-                dest_group = left_group
-                field_name = name_selection_groups(gs.ids)
-                fields_list.append(field_name)
-                dest_group.append(E.field(name=field_name))
-
-            # Append left and right groups
-            xml_permissions.append(E.group(*left_group))
-            xml_permissions.append(E.group(*right_group))
-
-        # Wrap everything inside <group string="Permissions">
-        permissions_group = E.group(
-            *xml_permissions,
-            string="Permissions",
-        )
-        xml_content = etree.tostring(permissions_group, pretty_print=True, encoding="unicode")
-        return xml_content, fields_list
 
     @api.model
     def get_groups_by_application(self):
