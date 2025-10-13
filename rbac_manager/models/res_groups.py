@@ -84,15 +84,6 @@ class ResGroups(models.Model):
             res.append((self.env['ir.module.category'], 'boolean', others, (100, 'Other')))
         return res
 
-    def write(self, vals):
-        result = super().write(vals)
-        return result
-
-    def create(self, vals):
-        result = super().create(vals)
-        return result
-
-    @api.model
     def get_categories_groups_json(self, user_id):
         sorted_tuples = self.get_groups_by_application()
         res_user = self.env['res.users'].browse([user_id])
@@ -135,3 +126,11 @@ class ResGroups(models.Model):
                 })
 
         return json_dict
+
+    def write(self, vals):
+        result = super().write(vals)
+        return result
+
+    def create(self, vals):
+        result = super().create(vals)
+        return result

@@ -69,7 +69,6 @@ class RbacModel(models.Model):
                 user_type = self.env.ref(x).name
         return user_type
 
-
     @api.model
     def clone_users_list(self, user_id):
         ret_list = []
@@ -107,6 +106,42 @@ class RbacModel(models.Model):
             ], "groupby": [], "ids": [user_id], "model": "res.users"
         }
         return data
+
+    @api.model
+    def get_role_templates(self, user_id):
+        try:
+            categories_groups_json = self.env['res.groups'].get_categories_groups_json(user_id)
+
+            result = {}
+            for category, content in categories_groups_json.items():
+                result[category] = {}
+                for name, data in content.items():
+                    if data['groups'] is False:
+                        if data['group'] and data['group']['risk_level'] != 'critical':
+                            result[category][name] = data
+                    else:
+                        filtered = [g for g in data['groups'] if g['risk_level'] != 'critical']
+                        if filtered:
+                            result[category][name] = {**data, 'groups': filtered}
+
+                if not result[category]:
+                    del result[category]
+
+            return result
+
+            result = {}
+            for category, content in categories_groups_json.items():
+                for name in content:
+                    if content['name']['groups'] is False:
+                        if content['group'] and content['group']['risk_level'] != 'critical':
+                            result[category] = content
+                    else:
+                        filtered = [g for g in content['groups'] if g['risk_level'] != 'critical']
+                        if filtered:
+                            result[category] = {**content, 'groups': filtered}
+            return result
+        except Exception as e:
+            return {}
 
     @api.model
     def get_user_permissions_json(self, user_id):

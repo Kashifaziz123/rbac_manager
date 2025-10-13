@@ -214,7 +214,7 @@ export class RBACUserRoles extends Component {
             this.notification.add(message, {sticky: true, type: "danger"});
             this.action.doAction('rbac_manager.act_window_res_users_list_user_role', {clearBreadcrumbs: true});
         }
-        this.categories = await this.orm.call("res.groups", "get_categories_groups_json", [], {'user_id': this.record_id});
+        this.categories = await this.orm.call("rbac.model", "get_role_templates", [], {'user_id': this.record_id});
 
         this.custom_props.original_data = JSON.parse(JSON.stringify(this.categories));
         this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));

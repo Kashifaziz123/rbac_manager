@@ -24,7 +24,6 @@
         'views/request_rbac_permission_view.xml',
 
         'views/views.xml',
-        'views/ir_module_category.xml',
         'views/menu.xml',
         'wizard/wizard.xml',
     ],
