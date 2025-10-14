@@ -489,32 +489,6 @@ class ResUsers(models.Model):
         if set(final_groups.ids) != set(self.groups_id.ids):
             self.groups_id = [(6, 0, final_groups.ids)]
 
-    # def _apply_groups_from_sources(self, sources):
-    #     """Apply groups based on sources tracking"""
-    #     if self.is_user_role:
-    #         # Roles manage their own groups directly
-    #         return
-    #
-    #     final_groups = self.env['res.groups']
-    #
-    #     for group_id_str, source_list in sources.items():
-    #         # Skip excluded groups
-    #         if 'excluded' in source_list:
-    #             continue
-    #
-    #         # Add group if it has any valid source
-    #         if source_list:
-    #             try:
-    #                 group = self.env['res.groups'].browse(int(group_id_str))
-    #                 if group.exists():
-    #                     final_groups |= group
-    #             except:
-    #                 pass
-    #
-    #     # Avoid unnecessary write if groups haven't changed
-    #     if set(final_groups.ids) != set(self.groups_id.ids):
-    #         self.groups_id = [(6, 0, final_groups.ids)]
-
     @api.model
     def _init_existing_users_on_module_install(self):
         """Called on module install to initialize tracking for existing users"""

@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, exceptions, _
-from dateutil.relativedelta import relativedelta
-from datetime import datetime
-import json
 
-
-# ----------------------------------------------------------
-# Basic res.users
-# ----------------------------------------------------------
 
 class ResUsers(models.Model):
     _inherit = 'res.users'
@@ -43,8 +36,6 @@ class ResUsers(models.Model):
             'target': 'self',
         }
 
-    #  Name must end with 'User Template'
-    #
     @api.model_create_multi
     def create(self, vals_list):
         default_user = self.env.ref('base.default_user', raise_if_not_found=False)

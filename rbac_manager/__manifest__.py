@@ -23,9 +23,7 @@
         'views/res_groups_view.xml',
         'views/request_rbac_permission_view.xml',
 
-        'views/views.xml',
         'views/menu.xml',
-        'wizard/wizard.xml',
     ],
     'assets': {
         'web.assets_backend': [

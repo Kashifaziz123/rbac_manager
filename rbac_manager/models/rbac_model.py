@@ -128,18 +128,6 @@ class RbacModel(models.Model):
                     del result[category]
 
             return result
-
-            result = {}
-            for category, content in categories_groups_json.items():
-                for name in content:
-                    if content['name']['groups'] is False:
-                        if content['group'] and content['group']['risk_level'] != 'critical':
-                            result[category] = content
-                    else:
-                        filtered = [g for g in content['groups'] if g['risk_level'] != 'critical']
-                        if filtered:
-                            result[category] = {**content, 'groups': filtered}
-            return result
         except Exception as e:
             return {}
 

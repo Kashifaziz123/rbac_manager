@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
-from lxml.builder import E
-from lxml import etree
-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
 from odoo.addons.base.models.res_users import name_boolean_group, name_selection_groups
 
 
@@ -32,9 +28,7 @@ class ResGroups(models.Model):
     def get_toggle_value(self, group_id):
         """Returns True if the current user has the group with the given group_id, otherwise False."""
         group = self.env['res.groups'].browse(group_id)
-        if group:
-            return group.id in self.env.user.groups_id.ids
-        return False
+        return group.id in self.env.user.groups_id.ids if group else False
 
     @api.model
     def get_groups_by_application(self):
