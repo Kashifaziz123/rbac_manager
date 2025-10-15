@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+from odoo import api, fields, models, exceptions, _
+from odoo.fields import Many2one
+from odoo.http import GeoIP, request, root
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
+import json
+
+max_depth = 10
+
+
+class RbacAudit(models.Model):
+    _name = _description = 'rbac.audit'
+
+    create_uid = fields.Many2one('res.users', string='Performed By', readonly=True)
+    create_date = fields.Datetime(string='Performed at', readonly=True)
+    user_uid = fields.Many2one('res.users', string='Performed on', readonly=True)
+
+    ip_address = fields.Char("IP Address")
+    user_agent = fields.Char("user_agent")
+    location = fields.Char("Location")
+    method = fields.Char(size=64)
+    action_type = fields.Selection([
+        ('Role Added', 'Role Added'), ('Role Removed', 'Role Removed'),
+        ('Extra Added', 'Extra Added'), ('Extra Removed', 'Extra Removed'),
+        ('Exclude Added', 'Exclude Added'), ('Extra Removed', 'Extra Removed'),
+    ])
+    line_ids = fields.One2many("rbac.audit.line", "rbac_audit_id", string="Fields updated")
+
+    def create_log(self, user, method):
+        ip_address = request.httprequest.remote_addr
+        geoip = GeoIP(ip_address)
+
+        return self.create({
+            'ip_address': ip_address,
+            'user_agent': request.httprequest.user_agent,
+            'location': (geoip.get('country_name') or 'N/A') + ',' + (geoip.city.name or 'N/A'),
+            'method': method,
+            'user_uid': user.id,
+        })
+
+
+class RbacAuditLine(models.Model):
+    _name = _description = 'rbac.audit.line'
+
+    rbac_audit_id = fields.Many2one('rbac.audit', ondelete="cascade", index=True)
+    field_id = fields.Many2one('ir.model.fields', ondelete='cascade', string="Field",
+                               required=True)
+    field_name = fields.Char("Technical name", related='field_id.name')
+    field_description = fields.Char("Description", related='field_id.field_description')
+
+    old_value = fields.Text()
+    new_value = fields.Text()

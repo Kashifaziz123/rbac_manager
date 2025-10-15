@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_audit_client_rbac_audit" model="ir.actions.client">
+            <field name="name">RBAC Audit</field>
+            <field name="tag">rbac.audit</field>
+            <field name="path">rbac_audit</field>
+        </record>
+
+        <record id="rbac_audit_list" model="ir.ui.view">
+            <field name="name">rbac.audit</field>
+            <field name="model">rbac.audit</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="user_uid"/>
+                    <field name="create_uid"/>
+                    <field name="method"/>
+                </list>
+            </field>
+        </record>
+        <record id="rbac_audit_line_list" model="ir.ui.view">
+            <field name="name">rbac.audit.line</field>
+            <field name="model">rbac.audit.line</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="field_name"/>
+                </list>
+            </field>
+        </record>
+
+
+        <record id="rbac_audit_act_window" model="ir.actions.act_window">
+            <field name="name">rbac.audit</field>
+            <field name="res_model">rbac.audit</field>
+            <field name="view_mode">list,form</field>
+        </record>
+        <record id="rbac_audit_line_act_window" model="ir.actions.act_window">
+            <field name="name">rbac.audit.line</field>
+            <field name="res_model">rbac.audit.line</field>
+            <field name="view_mode">list,form</field>
+        </record>
+    </data>
+</odoo>

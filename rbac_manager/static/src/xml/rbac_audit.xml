@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.Audit">
+        <div class="container rbac_audit">
+            <!-- Tab 2: Full Audit Log -->
+            <div id="audit-log" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">??</div>
+                        <div class="stat-label">Total Changes This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">??</div>
+                        <div class="stat-label">Users Modified</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">??</div>
+                        <div class="stat-label">Active Administrators</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">??</div>
+                        <div class="stat-label">Failed Attempts</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Permission Audit Log</h3>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary">📥 Export CSV</button>
+                            <button class="btn btn-secondary">📄 Export PDF</button>
+                        </div>
+                    </div>
+
+                    <div class="filters-bar">
+                        <div class="filter-group">
+                            <label class="filter-label">Search</label>
+                            <input type="text" class="filter-input" placeholder="Search users, permissions..."/>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Target User</label>
+                            <select class="filter-select">
+                                <option>All Users</option>
+                                <option>John Doe</option>
+                                <option>Jane Smith</option>
+                                <option>Mike Rodriguez</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Action Type</label>
+                            <select class="filter-select">
+                                <option>All Actions</option>
+                                <option>Permission Granted</option>
+                                <option>Permission Revoked</option>
+                                <option>Role Assigned</option>
+                                <option>Role Removed</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Performed By</label>
+                            <select class="filter-select">
+                                <option>All Admins</option>
+                                <option>Sarah Anderson</option>
+                                <option>Mike Rodriguez</option>
+                                <option>Emma Wilson</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Date From</label>
+                            <input type="date" class="filter-input" value="2025-09-01"/>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Date To</label>
+                            <input type="date" class="filter-input" value="2025-10-03"/>
+                        </div>
+                    </div>
+
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Performed By</th>
+                                <th>Target User</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                                <th>IP Address</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="this.data?.logs" t-as="log" t-key="log_index + '_logs_available' ">
+                                <td>
+                                    <div class="timestamp">
+                                        <t t-esc="log.create_date[0]"/>
+                                    </div>
+                                    <div class="timestamp">
+                                        <t t-esc="log.create_date[1]"/>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="actor">
+                                        <div class="avatar-small">
+                                            <t t-esc="this.getInitials(log.create_uid[0])"/>
+                                        </div>
+                                        <div>
+                                            <div class="user-name">
+                                                <t t-esc="log.create_uid[0]"/>
+                                            </div>
+                                            <div class="user-email">
+                                                <t t-esc="log.create_uid[1]"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="target">
+                                        <div class="avatar-small">
+                                            <t t-esc="this.getInitials(log.user_uid[0])"/>
+                                        </div>
+                                        <div>
+                                            <div class="user-name">
+                                                <t t-esc="log.user_uid[0]"/>
+                                            </div>
+                                            <div class="user-email">
+                                                <t t-esc="log.user_uid[1]"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="action-badge"></span>
+                                    <div class="action-detail"></div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <t t-esc="log.method"/>
+                                    </div>
+                                    <div class="action-detail">Reason: ???</div>
+                                </td>
+                                <td class="timestamp">
+                                    <t t-esc="log.ip_address"/>
+                                </td>
+                                <td>
+                                    <a class="details-link" onclick="showDetailModal('revoked')">View Details</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="pagination">
+                        <button class="page-btn">← Previous</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">4</button>
+                        <button class="page-btn">5</button>
+                        <button class="page-btn">Next →</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </t>
+</templates>

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_TIME_FORMAT
 from odoo import api, fields, models, exceptions, _
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
@@ -304,3 +305,28 @@ class RbacModel(models.Model):
                     'message': _('Cloned successfully from user %s') % clone_user_id.name}
         except Exception as e:
             return {'error': ("Clone from user %s ERROR: " + str(e)) % clone_user_id.name}
+
+    @api.model
+    def get_initial_rbac_audit(self):
+        try:
+            logs = [
+                {
+                    'id': x.id,
+                    'create_date': [x.create_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
+                                    x.create_date.strftime(DEFAULT_SERVER_TIME_FORMAT)],
+                    'create_uid': [x.create_uid.name, x.create_uid.email],
+                    'user_uid': [x.user_uid.name, x.user_uid.email],
+                    'method': x.method,
+                    'ip_address': x.ip_address
+                }
+                for x in self.env['rbac.audit'].sudo().search([])]
+
+            return {
+                'error': False,
+                'logs': logs,
+            }
+        except Exception as e:
+            return {
+                'error': True,
+                'logs': [],
+            }

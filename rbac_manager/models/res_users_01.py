@@ -1,4 +1,4 @@
-from odoo import models, fields, api, exceptions
+from odoo import models, fields, api, exceptions, http
 import json
 from collections import defaultdict
 
@@ -75,11 +75,38 @@ class ResUsers(models.Model):
         """Handle updates to users and roles"""
         # Track which roles are being modified if groups are changing
         self = self.with_context(active_test=False)
+        model = self.env['ir.model'].sudo().search([('model', '=', 'res.users')])
+        field_model = self.env["ir.model.fields"].sudo()
+        audit_values = {}
+        if self._context.get('rbac_audit', False):
+            for val in vals:
+                field = field_model.search([("model_id", "in", model.ids), ("name", "=", val)])
+                if 'many' in field.ttype:
+                    audit_values[field.id] = [{'id': x.id, 'name': x.name} for x in self[val]]
+                else:
+                    audit_values[field.id] = self[val]
+
         roles_groups_changing = self.env['res.users']
         if 'groups_id' in vals:
             roles_groups_changing = self.filtered('is_user_role')
 
         result = super().write(vals)
+
+        if self._context.get('rbac_audit', False):
+            for val in vals:
+                field = field_model.search([("model_id", "in", model.ids), ("name", "=", val)])
+                if 'many' in field.ttype:
+                    new_value = [{'id': x.id, 'name': x.name} for x in self[val]]
+                else:
+                    new_value = self[val]
+
+                if audit_values[field.id] != new_value:
+                    self.env['rbac.audit.line'].sudo().create({
+                        'rbac_audit_id': self._context['rbac_audit'],
+                        'field_id': field.id,
+                        'old_value': audit_values[field.id],
+                        'new_value': new_value,
+                    })
 
         # If role groups changed, update all users with those roles
         if roles_groups_changing:
@@ -111,6 +138,8 @@ class ResUsers(models.Model):
         """Initialize group sources with existing groups marked as 'initial'"""
         for user in self.filtered(lambda u: not u.is_user_role):
             sources = {}
+            rbac_audit = self.env['rbac.audit'].create_log(self, 'Initialize')
+            self = self.with_context(rbac_audit=rbac_audit.id)
             # Mark all current groups as 'initial' (they were there before module install)
             for group in user.groups_id:
                 sources[str(group.id)] = ['initial']
@@ -199,6 +228,9 @@ class ResUsers(models.Model):
 
     def grant_all_permissions(self):
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Grant all')
+        self = self.with_context(rbac_audit=rbac_audit.id)
+
         self = self.with_context(active_test=False)
         implied_excluded_groups = self.env['res.groups']
 
@@ -222,6 +254,9 @@ class ResUsers(models.Model):
 
     def revoke_all_permissions(self):
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Revoke all')
+        self = self.with_context(rbac_audit=rbac_audit.id)
+
         self = self.with_context(active_test=False)
         user_type = [0]
         for x in ['base.group_user', 'base.group_portal', 'base.group_public']:
@@ -239,6 +274,9 @@ class ResUsers(models.Model):
         role = self.browse(role_id)
         """Assign a role to the user with proper tracking"""
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Add Role -> %s' % role.name)
+        self = self.with_context(rbac_audit=rbac_audit.id)
+
         self = self.with_context(active_test=False)
         if self.is_user_role:
             raise exceptions.ValidationError("Cannot assign roles to a role template")
@@ -273,6 +311,9 @@ class ResUsers(models.Model):
         role = self.browse(role_id)
         """Remove a role and only remove groups not needed by other sources"""
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Remove Role -> %s' % role.name)
+        self = self.with_context(rbac_audit=rbac_audit.id)
+
         self = self.with_context(active_test=False)
         if self.is_user_role:
             raise exceptions.ValidationError("Cannot remove roles from a role template")
@@ -300,6 +341,8 @@ class ResUsers(models.Model):
         """Add a group directly (not through role)"""
         group = self.env['res.groups'].browse(group_id)
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Add Extra -> %s' % group.name)
+        self = self.with_context(rbac_audit=rbac_audit.id)
 
         if self.is_user_role:
             # For roles, just add to their groups normally
@@ -335,6 +378,8 @@ class ResUsers(models.Model):
         """Remove a direct group addition (doesn't exclude, just removes the override)"""
         group = self.env['res.groups'].browse(group_id)
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Remove Exta -> %s' % group.name)
+        self = self.with_context(rbac_audit=rbac_audit.id)
 
         if self.is_user_role:
             # For roles, just remove from their groups
@@ -364,6 +409,8 @@ class ResUsers(models.Model):
         """Exclude a group (overrides roles)"""
         group = self.env['res.groups'].browse(group_id)
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Add Exclude -> %s' % group.name)
+        self = self.with_context(rbac_audit=rbac_audit.id)
 
         if self.is_user_role:
             # For roles, just remove from their groups
@@ -393,6 +440,8 @@ class ResUsers(models.Model):
         """Remove a group exclusion (allows role-based groups to apply again)"""
         group = self.env['res.groups'].browse(group_id)
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Remove Exclude -> %s' % group.name)
+        self = self.with_context(rbac_audit=rbac_audit.id)
 
         if self.is_user_role:
             # For roles, add back to their groups
@@ -423,6 +472,8 @@ class ResUsers(models.Model):
         """Remove a group initial (allows role-based groups to apply again)"""
         group = self.env['res.groups'].browse(group_id)
         self.ensure_one()
+        rbac_audit = self.env['rbac.audit'].create_log(self, 'Remove Initial -> %s' % group.name)
+        self = self.with_context(rbac_audit=rbac_audit.id)
 
         # For regular users, remove the exclusion
         sources = self._get_group_sources()

@@ -1,5 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_request_rbac_permission,access_request_rbac_permission,model_request_rbac_permission,,1,1,1,1
+access_rbac_audit,access_rbac_audit,model_rbac_audit,,1,1,1,1
+access_rbac_audit_line,access_rbac_audit_line,model_rbac_audit_line,,1,1,1,1
 
 access_permission_user,access_permission_user,model_res_users,rbac_manager.permission_group_admin,1,1,1,1
 access_company_user_edit,access_company_user_edit,base.model_res_company,rbac_manager.permission_group_admin,1,1,0,0
