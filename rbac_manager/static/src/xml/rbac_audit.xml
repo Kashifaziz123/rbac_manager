@@ -141,7 +141,7 @@
                                     <t t-esc="log.ip_address"/>
                                 </td>
                                 <td>
-                                    <a class="details-link" onclick="showDetailModal('revoked')">View Details</a>
+                                    <a class="details-link" t-att-data-json="log.data_json" t-on-click="open_details">View Details</a>
                                 </td>
                             </tr>
                         </tbody>
@@ -155,6 +155,18 @@
                         <button class="page-btn">4</button>
                         <button class="page-btn">5</button>
                         <button class="page-btn">Next →</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Detail Modal -->
+            <div id="detailModal" class="modal-overlay" t-on-click="closeModalOnOverlay">
+                <div class="audit_modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Audit Log Details</h3>
+                        <button class="close-btn" t-on-click="closeModal">×</button>
+                    </div>
+                    <div class="modal-body" id="modalContent">
+                        <!-- Content will be inserted here by JavaScript -->
                     </div>
                 </div>
             </div>

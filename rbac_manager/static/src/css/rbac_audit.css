@@ -513,7 +513,7 @@ body.o_web_client div.o_action_manager div.rbac_audit * {
     display: flex;
 }
 
-.rbac_audit .modal {
+.rbac_audit .audit_modal {
     background: white;
     border-radius: 12px;
     max-width: 800px;
@@ -669,9 +669,15 @@ body.o_web_client div.o_action_manager div.rbac_audit * {
     gap: 8px;
 }
 
-.rbac_audit .permission-list li:before {
+.rbac_audit .permission-list.added li:before {
     content: "✓";
     color: #10b981;
+    font-weight: bold;
+}
+
+.rbac_audit .permission-list.removed li:before {
+    content: "✕";
+    color: #ff4343;
     font-weight: bold;
 }
 

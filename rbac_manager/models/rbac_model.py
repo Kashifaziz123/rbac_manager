@@ -309,17 +309,35 @@ class RbacModel(models.Model):
     @api.model
     def get_initial_rbac_audit(self):
         try:
-            logs = [
-                {
+            logs = []
+            for x in self.env['rbac.audit'].sudo().search([]):
+                groups_id = x.line_ids.filtered(lambda z: z.field_name == 'groups_id')
+                log = {
                     'id': x.id,
                     'create_date': [x.create_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
-                                    x.create_date.strftime(DEFAULT_SERVER_TIME_FORMAT)],
+                               x.create_date.strftime(DEFAULT_SERVER_TIME_FORMAT)],
                     'create_uid': [x.create_uid.name, x.create_uid.email],
                     'user_uid': [x.user_uid.name, x.user_uid.email],
                     'method': x.method,
-                    'ip_address': x.ip_address
+                    'ip_address': x.ip_address,
                 }
-                for x in self.env['rbac.audit'].sudo().search([])]
+                log['data_json'] = json.dumps({
+                    **log,
+                    'ip_address': x.ip_address,
+                    'user_agent': x.user_agent,
+                    'location': x.location,
+                    'len_groups_id': len(json.loads(groups_id[-1].new_value.replace("'", '"'))) if groups_id else 'N/A',
+                    'line_ids': [
+                        {
+                            'field_name': y.field_name,
+                            'old_value': y.old_value,
+                            'new_value': y.new_value,
+                            'is_many': 'many' in y.field_id.ttype,
+                        }
+                        for y in x.line_ids
+                    ]
+                })
+                logs.append(log)
 
             return {
                 'error': False,
