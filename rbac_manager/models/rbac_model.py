@@ -310,15 +310,22 @@ class RbacModel(models.Model):
     def get_initial_rbac_audit(self):
         try:
             logs = []
+            actions = set()
             for x in self.env['rbac.audit'].sudo().search([]):
                 groups_id = x.line_ids.filtered(lambda z: z.field_name == 'groups_id')
+                if x.method:
+                    action_type = x.method.split('->')[0].strip()
+                else:
+                    action_type = 'Unknown'
+                actions.add(action_type)
                 log = {
                     'id': x.id,
                     'create_date': [x.create_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
-                               x.create_date.strftime(DEFAULT_SERVER_TIME_FORMAT)],
-                    'create_uid': [x.create_uid.name, x.create_uid.email],
-                    'user_uid': [x.user_uid.name, x.user_uid.email],
+                                    x.create_date.strftime(DEFAULT_SERVER_TIME_FORMAT)],
+                    'create_uid': [x.create_uid.name, x.create_uid.email,x.create_uid.id],
+                    'user_uid': [x.user_uid.name, x.user_uid.email, x.user_uid.id],
                     'method': x.method,
+                    'action': action_type,
                     'ip_address': x.ip_address,
                 }
                 log['data_json'] = json.dumps({
@@ -339,9 +346,17 @@ class RbacModel(models.Model):
                 })
                 logs.append(log)
 
+            user_ids = self.env['rbac.audit'].sudo().search([]).mapped('user_uid')
+            users = [{'id': u.id, 'name': u.name or ''} for u in user_ids if u]
+            actions_list = sorted(list(actions))
+            admin_ids = self.env['rbac.audit'].sudo().search([]).mapped('create_uid')
+            admins = [{'id': u.id, 'name': u.name or ''} for u in admin_ids if u]
             return {
                 'error': False,
                 'logs': logs,
+                'users': users,
+                'actions_list':actions_list,
+                'admins': admins,
             }
         except Exception as e:
             return {

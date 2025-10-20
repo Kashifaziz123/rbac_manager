@@ -6,7 +6,6 @@ import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 
-
 export class RBACAudit extends Component {
     static template = "rbac.Audit";
 
@@ -17,33 +16,120 @@ export class RBACAudit extends Component {
         this.action = useService("action");
         this.orm = useService("orm");
         this.user = [];
+        this.searchQuery = useState({ value: "" });
+        this.filters = useState({
+            user_id: "",
+            admin_id: "",
+            action: "",
+            from: "",
+            to: ""
+        });
         this.data = useState({});
-
+        const today = new Date();
+        const firstDayLocal = new Date(today.getFullYear(), today.getMonth(), 1);
+        const firstDay = firstDayLocal.toLocaleDateString('en-CA');
+        const todayStr = today.toISOString().split('T')[0];
+        this.from_date = useState({ value: firstDay });
+        this.to_date = useState({ value: todayStr });
         onWillStart(async () => {
             await this.fetch_data();
+            this.filters.from = this.from_date.value;
+            this.filters.to = this.to_date.value;
+            await this.applyFilters();
             await ensureJQuery();
         });
-
     }
-
-    //
-    //  model CRUD functions
-    //
     async fetch_data() {
         this.data = await this.orm.call("rbac.model", "get_initial_rbac_audit", []);
-
         if (this.data.error) {
             var message = _t("It seems the logs view has errors.")
             this.notification.add(message, {sticky: true, type: "danger"});
             this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
         }
     }
+    debounceTimer = null;
+    async onSearchChange(ev) {
+    clearTimeout(this.debounceTimer);
+    const query = ev.target.value.trim().toLowerCase();
+    this.debounceTimer = setTimeout(async () => {
+        this.searchQuery.value = query;
+        await this.applyFilters();
+    }, 300);
+}
+    onDateChange() {
+    const from = new Date(this.from_date.value);
+    const to = new Date(this.to_date.value);
 
+    if (to < from) {
+        this.notification.add("⚠️ 'Date To' cannot be earlier than 'Date From'.", { type: "danger" });
+        this.to_date.value = this.from_date.value;
+        return;
+    }
+
+    this.filters.from = this.from_date.value;
+    this.filters.to = this.to_date.value;
+    this.applyFilters();
+}
+    async applyFilters() {
+    await this.fetch_data();
+
+    let logs = this.data.logs;
+
+    // Target User
+    if (this.filters.user_id) {
+        const uid = parseInt(this.filters.user_id);
+        logs = logs.filter(l => l.user_uid[2] === uid);
+    }
+
+    // Performed By (Admin)
+    if (this.filters.admin_id) {
+        const aid = parseInt(this.filters.admin_id);
+        logs = logs.filter(l => l.create_uid[2] === aid);
+    }
+
+    // Action Type
+    if (this.filters.action) {
+        logs = logs.filter(l => l.action === this.filters.action);
+    }
+
+    // Date Range
+    if (this.filters.from && this.filters.to) {
+        const fromDate = new Date(this.filters.from);
+        const toDate = new Date(this.filters.to);
+        logs = logs.filter(l => {
+            const logDate = new Date(l.create_date[0]);
+            return logDate >= fromDate && logDate <= toDate;
+        });
+    }
+
+    // 🔍 Search filter
+    if (this.searchQuery.value) {
+    const query = this.searchQuery.value;
+    logs = logs.filter(l =>
+        (l.user_uid[0] && l.user_uid[0].toLowerCase().includes(query))
+    );
+
+}
+
+    this.data.logs = logs;
+    this.render();
+}
     getInitials(text) {
         const words = text?.trim().split(/\s+/) || ['', ''];
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
-
+    async onAdminFilterChange(ev) {
+    this.filters.admin_id = ev.target.value;
+    await this.applyFilters();
+}
+    async onUserFilterChange(ev) {
+        this.filters.user_id = ev.target.value;
+        await this.applyFilters();
+    }
+    async onActionFilterChange(ev) {
+        this.filters.action = ev.target.value;
+        await this.applyFilters();
+    }
     open_details(ev) {
         let data_json = JSON.parse($(ev.srcElement).attr('data-json'))
         const modal = $('.rbac_audit').find('#detailModal');
