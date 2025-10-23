@@ -21,26 +21,47 @@ export class RBACUserSelectionDialog extends ConfirmationDialog {
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
 
-    apply_search() {
-        let body = $('.rbac_dialog.user_selection_dialog');
-        let search_val = body.find('.search-input').val().toLowerCase();
-        this.clone_users = this.props.clone_users.filter(user =>
-            user.name.toLowerCase().includes(search_val)
-        );
-        this.render();
+apply_search() {
+    const body = $('.rbac_dialog.user_selection_dialog');
+    const search_val = (body.find('.search-input').val() || '').toLowerCase();
+
+    // Filter the user list
+    this.clone_users = this.props.clone_users.filter(user =>
+        user.name.toLowerCase().includes(search_val)
+    );
+
+    // Re-render the user list
+    this.render();
+
+    // Show or hide "No results" message
+    const $noResults = body.find('#noResults');
+    const $rolesPreview = body.find('#rolesPreview');
+    if (this.clone_users.length === 0 && search_val.trim() !== '') {
+        $noResults.show();
+        $rolesPreview.html('');
+    } else {
+        $noResults.hide();
     }
+}
 
     user_selected(ev) {
         let user_item_div = $(ev.closest('.user-item'))
         this.selectedUser = user_item_div.attr('data-id');
         let categories = JSON.parse(user_item_div.attr('data-categories'))
-
         let body = $('.rbac_dialog.user_selection_dialog');
         body.find('.user-item').removeClass('selected')
-        $(ev).addClass('selected');
+        $(ev.closest('.user-item')).addClass('selected');
+        const rolesHTML = categories.length
+        ? categories.map(role => `
+            <span class="preview-tag">
+                ${role}
+            </span>
+        `).join('')
+        : `<span class="preview-tag empty">No roles or permissions found</span>`;
 
-        body.find('#rolesPreview')[0].innerHTML = categories
-            .map(role => `<span class="role-tag">${role}</span>`).join('');
+    body.find('#rolesPreview')[0].innerHTML = `
+        <div class="preview-tags">${rolesHTML}</div>
+    `;
 
         this.render();
     }
