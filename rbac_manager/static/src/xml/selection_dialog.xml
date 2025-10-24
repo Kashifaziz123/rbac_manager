@@ -39,7 +39,7 @@
                     </div>
                     <!-- User List -->
                     <div class="user-list" id="userList">
-                        <t t-foreach="clone_users" t-as="user" t-key="user.id">
+                        <t t-foreach="clone_users" t-as="user" t-key="user.id + '_user_selection_dialog'">
                             <div t-att-class="'user-item ' + (selectedUser === user.id ? 'selected' : '' )"
                                  t-att-data-id="user.id"
                                  t-on-click="(ev) => this.user_selected(ev.target)"
