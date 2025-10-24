@@ -8,12 +8,14 @@ export class RBACUserSelectionDialog extends ConfirmationDialog {
     static props = {
         ...ConfirmationDialog.props,
         clone_users: {type: Array, optional: false},
+         target_user: { type: Object, optional: true },
     };
 
     setup() {
         super.setup();
         this.clone_users = this.props.clone_users;
         this.selectedUser = 0;
+        this.targetUser = this.props.target_user || { name: "Unknown User" };
     }
 
     getInitials(text) {
@@ -72,6 +74,7 @@ export class RBACRoleSelectionDialog extends ConfirmationDialog {
     static props = {
         ...ConfirmationDialog.props,
         roles: {type: Array, optional: false},
+        target_user: { type: Object, optional: true },
     };
 
     setup() {
@@ -81,6 +84,7 @@ export class RBACRoleSelectionDialog extends ConfirmationDialog {
         this.props.roles.forEach(item => {
             this.roles[item.id] = item.name;
         });
+        this.targetUser = this.props.target_user || { name: "Unknown User" };
     }
 
     role_selected(ev) {
@@ -93,6 +97,10 @@ export class RBACRoleSelectionDialog extends ConfirmationDialog {
             this.selectedRoles.push(role_id);
 
         this.render();
+    }
+    getInitials(text) {
+        const words = text?.trim().split(/\s+/) || ['', ''];
+        return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
 
 }

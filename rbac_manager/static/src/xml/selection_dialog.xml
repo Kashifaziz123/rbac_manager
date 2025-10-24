@@ -13,10 +13,14 @@
 
                 <!-- Target User - Compact Inline -->
                 <div class="compact-inline">
-                    <div class="avatar">MD</div>
+                    <div class="avatar">
+                        <t t-esc="this.getInitials(props.target_user.name || '')"/>
+                    </div>
                     <div class="text">
                         Applying permissions to
-                        <span class="user-name-highlight">Marc Demo</span>
+                        <span class="user-name-highlight">
+                            <t t-esc="props.target_user.name || 'Unknown User'"/>
+                        </span>
                     </div>
                 </div>
                 <div class="source-section">
@@ -116,10 +120,14 @@
 
                 <!-- Target User - Compact Inline -->
                 <div class="compact-inline">
-                    <div class="avatar">MD</div>
+                    <div class="avatar">
+                        <t t-esc="this.getInitials(props.target_user.name || '')"/>
+                    </div>
                     <div class="text">
-                        Applying roles to
-                        <span class="user-name-highlight">Marc Demo</span>
+                        Applying role to
+                        <span class="user-name-highlight">
+                            <t t-esc="props.target_user.name || 'Unknown User'"/>
+                        </span>
                     </div>
                 </div>
                 <div class="user-list" id="userList">

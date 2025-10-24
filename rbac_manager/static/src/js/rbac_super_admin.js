@@ -69,27 +69,28 @@ export class RBACSuperAdmin extends Component {
         let clone_users = await this.orm.call("rbac.model", "clone_users_list", [], {'user_id': this.record_id});
         // let users = await this.orm.searchRead("res.users", [['is_user_role', '=', false]], ["id", "name"]);
         await this.dialogService.add(RBACUserSelectionDialog, {
-            clone_users: clone_users,
-            title: _t('Clone User'),
-            cancelLabel: _t("Close"),
-            confirmLabel: _t("Apply Permissions"),
-            confirm: async () => {
-                let clone_user = $('.rbac_dialog.user_selection_dialog').find('.user-item.selected').attr('data-id');
-                let res = await this.orm.call("rbac.model", "clone_groups_from_user", [], {
-                    'user_id': this.record_id,
-                    'clone_user_id': parseInt(clone_user)
-                });
-                if (res.error)
-                    this.notification.add(res.error, {sticky: false, type: "danger"});
-                else
-                    this.notification.add(res.message, {sticky: false, type: "info"});
-                await this.fetch_data();
-                this.reset_data();
-            },
-            cancel: () => {
-            },
-        });
-    }
+        clone_users: clone_users,
+        title: _t('Clone User'),
+        cancelLabel: _t("Close"),
+        confirmLabel: _t("Apply Permissions"),
+        // 🔹 Add this line ↓
+        target_user: { id: this.record_id, name: this.user[0]?.name || "Unknown User" },
+        confirm: async () => {
+            let clone_user = $('.rbac_dialog.user_selection_dialog').find('.user-item.selected').attr('data-id');
+            let res = await this.orm.call("rbac.model", "clone_groups_from_user", [], {
+                'user_id': this.record_id,
+                'clone_user_id': parseInt(clone_user)
+            });
+            if (res.error)
+                this.notification.add(res.error, {sticky: false, type: "danger"});
+            else
+                this.notification.add(res.message, {sticky: false, type: "info"});
+            await this.fetch_data();
+            this.reset_data();
+        },
+        cancel: () => {},
+    });
+ }
 
     async export_permissions() {
         await download({
@@ -105,6 +106,10 @@ export class RBACSuperAdmin extends Component {
             roles: this.data.available_roles,
             title: _t('Bulk Role Assignment'),
             cancelLabel: _t("Close"),
+            target_user: {
+            id: this.record_id,
+            name: this.user[0]?.name || "Unknown User"
+        },
             confirmLabel: _t("Apply"),
             confirm: async () => {
                 let role_ids = $('.rbac_dialog.user_selection_dialog .user-item.selected')
