@@ -106,30 +106,43 @@
     <t t-name="rbac.RoleSelectionDialog">
         <Dialog size="'md'" title="props.title">
             <div class="rbac_dialog user_selection_dialog">
-                <div class="current-user">
-                    <div class="current-user-label">Applying Roles To</div>
-                    <div class="current-user-name">
-                        <div class="user-badge">MD</div>
-                        <span>Marc Demo</span>
+                <div class="info-alert">
+                    <span class="alert-icon">ℹ️</span>
+                    <div class="alert-text">
+                        All roles and permissions from the selected user will be copied to the target user. Existing
+                        permissions will be preserved.
+                    </div>
+                </div>
+
+                <!-- Target User - Compact Inline -->
+                <div class="compact-inline">
+                    <div class="avatar">MD</div>
+                    <div class="text">
+                        Applying roles to
+                        <span class="user-name-highlight">Marc Demo</span>
                     </div>
                 </div>
                 <div class="user-list" id="userList">
-                    <t t-foreach="clone_users" t-as="user" t-key="user.id + '_user_selection_dialog' ">
-                        <div t-att-class="'user-item ' + (selectedUser === user.id ? 'active' : '' )"
-                             t-att-data-id="user.id"
-                             t-on-click="(ev) => this.user_selected(ev.target)"
-                             t-att-data-categories="user.categories">
+                    <t t-foreach="props.roles" t-as="role" t-key="role.id + '_role_selection_dialog'">
+                        <div t-att-class="'user-item ' + (this.selectedRoles.includes(role.id) ? 'selected' : '')"
+                             t-att-data-id="role.id"
+                             t-on-click="(ev) => this.role_selected(ev.target)">
                             <div class="user-info">
-                                <div class="user-avatar">
-                                    <t t-esc="user.name[0]"/>
+                                <div class="user-avatar"
+                                     t-att-style="'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'">
+                                    <t t-esc="role.name[0]"/>
                                 </div>
                                 <div class="user-details">
                                     <div class="user-name">
-                                        <t t-esc="user.name"/>
+                                        <t t-esc="role.name"/>
                                     </div>
                                 </div>
                             </div>
-                            <div class="radio-btn"></div>
+                            <div class="radio-wrapper">
+                                <div class="radio-circle">
+                                    <div class="radio-dot"/>
+                                </div>
+                            </div>
                         </div>
                     </t>
                 </div>
@@ -140,7 +153,7 @@
                     </div>
                     <div class="roles-preview" id="rolesPreview">
                         <t t-foreach="selectedRoles" t-as="role" t-key="role_index + '_selected_roles' ">
-                            <span class="role-tag">
+                            <span class="preview-tag">
                                 <t t-esc="roles[role]"/>
                             </span>
                         </t>
