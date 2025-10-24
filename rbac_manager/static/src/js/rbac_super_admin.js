@@ -461,27 +461,46 @@ export class RBACSuperAdmin extends Component {
     //  model CRUD functions
     //
     async fetch_data() {
-        this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
-        this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
+    this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
+    this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
 
-        if (this.user[0]?.name === undefined) {
-            var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
-            this.notification.add(message, {sticky: true, type: "danger"});
-            this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
-        }
-
-        this.data.json_group_sources = this.data.group_sources;
-        this.data.group_sources = JSON.parse(this.data.group_sources);
-        this.custom_props.original_data = JSON.parse(JSON.stringify(this.data || {}));
-        this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
-        this.total_counts();
+    // 🟢 Fetch recent changes
+    const changes = await this.orm.call("rbac.model", "get_recent_audit_changes", [this.record_id]);
+    this.data.recent_changes = changes.records || [];
+    // 🟢 Set initial display settings
+    this.limit = 10;
+    this.showAll = false;
+    // Slice only first 10 initially
+    this.displayedChanges = this.data.recent_changes.slice(0, this.limit);
+    if (this.user[0]?.name === undefined) {
+        var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
+        this.notification.add(message, {sticky: true, type: "danger"});
+        this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
     }
+
+    this.data.json_group_sources = this.data.group_sources;
+    this.data.group_sources = JSON.parse(this.data.group_sources);
+    this.custom_props.original_data = JSON.parse(JSON.stringify(this.data || {}));
+    this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
+    this.total_counts();
+}
 
     getInitials(text) {
         const words = text?.trim().split(/\s+/) || ['', ''];
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
-
+    showAllChanges(ev) {
+    ev.preventDefault();
+    this.showAll = true;
+    this.displayedChanges = this.data.recent_changes;
+    this.render();
+}
+    showLessChanges(ev) {
+    ev.preventDefault();
+    this.showAll = false;
+    this.displayedChanges = this.data.recent_changes.slice(0, this.limit);
+    this.render();
+}
     async writeRecord() {
         function getChangedValues(original_js_dict, new_js_dict) {
             const result = {};

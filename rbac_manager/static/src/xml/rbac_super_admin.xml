@@ -202,10 +202,62 @@
             </div>
 
             <!-- Recent Activity Audit Log -->
-            <div class="audit-log">
-                <h2>📋 Recent Permission Changes</h2>
-            </div>
+            <div class="recent-changes">
+                <h3>
+                    📋 Recent Permission Changes
+                    <span class="time-filter">Last 30 days</span>
+                </h3>
+                <div class="changes-list">
+                    <t t-if="this.displayedChanges.length">
+                        <t t-foreach="this.displayedChanges" t-as="change"
+                           t-key="change.timestamp + change.performed_by">
+                            <div t-attf-class="change-item #{change.indicator}">
+                                <div t-attf-class="change-indicator #{change.indicator}">
+                                    <t t-if="change.indicator === 'added'">✓</t>
+                                    <t t-elif="change.indicator === 'removed'">✕</t>
+                                    <t t-elif="change.indicator === 'modified'">✎</t>
+                                    <t t-else="">•</t>
+                                </div>
+                                <div class="change-content">
+                                    <div class="change-title">
+                                        <span t-attf-class="change-badge badge-#{change.indicator}">
+                                            <t t-esc="change.action"/>
+                                        </span>
+                                        <t t-esc="change.details"/>
+                                    </div>
+                                    <div class="change-meta">
+                                        <span class="change-time">🕐
+                                            <t t-esc="change.timestamp"/>
+                                        </span>
+                                        <span class="dot"></span>
+                                        <span>
+                                            <t t-esc="change.ago"/>
+                                        </span>
+                                        <span class="dot"></span>
+                                        <span>by
+                                            <t t-esc="change.performed_by"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
 
+                        <!-- 🔹 View All / Show Less toggle -->
+                        <div class="view-all-link">
+                            <a t-if="this.data.recent_changes.length > this.limit &amp; !this.showAll"
+                               t-on-click="this.showAllChanges">
+                                View all (<t t-esc="this.data.recent_changes.length"/>) changes in last 30 days →
+                            </a>
+                            <a t-if="this.showAll" t-on-click="this.showLessChanges">
+                                ← Show less
+                            </a>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="no-data">No permission changes in the last 30 days.</div>
+                    </t>
+                </div>
+            </div>
             <!-- Floating Super Admin Panel -->
             <div class="floating-admin-panel" style="display:none;">
                 <div class="admin-panel-header">🔥 SUPER ADMIN</div>

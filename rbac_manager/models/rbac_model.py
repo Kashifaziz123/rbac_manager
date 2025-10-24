@@ -2,8 +2,10 @@
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_TIME_FORMAT
 from odoo import api, fields, models, exceptions, _
 from dateutil.relativedelta import relativedelta
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 import json
+
 
 max_depth = 10
 
@@ -363,3 +365,78 @@ class RbacModel(models.Model):
                 'error': True,
                 'logs': [],
             }
+
+    @api.model
+    def get_recent_audit_changes(self, user_id):
+        """Return recent changes for a specific user in the last 30 days, localized to user timezone."""
+        try:
+            user_tz = self.env.user.tz or 'UTC'
+            tz = pytz.timezone(user_tz)
+
+            now_utc = datetime.utcnow()
+            thirty_days_ago = now_utc - timedelta(days=30)
+
+            logs = self.env['rbac.audit'].sudo().search([
+                ('user_uid', '=', user_id),
+                ('create_date', '>=', thirty_days_ago)
+            ], order='create_date desc')
+
+            def time_ago(dt):
+                diff = now_utc - dt
+                days = diff.days
+                seconds = diff.seconds
+                hours = seconds // 3600
+                minutes = (seconds % 3600) // 60
+
+                if days == 0:
+                    if hours > 0 and minutes > 0:
+                        return f"{hours} hour{'s' if hours != 1 else ''} {minutes} minute{'s' if minutes != 1 else ''} ago"
+                    elif hours > 0:
+                        return f"{hours} hour{'s' if hours != 1 else ''} ago"
+                    elif minutes > 0:
+                        return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+                    else:
+                        return "Just now"
+                elif days < 7:
+                    return f"{days} day{'s' if days != 1 else ''} ago"
+                elif days < 30:
+                    weeks = days // 7
+                    return f"{weeks} week{'s' if weeks != 1 else ''} ago"
+                else:
+                    return f"{days} days ago"
+
+            recent_changes = []
+            for x in logs:
+                if not x.create_date:
+                    continue
+                utc_dt = x.create_date.replace(tzinfo=pytz.utc)
+                local_dt = utc_dt.astimezone(tz)
+                local_dt_str = local_dt.strftime("%b %d, %Y at %I:%M %p")
+
+                if x.method:
+                    action_type = x.method.split('->')[0].strip()
+                else:
+                    action_type = "Unknown"
+
+                if 'add' in action_type.lower() or 'assign' in action_type.lower():
+                    indicator = 'added'
+                elif 'remove' in action_type.lower() or 'revoke' in action_type.lower():
+                    indicator = 'removed'
+                elif 'update' in action_type.lower() or 'modify' in action_type.lower():
+                    indicator = 'modified'
+                else:
+                    indicator = 'neutral'
+
+                recent_changes.append({
+                    'action': action_type,
+                    'details': x.method,
+                    'timestamp': local_dt_str,
+                    'ago': time_ago(x.create_date),
+                    'performed_by': x.create_uid.name,
+                    'indicator': indicator,
+                })
+
+            return {'error': False, 'records': recent_changes}
+
+        except Exception as e:
+            return {'error': True, 'message': str(e), 'records': []}
