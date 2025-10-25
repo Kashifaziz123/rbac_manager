@@ -7,6 +7,7 @@
     "category": "Extra Tools",
     "author": "",
     "website": "",
+    'price': 350, 'currency': 'USD',
     "license": "Other proprietary",
     "application": True,
     "installable": True,
