@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Role-Based Access Control (RBAC) Manager",
-    "summary": "Take complete control of your Odoo security with enterprise-grade role-based access management. This advanced solution provides comprehensive access control, smart delegation, risk-based rights management, and complete audit trails - ensuring your ERP data stays secure while maintaining operational flexibility.
+    "summary": """Take complete control of your Odoo security with enterprise-grade role-based access management. 
+    This advanced solution provides comprehensive access control, smart delegation, risk-based rights management, and complete 
+    audit trails - ensuring your ERP data stays secure while maintaining operational flexibility.
 Key Features:
 
 Advanced RBAC - Enterprise-level role and permission control with granular access rules
@@ -11,7 +13,7 @@ Complete Audit Log - Track all user role changes and permission modifications wi
 Hassle-Free Setup - Intuitive interface that simplifies complex permission management
 
 Perfect for: Organizations requiring strict access controls, compliance requirements, or managing large teams with diverse permission needs.
-Improve your ERP security. Hassle-free.",
+Improve your ERP security. Hassle-free.""",
     "description": """Role-Based Access Control (RBAC) Manager""",
     "version": "18.0.0.0.1",
     "category": "Extra Tools",
