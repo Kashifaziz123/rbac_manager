@@ -12,7 +12,7 @@
     "application": True,
     "installable": True,
     "auto_install": False,
-    'images': ['static/description/background.png'],
+    'images': ['static/description/rbac.gif'],
     'post_init_hook': 'post_init_hook',
     "depends": ['base', 'web', 'auth_signup', 'account'],
     "data": [
