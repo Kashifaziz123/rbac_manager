@@ -1,0 +1,501 @@
+.permissions_dialog *,
+.permissions_dialog *::before,
+.permissions_dialog *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.o_web_client div.o_action_manager div.permissions_dialog {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: normal;
+    background: #f5f7fa;
+    color: #333;
+}
+
+body.o_web_client div.o_action_manager div.permissions_dialog * {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.permissions_dialog.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.permissions_dialog .header {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.permissions_dialog .user-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.permissions_dialog .user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.permissions_dialog .user-details h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.permissions_dialog .user-details p {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.permissions_dialog .access-level {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.permissions_dialog .header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.permissions_dialog .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.permissions_dialog .btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.permissions_dialog .btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.permissions_dialog .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.permissions_dialog .btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+.permissions_dialog .btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.permissions_dialog .btn-danger:hover {
+    background: #b91c1c;
+}
+
+.permissions_dialog .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.permissions_dialog .section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.permissions_dialog .section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.permissions_dialog .role-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+}
+
+.permissions_dialog .role-item:hover {
+    background: #fafbfc;
+}
+
+.permissions_dialog .role-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.permissions_dialog .role-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.permissions_dialog .role-icon.teacher {
+    background: #3b82f6;
+}
+
+.permissions_dialog .role-icon.attendance {
+    background: #10b981;
+}
+
+.permissions_dialog .role-details h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 2px;
+}
+
+.permissions_dialog .role-details p {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.permissions_dialog .role-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.permissions_dialog .btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+.permissions_dialog .available-roles {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.permissions_dialog .role-item.available {
+    background: #f9fafb;
+    border-style: dashed;
+}
+
+.permissions_dialog .role-item.available:hover {
+    background: #f3f4f6;
+}
+
+.permissions_dialog .exception-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.permissions_dialog .exception-info {
+    flex: 1;
+}
+
+.permissions_dialog .exception-info h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.permissions_dialog .exception-code {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.permissions_dialog .exception-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+}
+
+.permissions_dialog .exception-type {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.permissions_dialog .exception-type.extra {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.permissions_dialog .exception-type.exclusion {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.permissions_dialog .exception-date {
+    color: #6b7280;
+}
+
+.permissions_dialog .request-section {
+    background: white;
+    border-radius: 12px;
+    padding: 5px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.permissions_dialog .request-form {
+    display: grid;
+    gap: 16px;
+}
+
+.permissions_dialog .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.permissions_dialog .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.permissions_dialog .form-group select,
+.permissions_dialog .form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.permissions_dialog .form-group select:focus,
+.permissions_dialog .form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.permissions_dialog .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.permissions_dialog .permission-search {
+    position: relative;
+}
+
+.permissions_dialog .permission-search input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.permissions_dialog .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+}
+
+.permissions_dialog .permission-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.permissions_dialog .suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.permissions_dialog .suggestion-item:hover {
+    background: #f9fafb;
+}
+
+.permissions_dialog .suggestion-item strong {
+    color: #1f2937;
+}
+
+.permissions_dialog .suggestion-item .permission-code {
+    font-family: 'Courier New', monospace;
+    color: #6b7280;
+    font-size: 11px;
+}
+
+.permissions_dialog .alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.permissions_dialog .alert.warning {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    color: #92400e;
+    margin: 10px 10px 10px 0px;
+}
+
+.permissions_dialog .alert.info {
+    background: #dbeafe;
+    border: 1px solid #3b82f6;
+    color: #1e40af;
+}
+
+.permissions_dialog .pending-requests {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 24px;
+}
+
+.permissions_dialog .request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.permissions_dialog .request-info h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.permissions_dialog .request-meta {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    gap: 12px;
+}
+
+.permissions_dialog .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.permissions_dialog .status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.permissions_dialog .status-badge.approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.permissions_dialog .status-badge.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.permissions_dialog .permission-suggestions {
+    border: 1px solid #ccc;
+    background: white;
+    position: absolute;
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.permissions_dialog .suggestion-item {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.permissions_dialog .suggestion-item:hover {
+    background: #f0f0f0;
+}
+
+.permissions_dialog .selected-item {
+    background: #e8f4ff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.permissions_dialog .selected-item .remove {
+    cursor: pointer;
+    color: red;
+}
+
+@media (max-width: 1024px) {
+    .permissions_dialog .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .permissions_dialog .form-row {
+        grid-template-columns: 1fr;
+    }
+}

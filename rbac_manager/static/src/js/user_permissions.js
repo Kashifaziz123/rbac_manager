@@ -6,6 +6,7 @@ import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 import {loadCSS} from "@web/core/assets";
+import {RBACPermissionsDialog} from "@rbac_manager/js/permission_dialog";
 
 
 export class RBACUserPermissions extends Component {
@@ -19,6 +20,7 @@ export class RBACUserPermissions extends Component {
         this.record_id = this.props?.action?.context?.active_id || this.props?.resId;
         this.custom_props = {'original_data': {}}
         this.data = {}
+        this.dialogService = useService("dialog");
 
         onWillStart(async () => {
             await this.fetch_data();
@@ -39,6 +41,18 @@ export class RBACUserPermissions extends Component {
     //
     // onchange functions
     //
+    async request_permissions(){
+    await this.dialogService.add(RBACPermissionsDialog, {
+        title: _t('Request Additional Permission'),
+        resId: this.record_id,
+        parentComponent: this,
+        cancelLabel: _t("Close"),
+        confirmLabel: _t("Submit Request"),
+        confirm: async () => {
+        },
+        cancel: () => {},
+    });
+    }
     apply_search() {
         const $rf = $('.table-filters');
         const is_all = $rf.find('.all.active').length;

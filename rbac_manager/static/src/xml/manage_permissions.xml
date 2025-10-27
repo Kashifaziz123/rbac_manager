@@ -114,12 +114,10 @@
             <!-- Request Additional Permissions Section -->
             <div class="request-section">
                 <h2>📝 Request Additional Permission</h2>
-
                 <div class="alert warning">
                     ⚠️ <strong>Permission Manager Notice:</strong> Requests for permissions outside assigned roles
                     require Super Admin approval.
                 </div>
-
                 <form class="request-form">
                     <div class="form-group">
                         <label>Request Type</label>

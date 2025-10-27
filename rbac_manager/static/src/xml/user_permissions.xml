@@ -22,9 +22,12 @@
                     <a t-att-href="'/odoo/user_permission/'" class="btn btn-secondary">
                         ← Back to Users
                     </a>
-                    <a t-att-href="'/odoo/manage_permission/' + this.record_id" class="btn btn-primary">
-                        ✏️ Manage Permissions
-                    </a>
+                    <button class="btn btn-primary" t-on-click="request_permissions">
+                        + Request Permission
+                    </button>
+                    <!--                    <a t-att-href="'/odoo/manage_permission/' + this.record_id" class="btn btn-primary">-->
+                    <!--                        ✏️ Manage Permissions-->
+                    <!--                    </a>-->
                 </div>
             </div>
 

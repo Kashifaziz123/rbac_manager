@@ -8,7 +8,7 @@ export class RBACUserSelectionDialog extends ConfirmationDialog {
     static props = {
         ...ConfirmationDialog.props,
         clone_users: {type: Array, optional: false},
-         target_user: { type: Object, optional: true },
+         target_user: { type: Object, optional: false },
     };
 
     setup() {
@@ -74,7 +74,7 @@ export class RBACRoleSelectionDialog extends ConfirmationDialog {
     static props = {
         ...ConfirmationDialog.props,
         roles: {type: Array, optional: false},
-        target_user: { type: Object, optional: true },
+        target_user: { type: Object, optional: false },
     };
 
     setup() {

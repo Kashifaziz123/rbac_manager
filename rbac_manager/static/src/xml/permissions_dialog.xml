@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.PermissionsDialog">
+        <Dialog size="'md'" title="props.title">
+            <div class="rbac_dialog permissions_dialog">
+                <div class="request-section">
+                    <h2>📝 Request Additional Permission</h2>
+                    <div class="alert warning">
+                        ⚠️ <strong>Permission Manager Notice:</strong> Requests for permissions outside assigned roles
+                        require Super Admin approval.
+                    </div>
+                    <form class="request-form">
+                        <div class="form-group">
+                            <label>Request Type</label>
+                            <select name="type">
+                                <option t-att-value="'grant'" t-att-selected="selected">Extra Permission (Grant)
+                                </option>
+                                <option t-att-value="'deny'">Exclusion (Deny)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Permission</label>
+                            <div class="permission-search">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" placeholder="Search for permissions..." id="permissionSearch"
+                                       t-on-keyup="search_permissions"/>
+                                <div class="permission-suggestions" id="suggestions" style="display: none;">
+                                </div>
+                            </div>
+                            <div id="selectedPermission" class="selected-permission"
+                                 style="display:none; margin-top:8px;"/>
+                            <input type="hidden" id="permissionId" name="group_id" required="required"/>
+                        </div>
+                        <div class="form-group">
+                            <label>Business Justification</label>
+                            <textarea rows="3" name="description" required="required"
+                                      placeholder="Please provide a detailed justification for this permission request..."/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn" t-att-class="props.confirmClass" t-on-click="submitRecord" t-esc="props.confirmLabel"
+                />
+                <!--                t-att-disabled="this.selectedRoles.length !== 0 ? '' : 'disabled' "-->
+                <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel"/>
+            </t>
+        </Dialog>
+    </t>
+</templates>
