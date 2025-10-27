@@ -45,6 +45,8 @@ export class RBACSuperAdmin extends Component {
 
         onMounted(() => {
             this.enabled_inputs_length();
+            this.data.recent_changes = [];
+            this.loadAuditLogs();
         });
     }
 
@@ -461,14 +463,15 @@ export class RBACSuperAdmin extends Component {
     //
     //  model CRUD functions
     //
-    async loadAuditLogs() {
+    async loadAuditLogs(showAll = false) {
     try {
-        const changes = await this.orm.call("rbac.model", "get_recent_audit_changes", [this.record_id]);
-        const records = changes.records || [];
+        const limit = 10;
+        const resp = await this.orm.call("rbac.model", "get_recent_audit_changes",
+            [this.record_id, 1000, 0]); // 🔹 fetch all once (max 1000)
+        const records = resp.records || [];
         this.data.recent_changes = records;
-        this.limit = 10;
-        this.showAll = false;
-        const limited = records.slice(0, this.limit);
+
+        const container = $("#audit_logs_container");
         const renderChanges = (items) => items.map(change => `
             <div class="change-item ${change.indicator}">
                 <div class="change-indicator ${change.indicator}">
@@ -489,29 +492,34 @@ export class RBACSuperAdmin extends Component {
                 </div>
             </div>
         `).join('');
-        let html = renderChanges(limited);
-        if (records.length > this.limit) {
+
+        // 🔹 Decide how many to display
+        const visibleRecords = showAll
+            ? this.data.recent_changes
+            : this.data.recent_changes.slice(0, limit);
+
+        let html = renderChanges(visibleRecords);
+
+        if (this.data.recent_changes.length > limit) {
+            const label = showAll
+                ? `← Show less (${limit} of ${this.data.recent_changes.length})`
+                : `Show all (${this.data.recent_changes.length}) →`;
             html += `
                 <div class="view-all-link">
-                    <a id="view_all_audit_logs" href="#">View all (${records.length}) changes in last 30 days →</a>
-                </div>
-            `;
-        }
-        const container = $("#audit_logs_container");
-        container.html(html || '<div class="no-data">No permission changes in the last 30 days.</div>');
-        $("#view_all_audit_logs").on("click", (ev) => {
-            ev.preventDefault();
-            this.showAll = true;
-            const fullHtml = renderChanges(records) + `
-                <div class="view-all-link">
-                    <a id="show_less_audit_logs" href="#">← Show less</a>
+                    <a id="toggle_audit_logs" href="#">${label}</a>
                 </div>`;
-            container.html(fullHtml);
-            $("#show_less_audit_logs").on("click", (e2) => {
-                e2.preventDefault();
-                this.loadAuditLogs();
-            });
+        } else {
+            html += `<div class="view-all-link text-muted">All records loaded.</div>`;
+        }
+
+        container.html(html || '<div class="no-data">No permission changes in the last 30 days.</div>');
+
+        // 🔹 Bind the toggle
+        $("#toggle_audit_logs").on("click", (ev) => {
+            ev.preventDefault();
+            this.loadAuditLogs(!showAll);
         });
+
     } catch (err) {
         console.error("Audit log fetch failed:", err);
         $("#audit_logs_container").html('<div class="text-danger">Failed to load changes.</div>');
@@ -520,16 +528,10 @@ export class RBACSuperAdmin extends Component {
     async fetch_data() {
     this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
     this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
-
-    // 🟢 Fetch recent changes
-    // Render UI immediately
-    this.data.recent_changes = [];
-    setTimeout(() => this.loadAuditLogs(), 0);
     // 🟢 Set initial display settings
     this.limit = 10;
     this.showAll = false;
-    // Slice only first 10 initially
-    this.displayedChanges = this.data.recent_changes.slice(0, this.limit);
+    this.displayedChanges = (this.data.recent_changes || []).slice(0, this.limit);
     if (this.user[0]?.name === undefined) {
         var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
         this.notification.add(message, {sticky: true, type: "danger"});

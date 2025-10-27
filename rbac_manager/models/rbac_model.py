@@ -30,7 +30,7 @@ class RbacModel(models.Model):
 
     def _get_time_passed(self, dt, now=None):
         if not dt:
-            return "0 minutes"
+            return "Just now"
 
         if now is None:
             now = datetime.utcnow()
@@ -44,19 +44,19 @@ class RbacModel(models.Model):
         elif rd.months >= 1:
             pair = ((" month", rd.months), (" day", rd.days))
         elif rd.days >= 1:
-            pair = (("day", rd.days), (" hour", rd.hours))
+            pair = ((" day", rd.days), (" hour", rd.hours))
         else:
             pair = ((" hour", rd.hours), (" minute", rd.minutes))
 
         p = lambda n, s: f"{n}{s}{'s' * (n != 1)}"
-        # build result with only non-zero parts
         a, b = pair
         parts = ([p(a[1], a[0])] if a[1] else []) + ([p(b[1], b[0])] if b[1] else [])
 
-        if not parts:
-            parts = ["0 minutes"]
+        # 🟢 Fix: Replace "0 minutes" with "Just now"
+        if not parts or (len(parts) == 1 and parts[0] == "0 minutes"):
+            return "Just now"
 
-        return ("-" if future else "") + " ".join(parts)
+        return ("in " if future else "") + " ".join(parts) + ("" if future else " ago")
 
     def _get_employee(self):
         try:
@@ -367,76 +367,60 @@ class RbacModel(models.Model):
             }
 
     @api.model
-    def get_recent_audit_changes(self, user_id):
-        """Return recent changes for a specific user in the last 30 days, localized to user timezone."""
+    def get_recent_audit_changes(self, user_id, limit=10, offset=0):
+        """Paginated audit logs with total count for 'Load More' button."""
         try:
+            import pytz
+            from datetime import datetime, timedelta
+
             user_tz = self.env.user.tz or 'UTC'
             tz = pytz.timezone(user_tz)
-
             now_utc = datetime.utcnow()
             thirty_days_ago = now_utc - timedelta(days=30)
 
-            logs = self.env['rbac.audit'].sudo().search([
+            domain = [
                 ('user_uid', '=', user_id),
-                ('create_date', '>=', thirty_days_ago)
-            ], order='create_date desc')
+                ('create_date', '>=', thirty_days_ago),
+            ]
 
-            def time_ago(dt):
-                diff = now_utc - dt
-                days = diff.days
-                seconds = diff.seconds
-                hours = seconds // 3600
-                minutes = (seconds % 3600) // 60
-
-                if days == 0:
-                    if hours > 0 and minutes > 0:
-                        return f"{hours} hour{'s' if hours != 1 else ''} {minutes} minute{'s' if minutes != 1 else ''} ago"
-                    elif hours > 0:
-                        return f"{hours} hour{'s' if hours != 1 else ''} ago"
-                    elif minutes > 0:
-                        return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
-                    else:
-                        return "Just now"
-                elif days < 7:
-                    return f"{days} day{'s' if days != 1 else ''} ago"
-                elif days < 30:
-                    weeks = days // 7
-                    return f"{weeks} week{'s' if weeks != 1 else ''} ago"
-                else:
-                    return f"{days} days ago"
+            total_count = self.env['rbac.audit'].sudo().search_count(domain)
+            logs = self.env['rbac.audit'].sudo().search(domain, limit=limit, offset=offset, order='create_date desc')
 
             recent_changes = []
-            for x in logs:
-                if not x.create_date:
+            for log in logs:
+                if not log.create_date:
                     continue
-                utc_dt = x.create_date.replace(tzinfo=pytz.utc)
+                utc_dt = log.create_date.replace(tzinfo=pytz.utc)
                 local_dt = utc_dt.astimezone(tz)
                 local_dt_str = local_dt.strftime("%b %d, %Y at %I:%M %p")
 
-                if x.method:
-                    action_type = x.method.split('->')[0].strip()
-                else:
-                    action_type = "Unknown"
-
-                if 'add' in action_type.lower() or 'assign' in action_type.lower():
+                method = log.method or "Unknown"
+                action_type = method.split('->')[0].strip()
+                if any(k in action_type.lower() for k in ['add', 'assign']):
                     indicator = 'added'
-                elif 'remove' in action_type.lower() or 'revoke' in action_type.lower():
+                elif any(k in action_type.lower() for k in ['remove', 'revoke']):
                     indicator = 'removed'
-                elif 'update' in action_type.lower() or 'modify' in action_type.lower():
+                elif any(k in action_type.lower() for k in ['update', 'modify']):
                     indicator = 'modified'
                 else:
                     indicator = 'neutral'
 
                 recent_changes.append({
                     'action': action_type,
-                    'details': x.method,
+                    'details': method,
                     'timestamp': local_dt_str,
-                    'ago': time_ago(x.create_date),
-                    'performed_by': x.create_uid.name,
+                    'ago': self._get_time_passed(log.create_date, now_utc),  # ✅ use existing helper
+                    'performed_by': log.create_uid.name,
                     'indicator': indicator,
                 })
 
-            return {'error': False, 'records': recent_changes}
+            return {
+                'error': False,
+                'records': recent_changes,
+                'limit': limit,
+                'offset': offset,
+                'total_count': total_count,
+            }
 
         except Exception as e:
             return {'error': True, 'message': str(e), 'records': []}
