@@ -125,9 +125,7 @@ export class RBACPermissionsDialog extends ConfirmationDialog {
 }
 export class RBACRolesDialog extends ConfirmationDialog {
     static template = "rbac.RolesDialog";
-    static props = {
-        ...ConfirmationDialog.props,
-    };
+    static props = { ...ConfirmationDialog.props };
 
     setup() {
         super.setup();
@@ -136,133 +134,107 @@ export class RBACRolesDialog extends ConfirmationDialog {
         this.orm = useService("orm");
         this.record_id = this.props?.resId;
         this.parentComponent = this.props?.parentComponent;
-         this.state = useState({
-            searchText: "",
-            filters: [
-                { label: "All Roles", value: "all", active: true },
-                { label: "✓ Assigned", value: "assigned" },
-            ],
+
+        this.state = useState({
+            loading: true,
+            search: "",
+            filter: "all",
             roles: [],
         });
+
         onWillStart(async () => {
-        await this.fetch_data();
-            await ensureJQuery();
+            await this.loadRoles();
         });
-
-    }
-    getFilteredRoles() {
-    // Always start from the full data, not from this.state.roles
-    let roles = [
-        ...(this.data.assigned_roles || []),
-        ...(this.data.available_roles || []),
-    ];
-
-    // Build assigned set for quick lookup
-    const assignedIds = new Set((this.data.assigned_roles || []).map(r => r.id));
-
-    // Apply active filter
-    const activeFilter = this.state.filters.find(f => f.active)?.value;
-    if (activeFilter === "assigned") {
-        roles = roles.filter(r => assignedIds.has(r.id));
     }
 
-    // Apply search filter
-    const query = (this.state.searchText || "").trim().toLowerCase();
-    if (query) {
-        roles = roles.filter(r =>
-            (r.name && r.name.toLowerCase().includes(query)) ||
-            (r.description && r.description.toLowerCase().includes(query))
-        );
-    }
+    // ------------------------------
+    // 🔹 Core: Fetch & Normalize Roles
+    // ------------------------------
+    async loadRoles() {
+        try {
+            const [user, data] = await Promise.all([
+                this.orm.searchRead("res.users", [['id', '=', this.record_id]], ["name", "email"]),
+                this.orm.call("rbac.model", "get_manage_permissions_json", [this.record_id]),
+            ]);
 
-    // Return normalized roles with assigned flags
-    return roles.map(r => ({
-        ...r,
-        assigned: assignedIds.has(r.id),
-    }));
-}
-    filterRoles(category) {
-        this.state.filters.forEach((f) => (f.active = f.value === category));
-        this.state.roles = this.getFilteredRoles();
-    }
-    onInputSearch(ev) {
-        this.state.searchText = ev.target.value;
-        this.state.roles = this.getFilteredRoles();
-    }
-    async fetch_data() {
-    this.user = await this.orm.searchRead(
-        "res.users",
-        [['id', '=', this.record_id], ['is_user_role', '=', false]],
-        ["name", "email"]
-    );
-    this.data = await this.orm.call("rbac.model", "get_manage_permissions_json", [this.record_id]);
-    if (this.data.error) {
-        const message = _t(
-            "It seems the records with IDs %s cannot be found. They might have been deleted.",
-            this.record_id
-        );
-        this.notification.add(message, { sticky: true, type: "danger" });
-        this.action.doAction("rbac_manager.act_window_res_users_list_user_permission", {
-            clearBreadcrumbs: true,
-        });
-        return;
-    }
-    const assigned_ids = (this.data.assigned_roles || []).map(r => r.id);
-    const all_roles = [
-        ...(this.data.assigned_roles || []),
-        ...(this.data.available_roles || []),
-    ];
-    this.state.roles = all_roles.map(r => ({
-        ...r,
-        assigned: assigned_ids.includes(r.id),
-    }));
-    this.state.roles = this.getFilteredRoles();
-}
-    async assignRole(role) {
-    try {
-        const result = await this.orm.call("res.users", "assign_role", [this.record_id], { role_id: role.id });
-        if (result) {
-            const idx = this.state.roles.findIndex(r => r.id === role.id);
-            if (idx !== -1) this.state.roles[idx].assigned = true;
-            const alreadyExists = (this.data.assigned_roles || []).some(r => r.id === role.id);
-            if (!alreadyExists) {
-                this.data.assigned_roles.push(role);
+            if (data?.error) {
+                this.notification.add("User record not found or deleted.", { type: "danger", sticky: true });
+                this.action.doAction("rbac_manager.act_window_res_users_list_user_permission", {
+                    clearBreadcrumbs: true,
+                });
+                return;
             }
-            this.data.available_roles = (this.data.available_roles || []).filter(r => r.id !== role.id);
-            this.state.roles = this.getFilteredRoles();
-            this.notification.add(`✓ Role "${role.name}" has been assigned successfully!`, { type: "success" });
-            await this.parentComponent.fetch_data();
-            this.parentComponent.render();
-        } else {
-            this.notification.add(result.message || "Error assigning role.", { type: "danger" });
-        }
-    } catch (err) {
-        console.error(err);
-        this.notification.add("Failed to assign role. Please try again.", { type: "danger" });
-    }
-}
-    async removeRole(role) {
-    try {
-        const result = await this.orm.call("res.users", "remove_role", [this.record_id], { role_id: role.id });
-        if (result) {
-            const idx = this.state.roles.findIndex(r => r.id === role.id);
-            if (idx !== -1) this.state.roles[idx].assigned = false;
-            this.data.assigned_roles = (this.data.assigned_roles || []).filter(r => r.id !== role.id);
-            const alreadyAvailable = (this.data.available_roles || []).some(r => r.id === role.id);
-            if (!alreadyAvailable) {
-                this.data.available_roles.push(role);
-            }
-            this.state.roles = this.getFilteredRoles();
-            this.notification.add(`⚠️ Role "${role.name}" has been removed successfully!`, { type: "warning" });
-            await this.parentComponent.fetch_data();
-            this.parentComponent.render();
-        } else {
-            this.notification.add(result.message || "Error removing role.", { type: "danger" });
-        }
-    } catch (err) {
-        console.error(err);
-        this.notification.add("Failed to remove role. Please try again.", { type: "danger" });
-    }
-}
 
+            const assignedIds = new Set((data.assigned_roles || []).map((r) => r.id));
+            const roles = [
+                ...(data.assigned_roles || []),
+                ...(data.available_roles || []),
+            ].map((r) => ({
+                ...r,
+                assigned: assignedIds.has(r.id),
+            }));
+
+            Object.assign(this.state, { roles, loading: false });
+        } catch (err) {
+            console.error("Error loading roles:", err);
+            this.notification.add("Failed to load roles.", { type: "danger" });
+        }
+    }
+
+    // ------------------------------
+    // 🔹 Computed Roles (Dynamic Filter)
+    // ------------------------------
+    get filteredRoles() {
+        let roles = this.state.roles;
+        const q = this.state.search.trim().toLowerCase();
+
+        if (this.state.filter === "assigned") {
+            roles = roles.filter((r) => r.assigned);
+        }
+        if (q) {
+            roles = roles.filter(
+                (r) =>
+                    (r.name && r.name.toLowerCase().includes(q)) ||
+                    (r.description && r.description.toLowerCase().includes(q))
+            );
+        }
+        return roles;
+    }
+
+    // ------------------------------
+    // 🔹 UI Event Handlers
+    // ------------------------------
+    onSearch(ev) {
+        this.state.search = ev.target.value;
+    }
+
+    onFilterChange(value) {
+        this.state.filter = value;
+    }
+
+    // ------------------------------
+    // 🔹 Assign / Remove Role
+    // ------------------------------
+    async toggleRole(role, assign = true) {
+        const method = assign ? "assign_role" : "remove_role";
+        const msg = assign ? "assigned" : "removed";
+        const type = assign ? "success" : "warning";
+
+        try {
+            const result = await this.orm.call("res.users", method, [this.record_id], { role_id: role.id });
+            if (!result) {
+                this.notification.add("Unexpected response from server.", { type: "danger" });
+                return;
+            }
+
+            role.assigned = assign;
+            this.notification.add(`✓ Role "${role.name}" ${msg} successfully!`, { type });
+            await this.parentComponent?.fetch_data?.();
+            this.parentComponent.render();
+
+        } catch (err) {
+            console.error(err);
+            this.notification.add(`Failed to ${msg} role "${role.name}".`, { type: "danger" });
+        }
+    }
 }
