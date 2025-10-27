@@ -499,3 +499,227 @@ body.o_web_client div.o_action_manager div.permissions_dialog * {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Alert Section */
+.rbac_dialog.roles_dialog .alert {
+    background: #ebf4ff;
+    border-left: 4px solid #3182ce;
+    padding: 16px;
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 24px;
+}
+
+.rbac_dialog.roles_dialog .alert-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.rbac_dialog.roles_dialog .alert-text {
+    font-size: 14px;
+    color: #2c5282;
+}
+
+/* Role Search */
+.rbac_dialog.roles_dialog .roles-search {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.rbac_dialog.roles_dialog .roles-search input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.rbac_dialog.roles_dialog .roles-search .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+}
+
+/* Filters */
+.rbac_dialog.roles_dialog .role-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.rbac_dialog.roles_dialog .filter-chip {
+    padding: 6px 14px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rbac_dialog.roles_dialog .filter-chip.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* Role Cards */
+.rbac_dialog.roles_dialog .available-roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.rbac_dialog.roles_dialog .available-role-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.rbac_dialog.roles_dialog .available-role-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+}
+
+.rbac_dialog.roles_dialog .available-role-card.assigned {
+    border-color: #48bb78;
+    background: #f0fff4;
+}
+
+/* Footer Buttons */
+.rbac_dialog.roles_dialog .btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.rbac_dialog.roles_dialog .btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.rbac_dialog.roles_dialog .btn-danger {
+    background: #f56565;
+    color: white;
+}
+/* Role Card Enhancements */
+.rbac_dialog.roles_dialog .available-role-card {
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.rbac_dialog.roles_dialog .available-role-card.assigned {
+    background: #f0fff4;
+    border-color: #48bb78;
+}
+
+/* Header Section */
+.rbac_dialog.roles_dialog .role-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.rbac_dialog.roles_dialog .role-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.rbac_dialog.roles_dialog .role-card-header h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0;
+}
+
+/* Description */
+.rbac_dialog.roles_dialog .role-card-description {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+/* Permission Count Box */
+.rbac_dialog.roles_dialog .role-permissions-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f7fafc;
+    color: #2d3748;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 500;
+    font-size: 13px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 12px;
+}
+
+/* Divider */
+.rbac_dialog.roles_dialog .available-role-card.assigned .role-permissions-count {
+    margin-bottom: 16px;
+}
+
+/* Footer Buttons */
+.rbac_dialog.roles_dialog .role-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.rbac_dialog.roles_dialog .role-assigned-badge {
+    background: #48bb78;
+    color: white;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.rbac_dialog.roles_dialog .btn-small {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.rbac_dialog.roles_dialog .btn-small.btn-danger {
+    background: #f56565;
+    color: #fff;
+}
+
+.rbac_dialog.roles_dialog .btn-small.btn-primary {
+    background: #667eea;
+    color: #fff;
+}
+
+.rbac_dialog.roles_dialog .btn-small:hover {
+    opacity: 0.9;
+}
+.rbac_dialog.roles_dialog .available-role-card.assigned:hover {
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.2);
+    transform: translateY(-2px);
+}

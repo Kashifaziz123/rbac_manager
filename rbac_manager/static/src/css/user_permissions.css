@@ -502,6 +502,18 @@ body.o_web_client div.o_action_manager div.user_permission *{
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
 }
 
+.user_permission .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.user_permission .section-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
 @media (max-width: 1200px) {
     .user_permission .main-content {
         grid-template-columns: 1fr;

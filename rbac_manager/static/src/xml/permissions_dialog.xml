@@ -40,9 +40,87 @@
                 </div>
             </div>
             <t t-set-slot="footer">
-                <button class="btn" t-att-class="props.confirmClass" t-on-click="submitRecord" t-esc="props.confirmLabel"
+                <button class="btn" t-att-class="props.confirmClass" t-on-click="submitRecord"
+                        t-esc="props.confirmLabel"
                 />
                 <!--                t-att-disabled="this.selectedRoles.length !== 0 ? '' : 'disabled' "-->
+                <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel"/>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="rbac.RolesDialog">
+        <Dialog size="'md'" title="props.title">
+            <div class="rbac_dialog roles_dialog">
+                <div class="alert" style="background: #ebf4ff; border-left-color: #3182ce;">
+                    <span class="alert-icon" style="color: #3182ce;">ℹ️</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Role Management</div>
+                        <div class="alert-text" style="color: #2c5282;">
+                            Assign or remove roles to grant bundles of permissions. Each role includes multiple
+                            predefined permissions.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search + Filters -->
+                <div class="roles-search mb-3">
+                    <span class="search-icon">🔍</span>
+                    <input type="text"
+                           t-model="state.searchText"
+                           t-on-input="onInputSearch"
+                           placeholder="Search available roles..."
+                           class="form-control"/>
+                </div>
+
+                <div class="role-filters mb-3">
+                    <t t-foreach="state.filters" t-as="filter" t-key="filter.value">
+                        <button t-attf-class="filter-chip #{filter.active ? 'active' : ''}"
+                                t-on-click="() => this.filterRoles(filter.value)">
+                            <t t-esc="filter.label"/>
+                        </button>
+                    </t>
+                </div>
+
+                <!-- Role Cards -->
+                <div class="available-roles-grid">
+                    <t t-foreach="state.roles" t-as="role" t-key="role.id + '_user_permission' ">
+                        <div t-attf-class="available-role-card #{role.assigned ? 'assigned' : ''}"
+                             t-att-data-category="role.category">
+                            <div class="role-card-header">
+                                <div class="role-icon">
+                                    <t t-esc="role.icon"/>
+                                </div>
+                                <div>
+                                    <h4>
+                                        <t t-esc="role.name"/>
+                                    </h4>
+                                </div>
+                            </div>
+                            <div class="role-card-description">
+                                <t t-esc="role.description"/>
+                            </div>
+                            <div class="role-permissions-count">📋
+                                <t t-esc="role.permissions_count"/>
+                                permissions
+                            </div>
+                            <div class="role-card-footer">
+                                <t t-if="role.assigned">
+                                    <span class="role-assigned-badge">✓ Currently Assigned</span>
+                                    <button class="btn btn-danger btn-small"
+                                            t-on-click="() => this.removeRole(role)">Remove
+                                    </button>
+                                </t>
+                                <t t-else="">
+                                    <button class="btn btn-primary btn-small"
+                                            t-on-click="() => this.assignRole(role)">+ Assign
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <t t-set-slot="footer">
                 <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel"/>
             </t>
         </Dialog>

@@ -6,7 +6,7 @@ import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 import {loadCSS} from "@web/core/assets";
-import {RBACPermissionsDialog} from "@rbac_manager/js/permission_dialog";
+import {RBACPermissionsDialog,RBACRolesDialog} from "@rbac_manager/js/permission_dialog";
 
 
 export class RBACUserPermissions extends Component {
@@ -53,6 +53,18 @@ export class RBACUserPermissions extends Component {
         cancel: () => {},
     });
     }
+    async requestRoles(){
+    await this.dialogService.add(RBACRolesDialog, {
+        title: _t('Manage Roles'),
+        resId: this.record_id,
+        parentComponent: this,
+        cancelLabel: _t("Close"),
+        confirm: async () => {
+        },
+        cancel: () => {},
+    });
+    }
+
     apply_search() {
         const $rf = $('.table-filters');
         const is_all = $rf.find('.all.active').length;
@@ -132,7 +144,6 @@ export class RBACUserPermissions extends Component {
             this.notification.add(message, {sticky: true, type: "danger"});
             this.action.doAction('rbac_manager.act_window_res_users_list_user_permission', {clearBreadcrumbs: true});
         }
-
         this.data.group_sources = JSON.parse(this.data.group_sources);
         this.custom_props.original_data = JSON.parse(JSON.stringify(this.data?.all_categories || {}));
         this.data.all_groups_count = Object.values(this.data?.all_categories || {})

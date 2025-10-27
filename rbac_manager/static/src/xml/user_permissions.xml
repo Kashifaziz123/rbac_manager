@@ -62,7 +62,12 @@
             </div>
 
             <div class="role-badges">
-                <h3>Assigned Roles &amp; Exceptions</h3>
+                <div class="section-header">
+                    <h3>Assigned Roles &amp; Exceptions</h3>
+                    <button class="btn btn-primary" style="margin-left: auto;" t-on-click="requestRoles">
+                        ⚙️ Manage Roles
+                    </button>
+                </div>
                 <div class="badges-container">
                     <t t-foreach="this.data?.assigned_roles" t-as="assigned_role"
                        t-key="assigned_role.id + '_user_permission' ">
