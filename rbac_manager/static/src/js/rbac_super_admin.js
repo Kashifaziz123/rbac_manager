@@ -37,9 +37,10 @@ export class RBACSuperAdmin extends Component {
         );
 
         onWillStart(async () => {
-            await this.fetch_data();
-            await ensureJQuery();
-            // loadCSS('/rbac_manager/static/src/css/rbac_super_admin.css');
+            await Promise.all([
+                this.fetch_data(),
+                ensureJQuery(),
+            ]);
         });
 
         onMounted(() => {
@@ -460,13 +461,70 @@ export class RBACSuperAdmin extends Component {
     //
     //  model CRUD functions
     //
+    async loadAuditLogs() {
+    try {
+        const changes = await this.orm.call("rbac.model", "get_recent_audit_changes", [this.record_id]);
+        const records = changes.records || [];
+        this.data.recent_changes = records;
+        this.limit = 10;
+        this.showAll = false;
+        const limited = records.slice(0, this.limit);
+        const renderChanges = (items) => items.map(change => `
+            <div class="change-item ${change.indicator}">
+                <div class="change-indicator ${change.indicator}">
+                    ${change.indicator === 'added' ? '✓' :
+                      change.indicator === 'removed' ? '✕' :
+                      change.indicator === 'modified' ? '✎' : '•'}
+                </div>
+                <div class="change-content">
+                    <div class="change-title">
+                        <span class="change-badge badge-${change.indicator}">
+                            ${change.action}
+                        </span>
+                        ${change.details || ''}
+                    </div>
+                    <div class="change-meta">
+                        🕐 ${change.timestamp} • ${change.ago} • by ${change.performed_by}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        let html = renderChanges(limited);
+        if (records.length > this.limit) {
+            html += `
+                <div class="view-all-link">
+                    <a id="view_all_audit_logs" href="#">View all (${records.length}) changes in last 30 days →</a>
+                </div>
+            `;
+        }
+        const container = $("#audit_logs_container");
+        container.html(html || '<div class="no-data">No permission changes in the last 30 days.</div>');
+        $("#view_all_audit_logs").on("click", (ev) => {
+            ev.preventDefault();
+            this.showAll = true;
+            const fullHtml = renderChanges(records) + `
+                <div class="view-all-link">
+                    <a id="show_less_audit_logs" href="#">← Show less</a>
+                </div>`;
+            container.html(fullHtml);
+            $("#show_less_audit_logs").on("click", (e2) => {
+                e2.preventDefault();
+                this.loadAuditLogs();
+            });
+        });
+    } catch (err) {
+        console.error("Audit log fetch failed:", err);
+        $("#audit_logs_container").html('<div class="text-danger">Failed to load changes.</div>');
+    }
+}
     async fetch_data() {
     this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
     this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
 
     // 🟢 Fetch recent changes
-    const changes = await this.orm.call("rbac.model", "get_recent_audit_changes", [this.record_id]);
-    this.data.recent_changes = changes.records || [];
+    // Render UI immediately
+    this.data.recent_changes = [];
+    setTimeout(() => this.loadAuditLogs(), 0);
     // 🟢 Set initial display settings
     this.limit = 10;
     this.showAll = false;
@@ -484,7 +542,6 @@ export class RBACSuperAdmin extends Component {
     this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
     this.total_counts();
 }
-
     getInitials(text) {
         const words = text?.trim().split(/\s+/) || ['', ''];
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
