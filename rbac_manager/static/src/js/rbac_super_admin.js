@@ -465,9 +465,15 @@ export class RBACSuperAdmin extends Component {
     //
     async loadAuditLogs(showAll = false) {
     try {
-        const limit = 10;
-        const resp = await this.orm.call("rbac.model", "get_recent_audit_changes",
-            [this.record_id, 1000, 0]); // 🔹 fetch all once (max 1000)
+        // decide limit dynamically
+        const limit = showAll ? 1000 : 10;
+        const offset = 0;
+        const resp = await this.orm.call(
+            "rbac.model",
+            "get_recent_audit_changes",
+            [this.record_id, limit, offset]
+        );
+
         const records = resp.records || [];
         this.data.recent_changes = records;
 
@@ -475,9 +481,10 @@ export class RBACSuperAdmin extends Component {
         const renderChanges = (items) => items.map(change => `
             <div class="change-item ${change.indicator}">
                 <div class="change-indicator ${change.indicator}">
-                    ${change.indicator === 'added' ? '✓' :
-                      change.indicator === 'removed' ? '✕' :
-                      change.indicator === 'modified' ? '✎' : '•'}
+                    ${change.indicator === 'added' ? '✓'
+                      : change.indicator === 'removed' ? '✕'
+                      : change.indicator === 'modified' ? '✎'
+                      : '•'}
                 </div>
                 <div class="change-content">
                     <div class="change-title">
@@ -493,17 +500,12 @@ export class RBACSuperAdmin extends Component {
             </div>
         `).join('');
 
-        // 🔹 Decide how many to display
-        const visibleRecords = showAll
-            ? this.data.recent_changes
-            : this.data.recent_changes.slice(0, limit);
-
-        let html = renderChanges(visibleRecords);
-
-        if (this.data.recent_changes.length > limit) {
+        let html = renderChanges(records);
+        if (resp.total_count > 10) {
+            // always show toggle if more than 10 total logs
             const label = showAll
-                ? `← Show less (${limit} of ${this.data.recent_changes.length})`
-                : `Show all (${this.data.recent_changes.length}) →`;
+                ? `← Show less (10 of ${resp.total_count})`
+                : `Show all (${resp.total_count}) →`;
             html += `
                 <div class="view-all-link">
                     <a id="toggle_audit_logs" href="#">${label}</a>
@@ -511,10 +513,8 @@ export class RBACSuperAdmin extends Component {
         } else {
             html += `<div class="view-all-link text-muted">All records loaded.</div>`;
         }
-
         container.html(html || '<div class="no-data">No permission changes in the last 30 days.</div>');
 
-        // 🔹 Bind the toggle
         $("#toggle_audit_logs").on("click", (ev) => {
             ev.preventDefault();
             this.loadAuditLogs(!showAll);
