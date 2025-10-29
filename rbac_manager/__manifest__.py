@@ -1,16 +1,30 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Permission Management System",
-    "summary": "Permission Management System",
-    "description": """Permission Management System""",
+    "name": "Role-Based Access Control (RBAC) Manager",
+    "summary": """Take complete control of your Odoo security with enterprise-grade role-based access management. 
+    This advanced solution provides comprehensive access control, smart delegation, risk-based rights management, and complete 
+    audit trails - ensuring your ERP data stays secure while maintaining operational flexibility.
+Key Features:
+
+Advanced RBAC - Enterprise-level role and permission control with granular access rules
+Smart Delegation - Flexible temporary rights delegation without compromising security
+Risk Management - Risk-based rights assessment to identify and mitigate security gaps
+Complete Audit Log - Track all user role changes and permission modifications with detailed history
+Hassle-Free Setup - Intuitive interface that simplifies complex permission management
+
+Perfect for: Organizations requiring strict access controls, compliance requirements, or managing large teams with diverse permission needs.
+Improve your ERP security. Hassle-free.""",
+    "description": """Role-Based Access Control (RBAC) Manager""",
     "version": "18.0.0.0.1",
     "category": "Extra Tools",
-    "author": "",
-    "website": "",
+    "author": "Alhaditech",
+    "website": "alhaditech.com",
+    'price': 350, 'currency': 'USD',
     "license": "Other proprietary",
     "application": True,
     "installable": True,
     "auto_install": False,
+    'images': ['static/description/rbac.gif'],
     'post_init_hook': 'post_init_hook',
     "depends": ['base', 'web', 'auth_signup', 'account'],
     "data": [
