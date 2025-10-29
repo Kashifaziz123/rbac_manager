@@ -106,7 +106,8 @@ export class RBACAudit extends Component {
     if (this.searchQuery.value) {
     const query = this.searchQuery.value;
     logs = logs.filter(l =>
-        (l.user_uid[0] && l.user_uid[0].toLowerCase().includes(query))
+    (l.user_uid[0] && l.user_uid[0].toLowerCase().includes(query)) ||
+    (l.method && l.method.toLowerCase().includes(query))
     );
 
 }

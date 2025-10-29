@@ -202,10 +202,19 @@
             </div>
 
             <!-- Recent Activity Audit Log -->
-            <div class="audit-log">
-                <h2>📋 Recent Permission Changes</h2>
+            <div class="recent-changes">
+                <h3>
+                    📋 Recent Permission Changes
+                    <span class="time-filter">Last 30 days</span>
+                </h3>
+                <div class="changes-list" id="audit_logs_container">
+                    <!-- Placeholder content -->
+                    <div class="loading-state text-muted">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Loading recent permission changes...
+                    </div>
+                </div>
             </div>
-
             <!-- Floating Super Admin Panel -->
             <div class="floating-admin-panel" style="display:none;">
                 <div class="admin-panel-header">🔥 SUPER ADMIN</div>

@@ -2,8 +2,10 @@
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_TIME_FORMAT
 from odoo import api, fields, models, exceptions, _
 from dateutil.relativedelta import relativedelta
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 import json
+
 
 max_depth = 10
 
@@ -28,7 +30,7 @@ class RbacModel(models.Model):
 
     def _get_time_passed(self, dt, now=None):
         if not dt:
-            return "0 minutes"
+            return "Just now"
 
         if now is None:
             now = datetime.utcnow()
@@ -42,19 +44,19 @@ class RbacModel(models.Model):
         elif rd.months >= 1:
             pair = ((" month", rd.months), (" day", rd.days))
         elif rd.days >= 1:
-            pair = (("day", rd.days), (" hour", rd.hours))
+            pair = ((" day", rd.days), (" hour", rd.hours))
         else:
             pair = ((" hour", rd.hours), (" minute", rd.minutes))
 
         p = lambda n, s: f"{n}{s}{'s' * (n != 1)}"
-        # build result with only non-zero parts
         a, b = pair
         parts = ([p(a[1], a[0])] if a[1] else []) + ([p(b[1], b[0])] if b[1] else [])
 
-        if not parts:
-            parts = ["0 minutes"]
+        # 🟢 Fix: Replace "0 minutes" with "Just now"
+        if not parts or (len(parts) == 1 and parts[0] == "0 minutes"):
+            return "Just now"
 
-        return ("-" if future else "") + " ".join(parts)
+        return ("in " if future else "") + " ".join(parts) + ("" if future else " ago")
 
     def _get_employee(self):
         try:
@@ -363,3 +365,62 @@ class RbacModel(models.Model):
                 'error': True,
                 'logs': [],
             }
+
+    @api.model
+    def get_recent_audit_changes(self, user_id, limit=10, offset=0):
+        """Paginated audit logs with total count for 'Load More' button."""
+        try:
+            import pytz
+            from datetime import datetime, timedelta
+
+            user_tz = self.env.user.tz or 'UTC'
+            tz = pytz.timezone(user_tz)
+            now_utc = datetime.utcnow()
+            thirty_days_ago = now_utc - timedelta(days=30)
+
+            domain = [
+                ('user_uid', '=', user_id),
+                ('create_date', '>=', thirty_days_ago),
+            ]
+
+            total_count = self.env['rbac.audit'].sudo().search_count(domain)
+            logs = self.env['rbac.audit'].sudo().search(domain, limit=limit, offset=offset, order='create_date desc')
+
+            recent_changes = []
+            for log in logs:
+                if not log.create_date:
+                    continue
+                utc_dt = log.create_date.replace(tzinfo=pytz.utc)
+                local_dt = utc_dt.astimezone(tz)
+                local_dt_str = local_dt.strftime("%b %d, %Y at %I:%M %p")
+
+                method = log.method or "Unknown"
+                action_type = method.split('->')[0].strip()
+                if any(k in action_type.lower() for k in ['add', 'assign']):
+                    indicator = 'added'
+                elif any(k in action_type.lower() for k in ['remove', 'revoke']):
+                    indicator = 'removed'
+                elif any(k in action_type.lower() for k in ['update', 'modify']):
+                    indicator = 'modified'
+                else:
+                    indicator = 'neutral'
+
+                recent_changes.append({
+                    'action': action_type,
+                    'details': method,
+                    'timestamp': local_dt_str,
+                    'ago': self._get_time_passed(log.create_date, now_utc),  # ✅ use existing helper
+                    'performed_by': log.create_uid.name,
+                    'indicator': indicator,
+                })
+
+            return {
+                'error': False,
+                'records': recent_changes,
+                'limit': limit,
+                'offset': offset,
+                'total_count': total_count,
+            }
+
+        except Exception as e:
+            return {'error': True, 'message': str(e), 'records': []}

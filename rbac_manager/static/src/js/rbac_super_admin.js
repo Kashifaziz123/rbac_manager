@@ -37,13 +37,16 @@ export class RBACSuperAdmin extends Component {
         );
 
         onWillStart(async () => {
-            await this.fetch_data();
-            await ensureJQuery();
-            // loadCSS('/rbac_manager/static/src/css/rbac_super_admin.css');
+            await Promise.all([
+                this.fetch_data(),
+                ensureJQuery(),
+            ]);
         });
 
         onMounted(() => {
             this.enabled_inputs_length();
+            this.data.recent_changes = [];
+            this.loadAuditLogs();
         });
     }
 
@@ -69,27 +72,28 @@ export class RBACSuperAdmin extends Component {
         let clone_users = await this.orm.call("rbac.model", "clone_users_list", [], {'user_id': this.record_id});
         // let users = await this.orm.searchRead("res.users", [['is_user_role', '=', false]], ["id", "name"]);
         await this.dialogService.add(RBACUserSelectionDialog, {
-            clone_users: clone_users,
-            title: _t('Clone User'),
-            cancelLabel: _t("Close"),
-            confirmLabel: _t("Apply Permissions"),
-            confirm: async () => {
-                let clone_user = $('.rbac_dialog.user_selection_dialog').find('.user-item.selected').attr('data-id');
-                let res = await this.orm.call("rbac.model", "clone_groups_from_user", [], {
-                    'user_id': this.record_id,
-                    'clone_user_id': parseInt(clone_user)
-                });
-                if (res.error)
-                    this.notification.add(res.error, {sticky: false, type: "danger"});
-                else
-                    this.notification.add(res.message, {sticky: false, type: "info"});
-                await this.fetch_data();
-                this.reset_data();
-            },
-            cancel: () => {
-            },
-        });
-    }
+        clone_users: clone_users,
+        title: _t('Clone User'),
+        cancelLabel: _t("Close"),
+        confirmLabel: _t("Apply Permissions"),
+        // 🔹 Add this line ↓
+        target_user: { id: this.record_id, name: this.user[0]?.name || "Unknown User" },
+        confirm: async () => {
+            let clone_user = $('.rbac_dialog.user_selection_dialog').find('.user-item.selected').attr('data-id');
+            let res = await this.orm.call("rbac.model", "clone_groups_from_user", [], {
+                'user_id': this.record_id,
+                'clone_user_id': parseInt(clone_user)
+            });
+            if (res.error)
+                this.notification.add(res.error, {sticky: false, type: "danger"});
+            else
+                this.notification.add(res.message, {sticky: false, type: "info"});
+            await this.fetch_data();
+            this.reset_data();
+        },
+        cancel: () => {},
+    });
+ }
 
     async export_permissions() {
         await download({
@@ -105,6 +109,10 @@ export class RBACSuperAdmin extends Component {
             roles: this.data.available_roles,
             title: _t('Bulk Role Assignment'),
             cancelLabel: _t("Close"),
+            target_user: {
+            id: this.record_id,
+            name: this.user[0]?.name || "Unknown User"
+        },
             confirmLabel: _t("Apply"),
             confirm: async () => {
                 let role_ids = $('.rbac_dialog.user_selection_dialog .user-item.selected')
@@ -455,28 +463,103 @@ export class RBACSuperAdmin extends Component {
     //
     //  model CRUD functions
     //
-    async fetch_data() {
-        this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
-        this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
+    async loadAuditLogs(showAll = false) {
+    try {
+        // decide limit dynamically
+        const limit = showAll ? 1000 : 10;
+        const offset = 0;
+        const resp = await this.orm.call(
+            "rbac.model",
+            "get_recent_audit_changes",
+            [this.record_id, limit, offset]
+        );
 
-        if (this.user[0]?.name === undefined) {
-            var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
-            this.notification.add(message, {sticky: true, type: "danger"});
-            this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
+        const records = resp.records || [];
+        this.data.recent_changes = records;
+
+        const container = $("#audit_logs_container");
+        const renderChanges = (items) => items.map(change => `
+            <div class="change-item ${change.indicator}">
+                <div class="change-indicator ${change.indicator}">
+                    ${change.indicator === 'added' ? '✓'
+                      : change.indicator === 'removed' ? '✕'
+                      : change.indicator === 'modified' ? '✎'
+                      : '•'}
+                </div>
+                <div class="change-content">
+                    <div class="change-title">
+                        <span class="change-badge badge-${change.indicator}">
+                            ${change.action}
+                        </span>
+                        ${change.details || ''}
+                    </div>
+                    <div class="change-meta">
+                        🕐 ${change.timestamp} • ${change.ago} • by ${change.performed_by}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        let html = renderChanges(records);
+        if (resp.total_count > 10) {
+            // always show toggle if more than 10 total logs
+            const label = showAll
+                ? `← Show less (10 of ${resp.total_count})`
+                : `Show all (${resp.total_count}) →`;
+            html += `
+                <div class="view-all-link">
+                    <a id="toggle_audit_logs" href="#">${label}</a>
+                </div>`;
+        } else {
+            html += `<div class="view-all-link text-muted">All records loaded.</div>`;
         }
+        container.html(html || '<div class="no-data">No permission changes in the last 30 days.</div>');
 
-        this.data.json_group_sources = this.data.group_sources;
-        this.data.group_sources = JSON.parse(this.data.group_sources);
-        this.custom_props.original_data = JSON.parse(JSON.stringify(this.data || {}));
-        this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
-        this.total_counts();
+        $("#toggle_audit_logs").on("click", (ev) => {
+            ev.preventDefault();
+            this.loadAuditLogs(!showAll);
+        });
+
+    } catch (err) {
+        console.error("Audit log fetch failed:", err);
+        $("#audit_logs_container").html('<div class="text-danger">Failed to load changes.</div>');
+    }
+}
+    async fetch_data() {
+    this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
+    this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
+    // 🟢 Set initial display settings
+    this.limit = 10;
+    this.showAll = false;
+    this.displayedChanges = (this.data.recent_changes || []).slice(0, this.limit);
+    if (this.user[0]?.name === undefined) {
+        var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
+        this.notification.add(message, {sticky: true, type: "danger"});
+        this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
     }
 
+    this.data.json_group_sources = this.data.group_sources;
+    this.data.group_sources = JSON.parse(this.data.group_sources);
+    this.custom_props.original_data = JSON.parse(JSON.stringify(this.data || {}));
+    this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
+    this.total_counts();
+}
     getInitials(text) {
         const words = text?.trim().split(/\s+/) || ['', ''];
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
-
+    showAllChanges(ev) {
+    ev.preventDefault();
+    this.showAll = true;
+    this.displayedChanges = this.data.recent_changes;
+    this.render();
+}
+    showLessChanges(ev) {
+    ev.preventDefault();
+    this.showAll = false;
+    this.displayedChanges = this.data.recent_changes.slice(0, this.limit);
+    this.render();
+}
     async writeRecord() {
         function getChangedValues(original_js_dict, new_js_dict) {
             const result = {};
