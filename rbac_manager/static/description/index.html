@@ -132,16 +132,7 @@
             color: #64748b;
         }
         
-        /* Sections */
-        .screenshot-section {
-            padding: 80px 0;
-        }
-        
-        .section-white {
-            background: white;
-            padding: 80px 0;
-        }
-        
+        /* Section Styles */
         .section-title {
             text-align: center;
             font-size: 2.5rem;
@@ -158,462 +149,405 @@
             margin: 0 auto 64px;
         }
         
-        /* Screenshot Box */
-        .screenshot-box {
+        /* Screenshot Gallery */
+        .screenshot-gallery {
+            padding: 80px 0;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            padding: 32px;
-            border: 4px solid #e0e7ff;
         }
         
-        .screenshot-placeholder {
-            aspect-ratio: 16/9;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            border-radius: 12px;
+        .gallery-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .gallery-main {
+            position: relative;
+            background: #f8fafc;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            margin-bottom: 32px;
+        }
+        
+        .gallery-slides {
+            position: relative;
+            width: 100%;
+            height: 650px;
+        }
+        
+        .gallery-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
             display: flex;
             flex-direction: column;
+        }
+        
+        .gallery-slide.active {
+            opacity: 1;
+        }
+        
+        .slide-image {
+            flex: 1;
+            display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .slide-image img {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            object-position: center;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .slide-info {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 24px 32px;
+        }
+        
+        .slide-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .slide-description {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+        
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 16px;
+            pointer-events: none;
+        }
+        
+        .nav-btn {
+            pointer-events: all;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .nav-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+        
+        .nav-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #4f46e5;
+        }
+        
+        .gallery-dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dot.active {
+            background: #4f46e5;
+            width: 32px;
+            border-radius: 6px;
+        }
+        
+        .gallery-thumbnails {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 16px;
+            margin-top: 32px;
         }
         
-        .screenshot-icon {
-            width: 80px;
-            height: 80px;
-            opacity: 0.4;
+        .thumbnail {
+            aspect-ratio: 16/10;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        .screenshot-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #64748b;
+        .thumbnail:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
         
-        .screenshot-subtitle {
-            font-size: 0.875rem;
-            color: #94a3b8;
+        .thumbnail.active {
+            border-color: #4f46e5;
+        }
+        
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            padding: 8px;
+            background: white;
         }
         
         /* Features Grid */
+        .features-section {
+            padding: 80px 0;
+            background: #f8fafc;
+        }
+        
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 32px;
-            margin-top: 64px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         .feature-card {
             background: white;
             padding: 32px;
             border-radius: 16px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            border-left: 5px solid #4f46e5;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
         
         .feature-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         }
         
         .feature-icon {
             width: 64px;
             height: 64px;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            border-radius: 12px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
-            color: white;
-            font-size: 24px;
+            margin-bottom: 20px;
         }
         
-        .feature-card h3 {
+        .feature-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+        
+        .feature-title {
             font-size: 1.5rem;
             font-weight: 700;
             color: #1e293b;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         
-        .feature-card p {
+        .feature-description {
             color: #64748b;
             line-height: 1.6;
         }
         
-        /* Risk Levels */
-        .risk-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-top: 64px;
+        /* Benefits Section */
+        .benefits-section {
+            padding: 80px 0;
+            background: white;
         }
         
-        .risk-card {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 24px;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-        
-        .risk-card:hover {
-            border-color: #4f46e5;
-        }
-        
-        .risk-badge {
-            padding: 8px 16px;
-            border-radius: 50px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 1.125rem;
-            margin-bottom: 16px;
-            color: white;
-        }
-        
-        .risk-low { background: #22c55e; }
-        .risk-medium { background: #eab308; }
-        .risk-high { background: #f97316; }
-        .risk-critical { background: #dc2626; }
-        
-        .risk-description {
-            color: #1e293b;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        
-        .risk-examples {
-            font-size: 0.875rem;
-            color: #64748b;
-            font-style: italic;
-        }
-        
-        /* Warning Box */
-        .warning-box {
-            background: linear-gradient(to right, #fef3c7, #fed7aa);
-            border-left: 4px solid #f97316;
-            padding: 24px;
-            border-radius: 12px;
-            margin-top: 48px;
-            display: flex;
-            gap: 16px;
-        }
-        
-        .warning-icon {
-            color: #f97316;
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-        
-        .warning-box h4 {
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 8px;
-        }
-        
-        .warning-box p {
-            color: #334155;
-        }
-        
-        /* Benefits Grid */
         .benefits-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 24px;
-            margin-top: 64px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         .benefit-item {
             display: flex;
             align-items: start;
             gap: 16px;
-            background: white;
-            padding: 24px;
+            padding: 20px;
+            background: #f8fafc;
             border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
         
         .benefit-item:hover {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            background: #f1f5f9;
+            transform: translateX(8px);
         }
         
         .benefit-icon {
-            color: #22c55e;
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-        
-        .benefit-text {
-            color: #334155;
-            font-size: 1.125rem;
-        }
-        
-        /* Role Templates Section */
-        .roles-section {
-            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #dc2626 100%);
-            color: white;
-            padding: 80px 0;
-            text-align: center;
-        }
-        
-        .roles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-top: 48px;
-        }
-        
-        .role-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 16px 20px;
-            border-radius: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .role-badge:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Workflow Section */
-        .workflow-section {
-            background: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            margin: 40px 0;
-        }
-        
-        .workflow-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 48px;
-            margin-top: 48px;
-            align-items: start;
-        }
-        
-        .workflow-step {
-            text-align: center;
-        }
-        
-        .step-number {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            width: 32px;
+            height: 32px;
+            background: #10b981;
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            flex-shrink: 0;
             font-weight: 700;
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-        }
-        
-        .workflow-step h3 {
             font-size: 1.25rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 12px;
         }
         
-        .workflow-step p {
-            color: #64748b;
+        .benefit-text {
+            color: #1e293b;
             line-height: 1.6;
         }
         
-        /* Who Needs It Section */
-        .dark-section {
-            background: #1e293b;
-            color: white;
+        /* Target Audience Section */
+        .target-section {
             padding: 80px 0;
-        }
-        
-        .dark-section h2 {
-            color: white;
+            background: #1e293b;
         }
         
         .target-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 32px;
-            margin-top: 48px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         .target-card {
             background: #334155;
             padding: 32px;
             border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .target-card:hover {
+            transform: translateY(-8px);
+            background: #475569;
         }
         
         .target-icon {
-            width: 48px;
-            height: 48px;
-            color: #818cf8;
-            margin-bottom: 16px;
+            width: 64px;
+            height: 64px;
+            color: #4f46e5;
+            margin: 0 auto 20px;
         }
         
         .target-card h3 {
+            color: white;
             font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         
         .target-card p {
             color: #cbd5e1;
-        }
-        
-        /* CTA Section */
-        .cta-section {
-            padding: 80px 0;
-        }
-        
-        .cta-box {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border-radius: 24px;
-            padding: 64px 48px;
-            text-align: center;
-            color: white;
-            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.3);
-        }
-        
-        .cta-box h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-        }
-        
-        .cta-box p {
-            font-size: 1.25rem;
-            opacity: 0.95;
-            max-width: 700px;
-            margin: 0 auto 32px;
-        }
-        
-        .cta-note {
-            font-size: 0.875rem;
-            opacity: 0.9;
-            margin-top: 24px;
+            line-height: 1.6;
         }
         
         /* Services Section */
         .services-section {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            padding: 80px 40px;
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            margin: 80px 0;
-            border: 1px solid #e5e7eb;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .services-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
-        }
-        
-        .services-section h2 {
-            color: #1e3a8a;
-            font-size: 2.75rem;
-            font-weight: 800;
-            margin-bottom: 60px;
-            letter-spacing: -0.02em;
+            padding: 80px 0;
         }
         
         .services-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 60px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 0 auto 48px;
         }
         
         .service-item {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
             text-align: center;
-            padding: 20px;
-            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
         }
         
         .service-item:hover {
-            transform: translateY(-10px);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(79, 70, 229, 0.2);
         }
         
         .service-icon {
             width: 80px;
             height: 80px;
-            margin: 0 auto 24px;
-            background: #1e3a8a;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .service-item:hover .service-icon {
-            background: #2563eb;
-            box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
+            margin: 0 auto 20px;
+            position: relative;
         }
         
         .service-icon svg {
-            width: 40px;
-            height: 40px;
-            color: white;
+            width: 100%;
+            height: 100%;
+            color: #4f46e5;
         }
         
         .service-item h3 {
+            font-size: 1.25rem;
             color: #1e293b;
-            font-size: 1.375rem;
-            font-weight: 700;
-            margin-top: 16px;
         }
         
         .contact-cta {
-            margin-top: 60px;
-            padding-top: 40px;
-            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 48px;
+            border-radius: 16px;
+            color: white;
         }
         
         .contact-cta p {
-            color: #64748b;
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             margin-bottom: 24px;
         }
         
         .contact-btn {
+            background: white;
+            color: #4f46e5;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 12px;
-            padding: 18px 44px;
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-            color: white;
-            border-radius: 60px;
-            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);
-            text-decoration: none;
-            font-size: 1.125rem;
-            font-weight: 600;
             transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
         }
         
         .contact-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
-            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
         
         .contact-btn svg {
@@ -623,63 +557,35 @@
         
         /* Footer */
         .footer {
-            background: #0f172a;
+            background: #1e293b;
             color: white;
             text-align: center;
-            padding: 48px 24px;
-        }
-        
-        .footer p {
-            color: #94a3b8;
+            padding: 32px 0;
         }
         
         /* Responsive */
-        @media (max-width: 1200px) {
-            .services-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 40px;
-            }
-        }
-        
-        @media (max-width: 968px) {
-            .workflow-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 32px;
-            }
-        }
-        
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2rem;
             }
             
-            .hero p {
-                font-size: 1rem;
+            .gallery-slides {
+                height: 500px;
             }
             
-            .hero-buttons {
-                flex-direction: column;
+            .slide-image {
+                padding: 16px;
             }
             
             .section-title {
-                font-size: 1.875rem;
+                font-size: 2rem;
             }
             
             .features-grid,
-            .risk-grid,
             .benefits-grid,
             .target-grid,
-            .workflow-grid,
             .services-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .services-section h2 {
-                font-size: 2rem;
             }
         }
     </style>
@@ -689,15 +595,23 @@
     <div class="hero">
         <div class="container">
             <div class="hero-badge">
-                🛡️ Enterprise-Grade Access Control
+                <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                Enterprise-Grade Access Control
             </div>
-            <h1>Risk-Based RBAC for Odoo</h1>
-            <p>Bring SAP-like enterprise governance to Odoo with <strong>risk-level permission management</strong>, <strong>role approval workflows</strong>, and <strong>secure access delegation</strong>.</p>
+            <h1>Advanced RBAC for Odoo</h1>
+            <p>Enterprise-grade Risk-Based RBAC module for Odoo. Create and approve role templates, classify permissions by risk level, delegate assignments securely, and ensure compliance.</p>
             <div class="hero-buttons">
-                <a href="#" class="btn-primary">Get Started Now →</a>
-                <a href="#" class="btn-secondary">Watch Demo</a>
+                <a href="#gallery" class="btn-primary">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    View Screenshots
+                </a>
+                <a href="#features" class="btn-secondary">Explore Features</a>
             </div>
-            <p style="font-size: 0.875rem; opacity: 0.9; margin-top: 24px;">🚀 5-minute setup • 💡 Free consultation included • 📞 24/7 support</p>
         </div>
     </div>
     
@@ -706,7 +620,7 @@
         <div class="stats">
             <div class="stat-item">
                 <div class="stat-number">90%</div>
-                <div class="stat-label">Faster Onboarding</div>
+                <div class="stat-label">Time Saved on Onboarding</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">100%</div>
@@ -714,203 +628,256 @@
             </div>
             <div class="stat-item">
                 <div class="stat-number">Zero</div>
-                <div class="stat-label">Manual Errors</div>
+                <div class="stat-label">Permission Errors</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Expert Support</div>
+                <div class="stat-number">3</div>
+                <div class="stat-label">Odoo Versions Supported</div>
             </div>
         </div>
     </div>
     
-    <!-- Beyond Traditional Role Management -->
-    <div class="screenshot-section">
+    <!-- Screenshot Gallery -->
+    <div class="screenshot-gallery" id="gallery">
+        <div class="gallery-container">
+            <h2 class="section-title">See It In Action</h2>
+            <p class="section-subtitle">Explore our comprehensive permission management system through these detailed screenshots</p>
+            
+            <div class="gallery-main">
+                <div class="gallery-slides">
+                    <!-- Slide 1: Super Admin Controls -->
+                    <div class="gallery-slide active">
+                        <div class="slide-image">
+                            <img src="super_admin_1.png" alt="Super Admin Controls">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">🔐 Super Admin Controls</div>
+                            <div class="slide-description">Powerful administrative controls including bulk operations, role cloning, and comprehensive permission management. Super admins can grant all permissions, revoke access, clone user permissions, and manage bulk role assignments with ease.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 2: Direct Permission Management -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="super_admin2.png" alt="Direct Permission Management">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">⚙️ Direct Permission Management</div>
+                            <div class="slide-description">Granular control over individual permissions with risk classification. View permissions by category, identify high-risk permissions, and manage both role-based and custom permissions with precision. Extra and Exclude buttons provide fine-grained control.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 3: Clone User Permissions -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="clone.png" alt="Clone User Permissions">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">👥 Clone User Permissions</div>
+                            <div class="slide-description">Quickly replicate permission sets from one user to another. Perfect for onboarding new team members with the same role. All roles and permissions are copied while preserving existing permissions.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 4: Manage Roles -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="manage_role_manage.png" alt="Manage Roles">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">🎯 Manage Roles Interface</div>
+                            <div class="slide-description">Intuitive role management dashboard showing all available roles and their permission counts. Toggle between all roles and assigned roles. Assign or remove roles with a single click. Real-time status updates show currently assigned roles.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 5: Recent Permission Changes -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="recent_perm.png" alt="Recent Permission Changes">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">📊 Recent Permission Changes</div>
+                            <div class="slide-description">Track all permission modifications with timestamps, action types, and who made the changes. Essential for audit trails and compliance. View the last 30 days of permission activities including role additions, grants, and removals.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 6: Revoke All Permissions -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="revoke_all.png" alt="Revoke All Permissions">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">🚫 Revoke All Permissions</div>
+                            <div class="slide-description">Safety-first permission revocation with confirmation dialogs. Clear summary shows exactly what will be removed including assigned roles and custom permissions. Includes important warnings and confirmation checkboxes to prevent accidental revocations.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 7: Bulk Role Assignment -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="bulk_role.png" alt="Bulk Role Assignment">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">⚡ Bulk Role Assignment</div>
+                            <div class="slide-description">Assign multiple roles to a user simultaneously. Select from available roles and see your selections in real-time. Streamlines the onboarding process and reduces administrative overhead. Existing permissions are preserved.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 8: Manager View -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="managerview.png" alt="Manager View">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">👔 Manager View</div>
+                            <div class="slide-description">Comprehensive user overview showing pending permission requests, assigned roles, permission summary, and all individual permissions. Easy navigation with role badges, permission filtering by status (All, Granted, Denied, High-risk), and quick access to permission management.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 9: Audit Log -->
+                    <div class="gallery-slide">
+                        <div class="slide-image">
+                            <img src="audit_log.png" alt="Audit Log">
+                        </div>
+                        <div class="slide-info">
+                            <div class="slide-title">📋 Permission Audit Log</div>
+                            <div class="slide-description">Complete audit trail of all permission changes with advanced filtering options. Search by target user, action type, performed by, and date range. Export to CSV or PDF for compliance reporting. Track who did what, when, and from which IP address.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div class="gallery-nav">
+                    <button class="nav-btn" onclick="changeSlide(-1)">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button class="nav-btn" onclick="changeSlide(1)">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Dots Indicator -->
+                <div class="gallery-dots">
+                    <span class="dot active" onclick="goToSlide(0)"></span>
+                    <span class="dot" onclick="goToSlide(1)"></span>
+                    <span class="dot" onclick="goToSlide(2)"></span>
+                    <span class="dot" onclick="goToSlide(3)"></span>
+                    <span class="dot" onclick="goToSlide(4)"></span>
+                    <span class="dot" onclick="goToSlide(5)"></span>
+                    <span class="dot" onclick="goToSlide(6)"></span>
+                    <span class="dot" onclick="goToSlide(7)"></span>
+                    <span class="dot" onclick="goToSlide(8)"></span>
+                </div>
+            </div>
+            
+            <!-- Thumbnails -->
+            <div class="gallery-thumbnails">
+                <div class="thumbnail active" onclick="goToSlide(0)">
+                    <img src="super_admin_1.png" alt="Super Admin">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(1)">
+                    <img src="super_admin2.png" alt="Permission Management">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(2)">
+                    <img src="clone.png" alt="Clone User">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(3)">
+                    <img src="manage_role_manage.png" alt="Manage Roles">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(4)">
+                    <img src="recent_perm.png" alt="Recent Changes">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(5)">
+                    <img src="revoke_all.png" alt="Revoke All">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(6)">
+                    <img src="bulk_role.png" alt="Bulk Assignment">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(7)">
+                    <img src="managerview.png" alt="Manager View">
+                </div>
+                <div class="thumbnail" onclick="goToSlide(8)">
+                    <img src="audit_log.png" alt="Audit Log">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="features-section" id="features">
         <div class="container">
-            <h2 class="section-title">Beyond Traditional Role Management</h2>
-            <p class="section-subtitle">Our RBAC module introduces <strong style="color: #4f46e5;">risk-based permission classification</strong>, hiding critical system rights and automating Super Admin approval for sensitive templates—ensuring data integrity and compliance across your entire organization. With <strong style="color: #4f46e5;">comprehensive audit logging</strong>, every permission change is tracked and timestamped for full accountability. <strong style="color: #4f46e5;">Safe delegation</strong> empowers department managers to handle role assignments without exposing sensitive system-level permissions.</p>
+            <h2 class="section-title">Key Features</h2>
+            <p class="section-subtitle">Everything you need for enterprise-grade access control in Odoo</p>
             
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>Risk-Based Permission Framework</h3>
-                    <p>Classify every permission as Low, Medium, High, or Critical. Critical system-level permissions are automatically protected and hidden from role templates, preventing privilege escalation and ensuring enterprise-grade security.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">📋</div>
-                    <h3>Reusable Role Templates</h3>
-                    <p>Create standardized, pre-approved role templates for any position—Finance Manager, HR Admin, Sales Director. Apply complete permission sets to users instantly, eliminating manual configuration errors.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">✓</div>
-                    <h3>Automated Approval Workflows</h3>
-                    <p>Templates containing Medium or High-risk permissions automatically require Super Admin review before activation. No sensitive access goes live without proper authorization.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3>Safe Permission Delegation</h3>
-                    <p>Empower Permission Managers and department heads to assign roles without ever seeing Critical permissions. Delegate authority securely while maintaining control over sensitive system access.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">📈</div>
-                    <h3>Complete Audit Trail</h3>
-                    <p>Every template creation, modification, approval, and user assignment is logged with timestamps and user details. Meet ISO, SOC2, and internal compliance requirements effortlessly.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🏢</div>
-                    <h3>Multi-Company Ready</h3>
-                    <p>Deploy the same governance framework across all companies, branches, and subsidiaries in your Odoo ecosystem. Centralized management with distributed control.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Screenshot Section 2 - Risk Classification -->
-    <div class="section-white">
-        <div class="container">
-            <h2 class="section-title">Visual Risk Classification</h2>
-            <p class="section-subtitle">See at a glance which permissions carry what level of risk with color-coded indicators</p>
-            <div class="screenshot-box" style="border-color: #e2e8f0;">
-                <div class="screenshot-placeholder" style="background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);">
-                    <svg class="screenshot-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <p class="screenshot-title">Risk Classification Screenshot</p>
-                    <p class="screenshot-subtitle">Permission Risk Levels with Color Coding</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Risk Levels Explained -->
-    <div class="section-white">
-        <div class="container">
-            <h2 class="section-title">Risk Levels Explained</h2>
-            <p class="section-subtitle">Every permission is classified by risk level, ensuring appropriate oversight and preventing unauthorized access escalation.</p>
-            
-            <div class="risk-grid">
-                <div class="risk-card">
-                    <div class="risk-badge risk-low">Low</div>
-                    <p class="risk-description">Routine operational permissions that pose minimal risk</p>
-                    <p class="risk-examples">View reports, read-only access, basic data entry</p>
-                </div>
-                
-                <div class="risk-card">
-                    <div class="risk-badge risk-medium">Medium</div>
-                    <p class="risk-description">Permissions requiring review before deployment</p>
-                    <p class="risk-examples">Create/edit records, generate invoices, manage inventory</p>
-                </div>
-                
-                <div class="risk-card">
-                    <div class="risk-badge risk-high">High</div>
-                    <p class="risk-description">High-impact actions requiring Super Admin approval</p>
-                    <p class="risk-examples">Financial postings, contract approvals, salary modifications</p>
-                </div>
-                
-                <div class="risk-card">
-                    <div class="risk-badge risk-critical">Critical</div>
-                    <p class="risk-description">System-level access excluded from templates entirely</p>
-                    <p class="risk-examples">User management, system settings, security configuration</p>
-                </div>
-            </div>
-            
-            <div class="warning-box">
-                <div class="warning-icon">⚠️</div>
-                <div>
-                    <h4>Critical Permissions Protection</h4>
-                    <p>Critical permissions are <strong>completely hidden</strong> from role templates and can only be assigned directly by Super Admins. This prevents accidental or malicious privilege escalation through template modification.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Workflow Section -->
-    <div class="screenshot-section">
-        <div class="container">
-            <div class="workflow-section">
-                <h2 style="text-align: center; font-size: 2.5rem; font-weight: 700; color: #1e293b; margin-bottom: 0;">Simple 4-Step Implementation</h2>
-                
-                <div class="workflow-grid">
-                    <div class="workflow-step">
-                        <div class="step-number">1</div>
-                        <h3>Define Master Roles</h3>
-                        <p>Super admin creates organizational roles and permission templates</p>
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
                     </div>
-                    
-                    <div class="workflow-step">
-                        <div class="step-number">2</div>
-                        <h3>Delegate Authority</h3>
-                        <p>Assign role management rights to department heads and team leaders</p>
-                    </div>
-                    
-                    <div class="workflow-step">
-                        <div class="step-number">3</div>
-                        <h3>Assign Users</h3>
-                        <p>Managers assign appropriate roles to their team members</p>
-                    </div>
-                    
-                    <div class="workflow-step">
-                        <div class="step-number">4</div>
-                        <h3>Monitor & Audit</h3>
-                        <p>Track access patterns and generate compliance reports</p>
-                    </div>
+                    <h3 class="feature-title">Risk-Based Classification</h3>
+                    <p class="feature-description">Classify permissions as Critical, High, Medium, or Low risk. Restrict junior admins from modifying critical permissions while maintaining operational flexibility.</p>
                 </div>
                 
-                <div style="margin-top: 48px; background: #f1f5f9; padding: 24px; border-radius: 12px; border-left: 4px solid #4f46e5;">
-                    <h4 style="color: #1e293b; font-weight: 700; margin-bottom: 12px; font-size: 1.125rem;">🔐 Flexible Permission Management</h4>
-                    <p style="color: #475569; line-height: 1.6; margin-bottom: 12px;">Need additional permissions beyond the template? Our system offers multiple options:</p>
-                    <ul style="color: #475569; line-height: 1.8; margin-left: 20px;">
-                        <li><strong>Request by User:</strong> Users can request additional permissions that route to Super Admin for approval</li>
-                        <li><strong>Direct Assignment:</strong> Super Admin can assign extra permissions directly to users when needed</li>
-                        <li><strong>Template Exclusions:</strong> Remove specific permissions from a template for individual users while keeping the rest</li>
-                        <li><strong>Temporary Access:</strong> Grant time-limited permissions for special projects or urgent needs</li>
-                    </ul>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 12px; font-style: italic;">All permission changes are fully logged in the audit trail for compliance tracking.</p>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Role Templates</h3>
+                    <p class="feature-description">Create predefined role templates that can be instantly assigned to new users. Eliminate repetitive permission configuration and ensure consistency.</p>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Screenshot Section 1 - Dashboard -->
-    <div class="screenshot-section">
-        <div class="container">
-            <h2>Intuitive Role Management Interface</h2>
-            <p style="text-align: center; font-size: 1.25rem; color: #64748b; max-width: 800px; margin: 0 auto 48px;">Manage all your role templates, approvals, and user assignments from a centralized, easy-to-use dashboard</p>
-            <div class="screenshot-box">
-                <div class="screenshot-placeholder">
-                    <svg class="screenshot-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <p class="screenshot-title">Dashboard Screenshot</p>
-                    <p class="screenshot-subtitle">Role Templates Overview & Management</p>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Audit & Compliance</h3>
+                    <p class="feature-description">Complete audit trails with timestamps, IP addresses, and user actions. Export reports for ISO 27001, SOC2, and GDPR compliance requirements.</p>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Screenshot Section 3 - Approval Workflow -->
-    <div class="screenshot-section">
-        <div class="container">
-            <h2>Automated Approval Workflows</h2>
-            <p style="text-align: center; font-size: 1.25rem; color: #64748b; max-width: 800px; margin: 0 auto 48px;">High-risk templates automatically route to Super Admins for review before activation</p>
-            <div class="screenshot-box" style="border-color: #ddd6fe;">
-                <div class="screenshot-placeholder" style="background: linear-gradient(135deg, #faf5ff 0%, #fce7f3 100%);">
-                    <svg class="screenshot-icon" fill="none" stroke="#a78bfa" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <p class="screenshot-title" style="color: #7c3aed;">Approval Workflow Screenshot</p>
-                    <p class="screenshot-subtitle" style="color: #a78bfa;">Template Review & Approval Process</p>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Clone Permissions</h3>
+                    <p class="feature-description">Copy complete permission sets from one user to another. Perfect for onboarding employees with similar responsibilities quickly and accurately.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Bulk Operations</h3>
+                    <p class="feature-description">Assign multiple roles or permissions to users in a single action. Streamline administrative tasks and reduce time spent on routine assignments.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Super Admin Controls</h3>
+                    <p class="feature-description">Grant all permissions, revoke all access, and export permission configurations. Complete control for system administrators with safety confirmations.</p>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Benefits Section -->
-    <div class="screenshot-section">
+    <div class="benefits-section">
         <div class="container">
             <h2 class="section-title">Enterprise Benefits</h2>
             
@@ -958,25 +925,8 @@
         </div>
     </div>
     
-    <!-- Screenshot Section 4 - User Assignment -->
-    <div style="background: #1e293b; padding: 80px 0;">
-        <div class="container">
-            <h2 style="text-align: center; margin-bottom: 24px; color: white; font-size: 2.5rem; font-weight: 700;">One-Click User Assignment</h2>
-            <p style="text-align: center; font-size: 1.25rem; color: #cbd5e1; max-width: 800px; margin: 0 auto 48px;">Assign complete role templates to users instantly—no manual permission configuration required</p>
-            <div style="background: #334155; border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); padding: 32px; border: 4px solid #475569;">
-                <div style="aspect-ratio: 16/9; background: linear-gradient(135deg, #475569 0%, #334155 100%); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
-                    <svg style="width: 80px; height: 80px; opacity: 0.4; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <p style="font-size: 1.125rem; font-weight: 600; color: #cbd5e1;">User Assignment Screenshot</p>
-                    <p style="font-size: 0.875rem; color: #94a3b8;">Quick Role Assignment Interface</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Who Needs It Section -->
-    <div class="dark-section">
+    <!-- Target Audience Section -->
+    <div class="target-section">
         <div class="container">
             <h2 class="section-title" style="color: white;">Perfect For</h2>
             <div class="target-grid">
@@ -1005,23 +955,15 @@
         </div>
     </div>
     
-    <!-- Services Section (Our Services) -->
-    <div class="container">
-        <div class="services-section">
-            <h2>Our Services</h2>
+    <!-- Services Section -->
+    <div class="services-section">
+        <div class="container">
+            <h2 class="section-title">Our Services</h2>
             
             <div class="services-grid">
                 <div class="service-item">
                     <div class="service-icon">
-                        <svg fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM13 19h-2v-2h2v2zm0-4h-2V7h2v8z" opacity="0.3"/>
-                            <circle cx="9" cy="9" r="1.5"/>
-                            <circle cx="15" cy="9" r="1.5"/>
-                            <path d="M12 14c-2.33 0-4.32 1.45-5.12 3.5h1.67c.69-1.19 1.97-2 3.45-2s2.75.81 3.45 2h1.67c-.8-2.05-2.79-3.5-5.12-3.5z"/>
-                            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                        </svg>
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="position: absolute;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
@@ -1075,5 +1017,48 @@
             <p>© 2025 RBAC Manager for Odoo. Enterprise-grade access control solutions.</p>
         </div>
     </div>
+    
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.gallery-slide');
+        const dots = document.querySelectorAll('.dot');
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        
+        function showSlide(n) {
+            if (n >= slides.length) currentSlide = 0;
+            if (n < 0) currentSlide = slides.length - 1;
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            thumbnails.forEach(thumb => thumb.classList.remove('active'));
+            
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+            thumbnails[currentSlide].classList.add('active');
+        }
+        
+        function changeSlide(n) {
+            currentSlide += n;
+            if (currentSlide >= slides.length) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = slides.length - 1;
+            showSlide(currentSlide);
+        }
+        
+        function goToSlide(n) {
+            currentSlide = n;
+            showSlide(currentSlide);
+        }
+        
+        // Auto-advance slides every 5 seconds
+        setInterval(() => {
+            changeSlide(1);
+        }, 5000);
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+    </script>
 </body>
 </html>
