@@ -46,7 +46,6 @@
                                 </li>
                             </ul>
                         </div>
-
                         <button class="btn btn-primary" t-on-click="request_permissions">
                             🔧 Manage Permissions
                         </button>

@@ -61,6 +61,163 @@ export class RBACSuperAdmin extends Component {
     //
     // view models
     //
+    async changePassword() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        this.action.doAction({
+          type: "ir.actions.act_window",
+          name: "Change Password",
+          res_model: "change.password.wizard",
+          views: [[false, "form"]],
+          target: "new",
+          context: {
+            active_model: "res.users",
+            active_ids: [userId],
+          },
+});
+
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Failed to open change password wizard ❌", { type: "danger" });
+    }
+}
+    async resetPassword() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        await this.orm.call("res.users", "action_reset_password", [[userId]]);
+        this.notification.add("Password reset instructions sent successfully 📩", {
+            type: "success",
+        });
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Failed to send password reset instructions ❌", {
+            type: "danger",
+        });
+    }
+}
+    async disable2FA() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+    this.dialogService.add(ConfirmationDialog, {
+        title: "Disable Two-Factor Authentication",
+        body: "Are you sure you want to disable 2FA for this user?",
+        confirmLabel: "Disable",
+        cancelLabel: "Cancel",
+        confirmClass: "btn-danger",
+        confirm: async () => {
+            try {
+                // ✅ Direct ORM call to res.users
+                const result = await this.orm.call("res.users", "action_totp_disable", [[userId]]);
+
+                if (result !== false) {
+                    this.notification.add("Two-factor authentication disabled ✅", { type: "success" });
+                } else {
+                    this.notification.add("Failed to disable 2FA ❌", { type: "danger" });
+                }
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Error disabling 2FA ❌", { type: "danger" });
+            }
+        },
+    });
+}
+    async privacyLookup() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        // First, fetch the partner_id linked to this user
+        const result = await this.orm.read("res.users", [userId], ["partner_id"]);
+        const partnerId = result?.[0]?.partner_id?.[0];
+        if (!partnerId) {
+            this.notification.add("No linked partner found for this user ⚠️", { type: "warning" });
+            return;
+        }
+
+        // Call res.partner method to get the action dict
+        const action = await this.orm.call("res.partner", "action_privacy_lookup", [[partnerId]]);
+        // Execute returned action (opens the wizard)
+        await this.action.doAction(action);
+
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Failed to open Privacy Lookup ❌", { type: "danger" });
+    }
+}
+    async archiveUser() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    this.dialogService.add(ConfirmationDialog, {
+        title: "Archive User",
+        body: "Are you sure you want to archive this user?",
+        confirmLabel: "Confirm",
+        cancelLabel: "Cancel",
+        confirm: async () => {
+            try {
+                const result = await this.orm.call("res.users", "write", [[userId], { active: false }]);
+                if (result) {
+                    this.notification.add("User archived successfully ✅", { type: "success" });
+                    window.location.href = "/odoo/super_admin/";
+                } else {
+                    this.notification.add("Failed to archive user ❌", { type: "danger" });
+                }
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Error archiving user ❌", { type: "danger" });
+            }
+        },
+        cancel: () => {},
+    });
+}
+    async deleteUser() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    this.dialogService.add(ConfirmationDialog, {
+        title: "Delete User",
+        body: "This action will permanently delete the user. Are you sure you want to continue?",
+        confirmLabel: "Confirm",
+        cancelLabel: "Cancel",
+        confirmClass: "btn-danger",
+        confirm: async () => {
+            try {
+                const result = await this.orm.call("res.users", "unlink", [[userId]]);
+                if (result) {
+                    this.notification.add("User deleted successfully 🗑️", { type: "success" });
+                    window.location.href = "/odoo/super_admin/";
+                } else {
+                    this.notification.add("Failed to delete user ❌", { type: "danger" });
+                }
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Error deleting user ❌", { type: "danger" });
+            }
+        },
+        cancel: () => {},
+    });
+}
+    async duplicateUser() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        const newUserId = await this.orm.call("res.users", "copy", [[userId]]);
+        if (newUserId) {
+            this.notification.add("User duplicated successfully ✅", { type: "success" });
+            window.location.href = `/odoo/super_admin/${newUserId}`;
+        } else {
+            this.notification.add("Failed to duplicate user ❌", { type: "danger" });
+        }
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Error duplicating user ❌", { type: "danger" });
+    }
+}
     async view_user_role(user_role_id) {
         var view = await this.orm.call("res.users", "client_action_view_user_role", [this.record_id]);
         view['target'] = 'new';

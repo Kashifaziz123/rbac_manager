@@ -187,7 +187,7 @@ export class RBACUserPermissions extends Component {
         const newUserId = await this.orm.call("res.users", "copy", [[userId]]);
         if (newUserId) {
             this.notification.add("User duplicated successfully ✅", { type: "success" });
-            window.location.href = `/odoo/users/${newUserId}`;
+            window.location.href = `/odoo/user_permission/${newUserId}`;
         } else {
             this.notification.add("Failed to duplicate user ❌", { type: "danger" });
         }

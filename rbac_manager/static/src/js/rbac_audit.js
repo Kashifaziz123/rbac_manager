@@ -116,9 +116,14 @@ export class RBACAudit extends Component {
     this.render();
 }
     getInitials(text) {
-        const words = text?.trim().split(/\s+/) || ['', ''];
-        return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
+    if (!text || typeof text !== "string") {
+        return "--"; // default placeholder if name not yet loaded
     }
+    const words = text.trim().split(/\s+/);
+    return words.length > 1
+        ? (words[0][0] + words[1][0]).toUpperCase()
+        : words[0].slice(0, 2).toUpperCase();
+}
     async onAdminFilterChange(ev) {
     this.filters.admin_id = ev.target.value;
     await this.applyFilters();
