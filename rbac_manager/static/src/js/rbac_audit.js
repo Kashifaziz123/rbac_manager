@@ -24,6 +24,8 @@ export class RBACAudit extends Component {
             from: "",
             to: ""
         });
+        this.currentPage = useState({ value: 1 });
+        this.totalPages = useState({ value: 1 });
         this.data = useState({});
         const today = new Date();
         const firstDayLocal = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -39,14 +41,36 @@ export class RBACAudit extends Component {
             await ensureJQuery();
         });
     }
-    async fetch_data() {
-        this.data = await this.orm.call("rbac.model", "get_initial_rbac_audit", []);
-        if (this.data.error) {
-            var message = _t("It seems the logs view has errors.")
-            this.notification.add(message, {sticky: true, type: "danger"});
-            this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
-        }
-    }
+    async fetch_data(page = 1) {
+    this.currentPage.value = page;
+
+    const filters = {
+        user_id: this.filters.user_id,
+        admin_id: this.filters.admin_id,
+        action: this.filters.action,
+        from: this.filters.from,
+        to: this.filters.to,
+        search: this.searchQuery.value,
+        page: page,
+        limit: 10,
+    };
+
+    const result = await this.orm.call("rbac.model", "get_paginated_audit_logs", [filters]);
+
+    // Only replace dropdown data if present
+    if (result.users) this.data.users = result.users;
+    if (result.admins) this.data.admins = result.admins;
+    if (result.actions_list) this.data.actions_list = result.actions_list;
+
+    this.data.logs = result.logs || [];
+    this.data.total = result.total || 0;
+    this.data.limit = result.limit || 10;
+    this.totalPages.value = Math.ceil(this.data.total / this.data.limit);
+}
+    async goToPage(page) {
+    if (page < 1 || page > this.totalPages.value) return;
+    await this.fetch_data(page);
+}
     debounceTimer = null;
     async onSearchChange(ev) {
     clearTimeout(this.debounceTimer);

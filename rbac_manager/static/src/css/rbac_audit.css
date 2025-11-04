@@ -726,3 +726,11 @@ body.o_web_client div.o_action_manager div.rbac_audit * {
     font-size: 12px;
     font-weight: 500;
 }
+
+.rbac_audit .audit-table td[colspan="7"] {
+    font-size: 14px;
+    font-weight: 500;
+    color: #999;
+    background-color: #fafafa;
+    border-top: 1px solid #eee;
+}

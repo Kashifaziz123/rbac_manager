@@ -50,6 +50,98 @@ class RbacModel(models.Model):
             'ip_address': l.ip_address or '',
         } for l in logs]
 
+    @api.model
+    def get_paginated_audit_logs(self, filters):
+        try:
+            page = int(filters.get("page", 1))
+            limit = int(filters.get("limit", 10))
+            offset = (page - 1) * limit
+
+            domain = []
+
+            # 🔍 Filters
+            if filters.get("search"):
+                term = filters["search"]
+                domain += ["|", ("method", "ilike", term), ("user_uid.name", "ilike", term)]
+            if filters.get("user_id"):
+                domain.append(("user_uid", "=", int(filters["user_id"])))
+            if filters.get("admin_id"):
+                domain.append(("create_uid", "=", int(filters["admin_id"])))
+            if filters.get("from") and filters.get("to"):
+                domain.append(("create_date", ">=", filters["from"]))
+                domain.append(("create_date", "<=", filters["to"]))
+
+            logs = self.env["rbac.audit"].sudo().search(domain, order="create_date desc", offset=offset, limit=limit)
+            total = self.env["rbac.audit"].sudo().search_count(domain)
+
+            result_logs = []
+            actions = set()
+
+            for x in logs:
+                groups_id = x.line_ids.filtered(lambda z: z.field_name == 'groups_id')
+                action_type = x.method.split('->')[0].strip() if x.method else 'Unknown'
+                actions.add(action_type)
+
+                log = {
+                    "id": x.id,
+                    "create_date": [
+                        x.create_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
+                        x.create_date.strftime(DEFAULT_SERVER_TIME_FORMAT),
+                    ],
+                    "create_uid": [x.create_uid.name, x.create_uid.email, x.create_uid.id],
+                    "user_uid": [x.user_uid.name, x.user_uid.email, x.user_uid.id],
+                    "method": x.method,
+                    "action": action_type,
+                    "ip_address": x.ip_address,
+                }
+
+                # include the same detailed payload as before
+                log["data_json"] = json.dumps({
+                    **log,
+                    "ip_address": x.ip_address,
+                    "user_agent": x.user_agent,
+                    "location": x.location,
+                    "len_groups_id": len(json.loads(groups_id[-1].new_value.replace("'", '"'))) if groups_id else "N/A",
+                    "line_ids": [
+                        {
+                            "field_name": y.field_name,
+                            "old_value": y.old_value,
+                            "new_value": y.new_value,
+                            "is_many": "many" in y.field_id.ttype,
+                        }
+                        for y in x.line_ids
+                    ],
+                })
+
+                result_logs.append(log)
+
+            # Base response
+            response = {
+                "error": False,
+                "logs": result_logs,
+                "total": total,
+                "limit": limit,
+            }
+
+            # Include dropdown data only for page 1
+            if page == 1:
+                response.update({
+                    "users": [
+                        {"id": u.id, "name": u.name or ""}
+                        for u in self.env["rbac.audit"].sudo().search([]).mapped("user_uid") if u
+                    ],
+                    "admins": [
+                        {"id": a.id, "name": a.name or ""}
+                        for a in self.env["rbac.audit"].sudo().search([]).mapped("create_uid") if a
+                    ],
+                    "actions_list": sorted(list(actions)),
+                })
+
+            return response
+
+        except Exception as e:
+            return {"error": True, "message": str(e), "logs": []}
+
     def _get_time_passed(self, dt, now=None):
         if not dt:
             return "Just now"
