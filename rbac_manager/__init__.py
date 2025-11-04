@@ -1,4 +1,4 @@
-from . import models,wizard
+from . import models,wizard,controllers
 
 
 

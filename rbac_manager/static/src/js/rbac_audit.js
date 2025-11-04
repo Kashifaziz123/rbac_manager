@@ -115,6 +115,19 @@ export class RBACAudit extends Component {
     this.data.logs = logs;
     this.render();
 }
+    async onExport(format) {
+    const params = new URLSearchParams({
+        format,
+        user_id: this.filters.user_id || '',
+        admin_id: this.filters.admin_id || '',
+        from: this.filters.from || '',
+        to: this.filters.to || '',
+        search: this.searchQuery.value || '',
+    }).toString();
+
+    window.open(`/rbac/audit/export?${params}`, '_blank');
+}
+
     getInitials(text) {
     if (!text || typeof text !== "string") {
         return "--"; // default placeholder if name not yet loaded

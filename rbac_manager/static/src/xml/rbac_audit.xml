@@ -27,8 +27,10 @@
                     <div class="card-header">
                         <h3 class="card-title">Permission Audit Log</h3>
                         <div class="action-buttons">
-                            <button class="btn btn-secondary">📥 Export CSV</button>
-                            <button class="btn btn-secondary">📄 Export PDF</button>
+                            <button class="btn btn-secondary" t-on-click="() => this.onExport('csv')">📥 Export CSV
+                            </button>
+                            <button class="btn btn-secondary" t-on-click="() => this.onExport('pdf')">📄 Export PDF
+                            </button>
                         </div>
                     </div>
 

@@ -28,6 +28,28 @@ class RbacModel(models.Model):
         collect_recursive(inverse_implied_ids)
         return collected
 
+    @api.model
+    def get_filtered_audit_logs(self, filters):
+        domain = []
+        if filters.get('user_id'):
+            domain.append(('user_uid', '=', int(filters['user_id'])))
+        if filters.get('admin_id'):
+            domain.append(('create_uid', '=', int(filters['admin_id'])))
+        if filters.get('from') and filters.get('to'):
+            domain += [
+                ('create_date', '>=', filters['from'] + ' 00:00:00'),
+                ('create_date', '<=', filters['to'] + ' 23:59:59')
+            ]
+        logs = self.env['rbac.audit'].sudo().search(domain, order="create_date desc")
+
+        return [{
+            'create_date': [l.create_date.strftime('%Y-%m-%d'), l.create_date.strftime('%H:%M:%S')],
+            'create_uid': [l.create_uid.name, l.create_uid.email, l.create_uid.id],
+            'user_uid': [l.user_uid.name or '', l.user_uid.email or '', l.user_uid.id if l.user_uid else ''],
+            'method': l.method or '',
+            'ip_address': l.ip_address or '',
+        } for l in logs]
+
     def _get_time_passed(self, dt, now=None):
         if not dt:
             return "Just now"
