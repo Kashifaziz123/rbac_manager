@@ -29,11 +29,8 @@ body.o_web_client div.o_action_manager div.user_permission *{
 .user_permission .header {
     background: white;
     border-radius: 12px;
-    padding: 24px;
     margin-bottom: 24px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    display: flex;
-    justify-content: space-between;
     align-items: center;
 }
 
@@ -523,4 +520,245 @@ body.o_web_client div.o_action_manager div.user_permission *{
         grid-template-columns: 1fr;
         gap: 8px;
     }
+}
+/* ===== HEADER STRUCTURE ===== */
+.user_permission .user-header {
+    margin-bottom: 20px;
+}
+
+/* --- Top Gradient Bar --- */
+.user_permission .topbar-gradient {
+    background: linear-gradient(90deg, #6a5acd, #7367f0);
+    padding: 10px 18px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Left Section */
+.user_permission .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user_permission .back-btn {
+    font-size: 40px;
+    text-decoration: none;
+    color: #fff;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    position: relative;
+    top: -4px;
+}
+
+
+.user_permission .back-btn:hover {
+    opacity: 0.8;
+}
+
+.user_permission .page-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: white !important;
+}
+
+/* Right Section */
+.user_permission .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user_permission .btn-light {
+    background: white !important;
+    color: black;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.user_permission .btn-light:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.user_permission .btn-primary {
+    background: #2563eb;
+    border: none;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.user_permission .btn-primary:hover {
+    background: #1d4ed8;
+}
+
+/* --- User Inline Card --- */
+.user_permission .user-inline-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    margin-top: 8px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.user_permission .user-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user_permission .user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.user_permission .user-meta h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.user_permission .user-meta p {
+    margin: 2px 0 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+.user_permission .user-header {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    overflow: hidden; /* this ensures the topbar's corners actually clip */
+    margin-bottom: 20px;
+}
+.user_permission .topbar-gradient {
+    background: linear-gradient(90deg, #6a5acd, #7367f0);
+    padding: 10px 18px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 12px 12px 0 0; /* top corners only */
+}
+.user-actions {
+  position: relative;
+}
+
+/* Button styling */
+.user-actions .btn-light {
+  background: #fff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.user-actions .btn-light:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* Dropdown menu */
+.user-actions .dropdown-menu {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  padding: 6px 0;
+  min-width: 230px;
+  background-color: #fff;
+}
+
+/* Divider */
+.user-actions .dropdown-divider {
+  margin: 6px 0;
+  border-color: #e5e7eb;
+}
+
+/* Items */
+.user-actions .dropdown-item {
+  font-size: 13px;
+  color: #374151;
+  padding: 8px 16px;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.user-actions .dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.user-actions .dropdown-item.text-danger {
+  color: #dc2626;
+}
+
+/* Icons for top 3 only */
+.user-actions .dropdown-item.has-icon::before {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+/* Specific icons */
+.user-actions .dropdown-item.archive::before {
+  content: "🗂️"; /* Archive icon */
+}
+.user-actions .dropdown-item.duplicate::before {
+  content: "📄"; /* Duplicate icon */
+}
+.user-actions .dropdown-item.delete::before {
+  content: "🗑️"; /* Delete icon */
+}
+
+/* Allow dropdowns to overflow properly */
+.user_permission,
+.user-header,
+.topbar-gradient,
+.topbar-actions {
+    overflow: visible !important;
+}
+
+/* Make sure positioning context stays correct */
+.user-actions {
+    position: relative;
+    z-index: 1001; /* above header shadow */
+}
+
+.user-actions .dropdown-menu {
+    z-index: 2000 !important;
+    position: absolute !important;
+    transform: translate3d(0, 40px, 0) !important;
 }

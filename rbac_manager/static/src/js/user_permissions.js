@@ -7,6 +7,7 @@ import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 import {loadCSS} from "@web/core/assets";
 import {RBACPermissionsDialog,RBACRolesDialog} from "@rbac_manager/js/permission_dialog";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 
 
 export class RBACUserPermissions extends Component {
@@ -38,9 +39,163 @@ export class RBACUserPermissions extends Component {
         this.apply_search();
     }
 
-    //
-    // onchange functions
-    //
+    async changePassword() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        this.action.doAction({
+          type: "ir.actions.act_window",
+          name: "Change Password",
+          res_model: "change.password.wizard",
+          views: [[false, "form"]],
+          target: "new",
+          context: {
+            active_model: "res.users",
+            active_ids: [userId],
+          },
+});
+
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Failed to open change password wizard ❌", { type: "danger" });
+    }
+}
+    async resetPassword() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        await this.orm.call("res.users", "action_reset_password", [[userId]]);
+        this.notification.add("Password reset instructions sent successfully 📩", {
+            type: "success",
+        });
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Failed to send password reset instructions ❌", {
+            type: "danger",
+        });
+    }
+}
+    async disable2FA() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+    this.dialogService.add(ConfirmationDialog, {
+        title: "Disable Two-Factor Authentication",
+        body: "Are you sure you want to disable 2FA for this user?",
+        confirmLabel: "Disable",
+        cancelLabel: "Cancel",
+        confirmClass: "btn-danger",
+        confirm: async () => {
+            try {
+                // ✅ Direct ORM call to res.users
+                const result = await this.orm.call("res.users", "action_totp_disable", [[userId]]);
+
+                if (result !== false) {
+                    this.notification.add("Two-factor authentication disabled ✅", { type: "success" });
+                } else {
+                    this.notification.add("Failed to disable 2FA ❌", { type: "danger" });
+                }
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Error disabling 2FA ❌", { type: "danger" });
+            }
+        },
+    });
+}
+    async privacyLookup() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        // First, fetch the partner_id linked to this user
+        const result = await this.orm.read("res.users", [userId], ["partner_id"]);
+        const partnerId = result?.[0]?.partner_id?.[0];
+        if (!partnerId) {
+            this.notification.add("No linked partner found for this user ⚠️", { type: "warning" });
+            return;
+        }
+
+        // Call res.partner method to get the action dict
+        const action = await this.orm.call("res.partner", "action_privacy_lookup", [[partnerId]]);
+        // Execute returned action (opens the wizard)
+        await this.action.doAction(action);
+
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Failed to open Privacy Lookup ❌", { type: "danger" });
+    }
+}
+    async archiveUser() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    this.dialogService.add(ConfirmationDialog, {
+        title: "Archive User",
+        body: "Are you sure you want to archive this user?",
+        confirmLabel: "Confirm",
+        cancelLabel: "Cancel",
+        confirm: async () => {
+            try {
+                const result = await this.orm.call("res.users", "write", [[userId], { active: false }]);
+                if (result) {
+                    this.notification.add("User archived successfully ✅", { type: "success" });
+                    window.location.href = "/odoo/user_permission/";
+                } else {
+                    this.notification.add("Failed to archive user ❌", { type: "danger" });
+                }
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Error archiving user ❌", { type: "danger" });
+            }
+        },
+        cancel: () => {},
+    });
+}
+    async deleteUser() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    this.dialogService.add(ConfirmationDialog, {
+        title: "Delete User",
+        body: "This action will permanently delete the user. Are you sure you want to continue?",
+        confirmLabel: "Confirm",
+        cancelLabel: "Cancel",
+        confirmClass: "btn-danger",
+        confirm: async () => {
+            try {
+                const result = await this.orm.call("res.users", "unlink", [[userId]]);
+                if (result) {
+                    this.notification.add("User deleted successfully 🗑️", { type: "success" });
+                    window.location.href = "/odoo/user_permission/";
+                } else {
+                    this.notification.add("Failed to delete user ❌", { type: "danger" });
+                }
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Error deleting user ❌", { type: "danger" });
+            }
+        },
+        cancel: () => {},
+    });
+}
+    async duplicateUser() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    try {
+        const newUserId = await this.orm.call("res.users", "copy", [[userId]]);
+        if (newUserId) {
+            this.notification.add("User duplicated successfully ✅", { type: "success" });
+            window.location.href = `/odoo/users/${newUserId}`;
+        } else {
+            this.notification.add("Failed to duplicate user ❌", { type: "danger" });
+        }
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Error duplicating user ❌", { type: "danger" });
+    }
+}
     async request_permissions(){
     await this.dialogService.add(RBACPermissionsDialog, {
         title: _t('Request Additional Permission'),
@@ -64,7 +219,6 @@ export class RBACUserPermissions extends Component {
         cancel: () => {},
     });
     }
-
     apply_search() {
         const $rf = $('.table-filters');
         const is_all = $rf.find('.all.active').length;
@@ -131,10 +285,6 @@ export class RBACUserPermissions extends Component {
                 .reduce((sub, item) => sub + (item.groups?.length || 1), 0), 0);
         this.render();
     }
-
-    //
-    //  model CRUD functions
-    //
     async fetch_data() {
         this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
         this.data = await this.orm.call("rbac.model", "get_user_permissions_json", [], {'user_id': this.record_id});

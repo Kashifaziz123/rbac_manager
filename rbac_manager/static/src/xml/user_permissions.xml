@@ -2,35 +2,76 @@
 <templates id="template">
     <t t-name="rbac.UserPermissions">
         <div class="container user_permission">
-            <div class="header">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <t t-esc="this.getInitials(this.user[0]?.name)"/>
+            <div class="header user-header">
+                <!-- Gradient Top Bar -->
+                <div class="topbar-gradient">
+                    <div class="topbar-left">
+                        <a t-att-href="'/odoo/user_permission/'" class="back-btn">←</a>
+                        <h2 class="page-title">User Permissions</h2>
                     </div>
-                    <div class="user-details">
-                        <h1>
-                            <t t-esc="this.user[0]?.name"/>
-                        </h1>
-                        <p>
-                            <t t-esc="this.user[0]?.email"/>
-                            • Employee ID:
-                            <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
-                        </p>
+                    <div class="topbar-actions">
+                        <div class="dropdown user-actions">
+                            <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                ⚙️ Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item has-icon archive" t-on-click="archiveUser">Archive</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item has-icon duplicate" t-on-click="duplicateUser">Duplicate</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item has-icon delete text-danger" t-on-click="deleteUser">
+                                        Delete
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider"/>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="changePassword">Change Password</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="disable2FA">Disable two-factor authentication
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="resetPassword">Send Password Reset
+                                        Instructions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="privacyLookup">Privacy Lookup</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-primary" t-on-click="request_permissions">
+                            🔧 Manage Permissions
+                        </button>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <a t-att-href="'/odoo/user_permission/'" class="btn btn-secondary">
-                        ← Back to Users
-                    </a>
-                    <button class="btn btn-primary" t-on-click="request_permissions">
-                        + Request Permission
-                    </button>
-                    <!--                    <a t-att-href="'/odoo/manage_permission/' + this.record_id" class="btn btn-primary">-->
-                    <!--                        ✏️ Manage Permissions-->
-                    <!--                    </a>-->
+
+                <!-- User Info Inline Card -->
+                <div class="user-inline-card">
+                    <div class="user-left">
+                        <div class="user-avatar">
+                            <t t-esc="this.getInitials(this.user[0]?.name)"/>
+                        </div>
+                        <div class="user-meta">
+                            <h3>
+                                <t t-esc="this.user[0]?.name"/>
+                            </h3>
+                            <p>
+                                <t t-esc="this.user[0]?.email"/>
+                                • Employee ID:
+                                <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-
             <div class="pending-requests">
                 <h2>📋 Pending Permission Requests</h2>
                 <t t-foreach="this.data?.rbac_permissions" t-as="rbac_permission"
@@ -60,7 +101,6 @@
                     </div>
                 </t>
             </div>
-
             <div class="role-badges">
                 <div class="section-header">
                     <h3>Assigned Roles &amp; Exceptions</h3>
