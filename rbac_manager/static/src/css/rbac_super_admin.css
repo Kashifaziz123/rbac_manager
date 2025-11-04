@@ -21,7 +21,7 @@ body.o_web_client div.o_action_manager div.rbac_super_admin * {
     max-width: 1600px;
     margin: 0 auto;
     padding: 20px;
-    overflow-y: auto;
+    overflow-y: auto !important;
     height: 100%;
 }
 

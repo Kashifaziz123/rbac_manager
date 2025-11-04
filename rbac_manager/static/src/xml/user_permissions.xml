@@ -124,7 +124,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="main-content">
                 <div class="sidebar">
                     <div class="summary-card">
@@ -266,14 +265,25 @@
                     </div>
                 </div>
             </div>
-
             <div class="floating-actions" style="display:none;">
                 <button class="fab" title="Export Permissions">📄</button>
                 <button class="fab" title="Generate Report">📊</button>
             </div>
+            <div class="recent-changes">
+                <h3>
+                    📋 Recent Permission Changes
+                    <span class="time-filter">Last 30 days</span>
+                </h3>
+                <div class="changes-list" id="audit_logs_container">
+                    <!-- Placeholder content -->
+                    <div class="loading-state text-muted">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Loading recent permission changes...
+                    </div>
+                </div>
+            </div>
         </div>
     </t>
-
     <t t-name="rbac.permission_type">
         <t t-if="this.data?.group_sources[permission_type_id]">
             <t t-foreach="this.data?.group_sources[permission_type_id]" t-as="tag"

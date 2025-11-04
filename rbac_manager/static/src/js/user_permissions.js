@@ -1,7 +1,7 @@
 /* @odoo-module */
 
 import {ensureJQuery} from '@web/core/ensure_jquery';
-import {Component, onWillStart} from "@odoo/owl";
+import {Component, onMounted, onWillStart} from "@odoo/owl";
 import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
@@ -22,23 +22,22 @@ export class RBACUserPermissions extends Component {
         this.custom_props = {'original_data': {}}
         this.data = {}
         this.dialogService = useService("dialog");
-
+        onMounted(() => {
+            this.data.recent_changes = [];
+            this.loadAuditLogs();
+        });
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
             // loadCSS('/rbac_manager/static/src/css/user_permissions.css');
         });
     }
-    //
-    // toggle functions
-    //
     toggle_filters(ev) {
         var risk_filter = $('.table-filters');
         risk_filter.find('.filter-tab').removeClass('active');
         $(ev).addClass('active');
         this.apply_search();
     }
-
     async changePassword() {
     const userId = this.user?.[0]?.id;
     if (!userId) return;
@@ -219,6 +218,68 @@ export class RBACUserPermissions extends Component {
         cancel: () => {},
     });
     }
+    async loadAuditLogs(showAll = false) {
+    try {
+        // decide limit dynamically
+        const limit = showAll ? 1000 : 10;
+        const offset = 0;
+        const resp = await this.orm.call(
+            "rbac.model",
+            "get_recent_audit_changes",
+            [this.record_id, limit, offset]
+        );
+
+        const records = resp.records || [];
+        this.data.recent_changes = records;
+
+        const container = $("#audit_logs_container");
+        const renderChanges = (items) => items.map(change => `
+            <div class="change-item ${change.indicator}">
+                <div class="change-indicator ${change.indicator}">
+                    ${change.indicator === 'added' ? '✓'
+                      : change.indicator === 'removed' ? '✕'
+                      : change.indicator === 'modified' ? '✎'
+                      : '•'}
+                </div>
+                <div class="change-content">
+                    <div class="change-title">
+                        <span class="change-badge badge-${change.indicator}">
+                            ${change.action}
+                        </span>
+                        ${change.details || ''}
+                    </div>
+                    <div class="change-meta">
+                        🕐 ${change.timestamp} • ${change.ago} • by ${change.performed_by}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        let html = renderChanges(records);
+        if (resp.total_count > 10) {
+            // always show toggle if more than 10 total logs
+            const label = showAll
+                ? `← Show less (10 of ${resp.total_count})`
+                : `Show all (${resp.total_count}) →`;
+            html += `
+                <div class="view-all-link">
+                    <a id="toggle_audit_logs" href="#">${label}</a>
+                </div>`;
+        } else {
+            html += `<div class="view-all-link text-muted">All records loaded.</div>`;
+        }
+        container.html(html || '<div class="no-data">No permission changes in the last 30 days.</div>');
+
+        $("#toggle_audit_logs").on("click", (ev) => {
+            ev.preventDefault();
+            this.loadAuditLogs(!showAll);
+        });
+
+    } catch (err) {
+        console.error("Audit log fetch failed:", err);
+        $("#audit_logs_container").html('<div class="text-danger">Failed to load changes.</div>');
+    }
+}
     apply_search() {
         const $rf = $('.table-filters');
         const is_all = $rf.find('.all.active').length;
@@ -288,6 +349,9 @@ export class RBACUserPermissions extends Component {
     async fetch_data() {
         this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
         this.data = await this.orm.call("rbac.model", "get_user_permissions_json", [], {'user_id': this.record_id});
+        this.limit = 10;
+        this.showAll = false;
+        this.displayedChanges = (this.data.recent_changes || []).slice(0, this.limit);
 
         if (this.data.error) {
             var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
@@ -300,7 +364,18 @@ export class RBACUserPermissions extends Component {
             .reduce((total, main) => total + Object.values(main)
                 .reduce((sub, item) => sub + (item.groups?.length || 1), 0), 0);
     }
-
+        showAllChanges(ev) {
+    ev.preventDefault();
+    this.showAll = true;
+    this.displayedChanges = this.data.recent_changes;
+    this.render();
+}
+    showLessChanges(ev) {
+    ev.preventDefault();
+    this.showAll = false;
+    this.displayedChanges = this.data.recent_changes.slice(0, this.limit);
+    this.render();
+}
     getInitials(text) {
         const words = text?.trim().split(/\s+/) || ['', ''];
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
