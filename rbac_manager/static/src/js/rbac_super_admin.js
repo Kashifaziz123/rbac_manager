@@ -548,6 +548,24 @@ export class RBACSuperAdmin extends Component {
         risk_filter.find('.filter-tab.all').addClass('active');
         this.render();
     }
+    async openPreferences() {
+    try {
+        const userId = this.user?.[0]?.id;
+        await this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "res.users",
+            res_id: userId,
+            views: [[false, "form"]],
+            target: "new",
+            context: {
+                form_view_ref: "base.view_users_form_simple_modif",
+            },
+        });
+    } catch (error) {
+        console.error("Error opening preferences:", error);
+        this.notification.add("Failed to open preferences.", { type: "danger" });
+    }
+}
     async loadAuditLogs(showAll = false) {
     try {
         const offset = this.data.recent_changes.length;

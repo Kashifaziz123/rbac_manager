@@ -15,6 +15,8 @@
         <!--                  action="rbac_manager.rbac_audit_line_act_window" groups="base.group_system"/>-->
         <menuitem id="menu_client_action_rbac_audit" name="Rbac Audit" parent="base.menu_users" sequence="40"
                   action="rbac_manager.view_audit_client_rbac_audit" groups="base.group_system"/>
+        <menuitem action="base.action_res_users" id="base.menu_action_res_users" parent="base.menu_users" sequence="0"
+                  active="False"/>
 
         <!--        Inherit       -->
         <record id="base.menu_custom" model="ir.ui.menu">

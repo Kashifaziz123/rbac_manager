@@ -30,6 +30,9 @@
                                     <hr class="dropdown-divider"/>
                                 </li>
                                 <li>
+                                    <a class="dropdown-item" t-on-click="openPreferences">Preferences</a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item" t-on-click="changePassword">Change Password</a>
                                 </li>
                                 <li>
