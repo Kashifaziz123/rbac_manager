@@ -142,6 +142,45 @@ class RbacModel(models.Model):
         except Exception as e:
             return {"error": True, "message": str(e), "logs": []}
 
+    @api.model
+    def get_filtered_permissions(self, user_id, mode='all'):
+        """
+        Returns filtered permission structure based on the mode:
+        all, granted, denied, high, overrides
+        """
+        user = self.env['res.users'].browse(user_id)
+        base_data = self.get_rbac_super_admin_json(user_id)
+
+        # Apply same filters as JS had
+        if mode == 'granted':
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if v.get('value') not in [False, None]}
+        elif mode == 'denied':
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if v.get('value') is False}
+        elif mode == 'high':
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if v.get('group', {}).get('risk_level') == 'high'}
+        elif mode == 'overrides':
+            # example: direct_add or excluded
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if base_data['group_sources'].get(k) in ['direct_add', 'excluded']}
+        else:
+            filtered = base_data['all_categories']
+
+        # also compute total counts once, server-side
+        totals = {
+            'all_groups_count': sum(len(x.get('groups', [])) for x in filtered.values()),
+            'is_granted': sum(1 for x in filtered.values() if x.get('value')),
+            'is_denied': sum(1 for x in filtered.values() if x.get('value') is False),
+            'is_high_risk': sum(1 for x in filtered.values() if x.get('group', {}).get('risk_level') == 'high'),
+        }
+
+        return {
+            'filtered': filtered,
+            'totals': totals,
+        }
+
     def _get_time_passed(self, dt, now=None):
         if not dt:
             return "Just now"

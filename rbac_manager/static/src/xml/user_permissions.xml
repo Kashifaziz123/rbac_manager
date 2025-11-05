@@ -55,8 +55,31 @@
                 <!-- User Info Inline Card -->
                 <div class="user-inline-card">
                     <div class="user-left">
-                        <div class="user-avatar">
-                            <t t-esc="this.getInitials(this.user[0]?.name)"/>
+                        <div class="user-avatar-wrapper">
+                            <t t-if="this.user[0]?.image_1920">
+                                <div class="user-avatar has-image">
+                                    <img t-att-src="'data:image/png;base64,' + this.user[0].image_1920"
+                                         alt="User Avatar" class="avatar-img"/>
+                                    <div class="avatar-overlay">
+                                        <button class="avatar-btn edit" title="Upload Image" t-on-click="uploadImage">
+                                            ✏️
+                                        </button>
+                                        <button class="avatar-btn delete" title="Remove Image" t-on-click="deleteImage">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="user-avatar initials">
+                                    <t t-esc="this.getInitials(this.user[0]?.name)"/>
+                                    <div class="avatar-overlay">
+                                        <button class="avatar-btn edit" title="Upload Image" t-on-click="uploadImage">
+                                            ✏️
+                                        </button>
+                                    </div>
+                                </div>
+                            </t>
                         </div>
                         <div class="user-meta">
                             <h3>

@@ -35,7 +35,7 @@ export class RBACSuperAdmin extends Component {
             },
             () => [this.data, this.custom_props.changed_data]
         );
-
+         this.limit = 10;
         onWillStart(async () => {
             await Promise.all([
                 this.fetch_data(),
@@ -80,7 +80,7 @@ export class RBACSuperAdmin extends Component {
 
     } catch (error) {
         console.error(error);
-        this.notification.add("Failed to open change password wizard ❌", { type: "danger" });
+        this.notification.add("Failed to open change password wizard", { type: "danger" });
     }
 }
     async resetPassword() {
@@ -89,12 +89,12 @@ export class RBACSuperAdmin extends Component {
 
     try {
         await this.orm.call("res.users", "action_reset_password", [[userId]]);
-        this.notification.add("Password reset instructions sent successfully 📩", {
+        this.notification.add("Password reset instructions sent successfully", {
             type: "success",
         });
     } catch (error) {
         console.error(error);
-        this.notification.add("Failed to send password reset instructions ❌", {
+        this.notification.add("Failed to send password reset instructions", {
             type: "danger",
         });
     }
@@ -114,13 +114,13 @@ export class RBACSuperAdmin extends Component {
                 const result = await this.orm.call("res.users", "action_totp_disable", [[userId]]);
 
                 if (result !== false) {
-                    this.notification.add("Two-factor authentication disabled ✅", { type: "success" });
+                    this.notification.add("Two-factor authentication disabled", { type: "success" });
                 } else {
                     this.notification.add("Failed to disable 2FA ❌", { type: "danger" });
                 }
             } catch (error) {
                 console.error(error);
-                this.notification.add("Error disabling 2FA ❌", { type: "danger" });
+                this.notification.add("Error disabling 2FA", { type: "danger" });
             }
         },
     });
@@ -134,7 +134,7 @@ export class RBACSuperAdmin extends Component {
         const result = await this.orm.read("res.users", [userId], ["partner_id"]);
         const partnerId = result?.[0]?.partner_id?.[0];
         if (!partnerId) {
-            this.notification.add("No linked partner found for this user ⚠️", { type: "warning" });
+            this.notification.add("No linked partner found for this user️", { type: "warning" });
             return;
         }
 
@@ -145,7 +145,7 @@ export class RBACSuperAdmin extends Component {
 
     } catch (error) {
         console.error(error);
-        this.notification.add("Failed to open Privacy Lookup ❌", { type: "danger" });
+        this.notification.add("Failed to open Privacy Lookup", { type: "danger" });
     }
 }
     async archiveUser() {
@@ -161,14 +161,14 @@ export class RBACSuperAdmin extends Component {
             try {
                 const result = await this.orm.call("res.users", "write", [[userId], { active: false }]);
                 if (result) {
-                    this.notification.add("User archived successfully ✅", { type: "success" });
+                    this.notification.add("User archived successfully", { type: "success" });
                     window.location.href = "/odoo/super_admin/";
                 } else {
-                    this.notification.add("Failed to archive user ❌", { type: "danger" });
+                    this.notification.add("Failed to archive user", { type: "danger" });
                 }
             } catch (error) {
                 console.error(error);
-                this.notification.add("Error archiving user ❌", { type: "danger" });
+                this.notification.add("Error archiving user", { type: "danger" });
             }
         },
         cancel: () => {},
@@ -188,14 +188,14 @@ export class RBACSuperAdmin extends Component {
             try {
                 const result = await this.orm.call("res.users", "unlink", [[userId]]);
                 if (result) {
-                    this.notification.add("User deleted successfully 🗑️", { type: "success" });
+                    this.notification.add("User deleted successfully", { type: "success" });
                     window.location.href = "/odoo/super_admin/";
                 } else {
-                    this.notification.add("Failed to delete user ❌", { type: "danger" });
+                    this.notification.add("Failed to delete user", { type: "danger" });
                 }
             } catch (error) {
                 console.error(error);
-                this.notification.add("Error deleting user ❌", { type: "danger" });
+                this.notification.add("Error deleting user", { type: "danger" });
             }
         },
         cancel: () => {},
@@ -208,14 +208,14 @@ export class RBACSuperAdmin extends Component {
     try {
         const newUserId = await this.orm.call("res.users", "copy", [[userId]]);
         if (newUserId) {
-            this.notification.add("User duplicated successfully ✅", { type: "success" });
+            this.notification.add("User duplicated successfully", { type: "success" });
             window.location.href = `/odoo/super_admin/${newUserId}`;
         } else {
-            this.notification.add("Failed to duplicate user ❌", { type: "danger" });
+            this.notification.add("Failed to duplicate user", { type: "danger" });
         }
     } catch (error) {
         console.error(error);
-        this.notification.add("Error duplicating user ❌", { type: "danger" });
+        this.notification.add("Error duplicating user", { type: "danger" });
     }
 }
     async view_user_role(user_role_id) {
@@ -515,96 +515,17 @@ export class RBACSuperAdmin extends Component {
         this.enabled_inputs_length();
     }
 
-    apply_search(mode = false) {
-        var src = this.custom_props.original_data.all_categories;
-        let no_save = true;
-
-        if (!mode) {
-            const $rf = $('.permissions-filters');
-            const is_all = $rf.find('.all.active').length;
-            const is_granted = $rf.find('.granted.active').length;
-            const is_denied = $rf.find('.denied.active').length;
-            const is_high_risk = $rf.find('.high_risk.active').length;
-            const is_overrides = $rf.find('.overrides.active').length;
-            mode = is_all ? 'all' : is_granted ? 'granted' : is_denied ? 'denied' : is_high_risk ? 'high' : is_overrides ? 'overrides' : null;
-            no_save = false;
-        }
-
-        if (!no_save && (!mode || mode === 'all')) {
-            this.data.all_categories = src;
-        } else {
-            const out = {};
-
-            const pick = (sv) => {
-                const hasMulti = sv.values !== false;
-
-                if (mode === 'high') {
-                    if (sv.group?.risk_level === 'high') return sv;
-                    if (sv.groups?.length) {
-                        const hi = sv.groups.filter(g => g.risk_level === 'high');
-                        return hi.length ? {...sv, groups: hi} : null;
-                    }
-                    return null;
-                } else if (mode === 'granted' || mode === 'denied') {
-                    const wantIncluded = (mode === 'granted')
-                    if (hasMulti && sv.groups?.length) {
-                        const allow = new Set(sv.values);
-                        const keep = sv.groups.filter(g => (allow.has(g.id)) === wantIncluded);
-                        return keep.length ? {...sv, groups: keep} : null;
-                    }
-                    const isGrantedSingle = sv.value !== false;
-                    return (isGrantedSingle === wantIncluded) ? sv : null;
-                } else if (mode === 'overrides') {
-                    if (hasMulti && sv.groups?.length) {
-                        const keep = sv.groups.filter(g => {
-                            const src = this.data?.group_sources?.[g.id];
-                            return src?.includes('direct_add') || src?.includes('excluded');
-                        });
-                        return keep.length ? {...sv, groups: keep} : null;
-                    }
-                    // For single values, check if overridden
-                    const src = this.data?.group_sources?.[sv.group?.id];
-                    return (src?.includes('direct_add') || src?.includes('excluded')) ? sv : null;
-                }
-
-                return null;
-            };
-
-            for (const mainKey in src) {
-                const bucket = src[mainKey];
-                for (const subKey in bucket) {
-                    const sv = bucket[subKey];
-                    const filtered = pick(sv);
-                    if (!filtered) continue;
-                    (out[mainKey] ||= {})[subKey] = filtered;
-                }
-            }
-
-            if (no_save)
-                return out;
-            this.data.all_categories = out;
-        }
-        this.total_counts();
+    async apply_search(mode = 'all') {
+    try {
+        const resp = await this.orm.call("rbac.model", "get_filtered_permissions", [this.record_id, mode]);
+        this.data.all_categories = resp.filtered;
+        Object.assign(this.data, resp.totals);
         this.render();
+    } catch (err) {
+        console.error("Permission filtering failed:", err);
+        this.notification.add(_t("Failed to apply filter"), { type: "danger" });
     }
-
-    //
-    // widget reset
-    //
-    total_counts() {
-        function get_filtered_count(obj) {
-            return Object.values(obj).reduce((total, main) =>
-                total + Object.values(main).reduce((sum, item) =>
-                    sum + (item.groups?.length || 1), 0), 0);
-        }
-
-        const all = this.custom_props.original_data.all_categories || {};
-        this.data.all_groups_count = get_filtered_count(all);
-        this.data.is_granted = get_filtered_count(this.apply_search('granted'));
-        this.data.is_denied = get_filtered_count(this.apply_search('denied'));
-        this.data.is_high_risk = get_filtered_count(this.apply_search('high'));
-        this.data.is_overrides = get_filtered_count(this.apply_search('overrides'));
-    }
+}
 
     //
     // widget reset
@@ -622,89 +543,143 @@ export class RBACSuperAdmin extends Component {
     //
     async loadAuditLogs(showAll = false) {
     try {
-        // decide limit dynamically
-        const limit = showAll ? 1000 : 10;
-        const offset = 0;
-        const resp = await this.orm.call(
-            "rbac.model",
-            "get_recent_audit_changes",
-            [this.record_id, limit, offset]
-        );
+        const offset = this.data.recent_changes.length;
+        const total = this.data.total_count;
+        const limit = showAll && (!total || offset < total) ? 100 : 10;
 
-        const records = resp.records || [];
-        this.data.recent_changes = records;
+        const resp = await this.orm.call("rbac.model", "get_recent_audit_changes", [
+            this.record_id,
+            limit,
+            showAll ? offset : 0,
+        ]);
 
+        // Merge or reset
+        this.data.total_count = resp.total_count || total || 0;
+        this.data.recent_changes = showAll
+            ? [...this.data.recent_changes, ...(resp.records || [])]
+            : resp.records || [];
+
+        const records = this.data.recent_changes;
         const container = $("#audit_logs_container");
-        const renderChanges = (items) => items.map(change => `
-            <div class="change-item ${change.indicator}">
-                <div class="change-indicator ${change.indicator}">
-                    ${change.indicator === 'added' ? '✓'
-                      : change.indicator === 'removed' ? '✕'
-                      : change.indicator === 'modified' ? '✎'
-                      : '•'}
+
+        if (!records.length) {
+            container.html('<div class="no-data">No permission changes in the last 30 days.</div>');
+            return;
+        }
+
+        const renderChange = (c) => `
+            <div class="change-item ${c.indicator}">
+                <div class="change-indicator ${c.indicator}">
+                    ${c.indicator === "added" ? "✓" :
+                      c.indicator === "removed" ? "✕" :
+                      c.indicator === "modified" ? "✎" : "•"}
                 </div>
                 <div class="change-content">
                     <div class="change-title">
-                        <span class="change-badge badge-${change.indicator}">
-                            ${change.action}
-                        </span>
-                        ${change.details || ''}
+                        <span class="change-badge badge-${c.indicator}">${c.action}</span>
+                        ${c.details || ""}
                     </div>
                     <div class="change-meta">
-                        🕐 ${change.timestamp} • ${change.ago} • by ${change.performed_by}
+                        🕐 ${c.timestamp} • ${c.ago} • by ${c.performed_by}
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
 
-        let html = renderChanges(records);
-        if (resp.total_count > 10) {
-            // always show toggle if more than 10 total logs
-            const label = showAll
-                ? `← Show less (10 of ${resp.total_count})`
-                : `Show all (${resp.total_count}) →`;
-            html += `
-                <div class="view-all-link">
-                    <a id="toggle_audit_logs" href="#">${label}</a>
-                </div>`;
+        let html = records.map(renderChange).join("");
+
+        // Footer logic
+        if (records.length < this.data.total_count) {
+            html += `<div class="view-all-link"><a id="toggle_audit_logs" href="#">Show more (${records.length}/${this.data.total_count}) →</a></div>`;
+        } else if (records.length > 10) {
+            html += `<div class="view-all-link"><a id="toggle_audit_logs" href="#">← Show less</a></div>`;
         } else {
             html += `<div class="view-all-link text-muted">All records loaded.</div>`;
         }
-        container.html(html || '<div class="no-data">No permission changes in the last 30 days.</div>');
 
-        $("#toggle_audit_logs").on("click", (ev) => {
+        container.html(html);
+
+        // Event binding (delegated to avoid stacking listeners)
+        container.off("click", "#toggle_audit_logs");
+        container.on("click", "#toggle_audit_logs", (ev) => {
             ev.preventDefault();
-            this.loadAuditLogs(!showAll);
+            const reset = records.length >= this.data.total_count && this.data.total_count > 10;
+            if (reset) {
+                this.data.recent_changes = records.slice(0, 10);
+            }
+            this.loadAuditLogs(!reset);
         });
-
     } catch (err) {
         console.error("Audit log fetch failed:", err);
         $("#audit_logs_container").html('<div class="text-danger">Failed to load changes.</div>');
     }
 }
     async fetch_data() {
-    this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email']);
+    this.user = await this.orm.searchRead("res.users", [['id', '=', this.record_id], ['is_user_role', '=', false]], ["name", 'email', 'image_1920']);
     this.data = await this.orm.call("rbac.model", "get_rbac_super_admin_json", [this.record_id]);
-    // 🟢 Set initial display settings
-    this.limit = 10;
-    this.showAll = false;
-    this.displayedChanges = (this.data.recent_changes || []).slice(0, this.limit);
-    if (this.user[0]?.name === undefined) {
-        var message = _t("It seems the records with IDs %s cannot be found. They might have been deleted.", this.record_id)
-        this.notification.add(message, {sticky: true, type: "danger"});
-        this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
-    }
 
-    this.data.json_group_sources = this.data.group_sources;
-    this.data.group_sources = JSON.parse(this.data.group_sources);
-    this.custom_props.original_data = JSON.parse(JSON.stringify(this.data || {}));
-    this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
-    this.total_counts();
+    this.data.recent_changes = this.data.recent_changes || [];
+    this.custom_props.original_data = JSON.parse(JSON.stringify(this.data));
+    this.custom_props.changed_data = JSON.parse(JSON.stringify(this.data));
 }
     getInitials(text) {
         const words = text?.trim().split(/\s+/) || ['', ''];
         return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     }
+    async uploadImage() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    // Create hidden file input
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64Data = e.target.result.split(",")[1];
+            try {
+                await this.orm.write("res.users", [userId], { image_1920: base64Data });
+                this.notification.add("Profile image updated successfully", { type: "success" });
+                await this.fetch_data();
+                this.render();
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Failed to upload image", { type: "danger" });
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    input.click();
+}
+    async deleteImage() {
+    const userId = this.user?.[0]?.id;
+    if (!userId) return;
+
+    this.dialogService.add(ConfirmationDialog, {
+        title: "Remove Profile Image",
+        body: "Are you sure you want to delete this user's profile image?",
+        confirmLabel: "Remove",
+        cancelLabel: "Cancel",
+        confirmClass: "btn-primary",
+        confirm: async () => {
+            try {
+                await this.orm.write("res.users", [userId], { image_1920: false });
+                this.notification.add("Profile image removed", { type: "success" });
+                await this.fetch_data();
+                this.render();
+            } catch (error) {
+                console.error(error);
+                this.notification.add("Failed to remove image", { type: "danger" });
+            }
+        },
+        cancel: () => {},
+    });
+}
     showAllChanges(ev) {
     ev.preventDefault();
     this.showAll = true;

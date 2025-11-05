@@ -16,6 +16,7 @@ export class RBACAudit extends Component {
         this.action = useService("action");
         this.orm = useService("orm");
         this.user = [];
+        this.LIMIT = 10;
         this.searchQuery = useState({ value: "" });
         this.filters = useState({
             user_id: "",
@@ -45,26 +46,22 @@ export class RBACAudit extends Component {
     this.currentPage.value = page;
 
     const filters = {
-        user_id: this.filters.user_id,
-        admin_id: this.filters.admin_id,
-        action: this.filters.action,
-        from: this.filters.from,
-        to: this.filters.to,
+        ...this.filters,
         search: this.searchQuery.value,
-        page: page,
-        limit: 10,
+        page,
+        limit: this.LIMIT,
     };
 
     const result = await this.orm.call("rbac.model", "get_paginated_audit_logs", [filters]);
 
     // Only replace dropdown data if present
-    if (result.users) this.data.users = result.users;
-    if (result.admins) this.data.admins = result.admins;
-    if (result.actions_list) this.data.actions_list = result.actions_list;
+    this.data.users = result.users || [];
+    this.data.admins = result.admins || [];
+    this.data.actions_list = result.actions_list || [];
 
     this.data.logs = result.logs || [];
     this.data.total = result.total || 0;
-    this.data.limit = result.limit || 10;
+    this.data.limit = result.limit || this.LIMIT;
     this.totalPages.value = Math.ceil(this.data.total / this.data.limit);
 }
     async goToPage(page) {
@@ -85,7 +82,7 @@ export class RBACAudit extends Component {
     const to = new Date(this.to_date.value);
 
     if (to < from) {
-        this.notification.add("⚠️ 'Date To' cannot be earlier than 'Date From'.", { type: "danger" });
+        this.notification.add("'Date To' cannot be earlier than 'Date From'.", { type: "danger" });
         this.to_date.value = this.from_date.value;
         return;
     }
@@ -140,18 +137,22 @@ export class RBACAudit extends Component {
     this.render();
 }
     async onExport(format) {
-    const params = new URLSearchParams({
+    const params = {
         format,
         user_id: this.filters.user_id || '',
         admin_id: this.filters.admin_id || '',
         from: this.filters.from || '',
         to: this.filters.to || '',
         search: this.searchQuery.value || '',
-    }).toString();
+    };
 
-    window.open(`/rbac/audit/export?${params}`, '_blank');
+    const url = `/rbac/audit/export?${new URLSearchParams(params).toString()}`;
+    this.action.doAction({
+        type: 'ir.actions.act_url',
+        url,
+        target: 'self',  // or 'new' if you want new tab
+    });
 }
-
     getInitials(text) {
     if (!text || typeof text !== "string") {
         return "--"; // default placeholder if name not yet loaded
