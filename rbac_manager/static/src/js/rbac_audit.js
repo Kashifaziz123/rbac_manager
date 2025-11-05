@@ -27,7 +27,13 @@ export class RBACAudit extends Component {
         });
         this.currentPage = useState({ value: 1 });
         this.totalPages = useState({ value: 1 });
-        this.data = useState({});
+        this.data = useState({
+            users: [],
+            admins: [],
+            actions_list: [],
+            logs: [],
+            total: 0,
+        });
         const today = new Date();
         const firstDayLocal = new Date(today.getFullYear(), today.getMonth(), 1);
         const firstDay = firstDayLocal.toLocaleDateString('en-CA');
@@ -35,12 +41,21 @@ export class RBACAudit extends Component {
         this.from_date = useState({ value: firstDay });
         this.to_date = useState({ value: todayStr });
         onWillStart(async () => {
-            await this.fetch_data();
-            this.filters.from = this.from_date.value;
-            this.filters.to = this.to_date.value;
-            await this.applyFilters();
-            await ensureJQuery();
-        });
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUserId = urlParams.get("target_user");
+        const filterData = await this.orm.call("rbac.model", "get_audit_filter_data", []);
+        this.data.users = filterData.users || [];
+        this.data.admins = filterData.admins || [];
+        this.data.actions_list = filterData.actions_list || [];
+        await this.fetch_data();
+        this.filters.from = this.from_date.value;
+        this.filters.to = this.to_date.value;
+        if (targetUserId) {
+        this.filters.user_id = targetUserId;
+        }
+        await this.applyFilters();
+        await ensureJQuery();
+    });
     }
     async fetch_data(page = 1) {
     this.currentPage.value = page;
@@ -52,13 +67,10 @@ export class RBACAudit extends Component {
         limit: this.LIMIT,
     };
 
+    // ✅ This ORM should return ONLY logs and pagination info
     const result = await this.orm.call("rbac.model", "get_paginated_audit_logs", [filters]);
 
-    // Only replace dropdown data if present
-    this.data.users = result.users || [];
-    this.data.admins = result.admins || [];
-    this.data.actions_list = result.actions_list || [];
-
+    // ✅ Keep dropdown data persistent (do not overwrite)
     this.data.logs = result.logs || [];
     this.data.total = result.total || 0;
     this.data.limit = result.limit || this.LIMIT;

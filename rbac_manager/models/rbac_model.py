@@ -51,6 +51,39 @@ class RbacModel(models.Model):
         } for l in logs]
 
     @api.model
+    def get_audit_filter_data(self):
+        """Fetch static dropdown filter data once (optimized with read_group)."""
+        try:
+            Audit = self.env["rbac.audit"].sudo()
+
+            # Users
+            user_groups = Audit.read_group([], ["user_uid"], ["user_uid"])
+            users = [
+                {"id": g["user_uid"][0], "name": g["user_uid"][1]}
+                for g in user_groups if g["user_uid"]
+            ]
+
+            # Admins
+            admin_groups = Audit.read_group([], ["create_uid"], ["create_uid"])
+            admins = [
+                {"id": g["create_uid"][0], "name": g["create_uid"][1]}
+                for g in admin_groups if g["create_uid"]
+            ]
+
+            # Actions
+            methods = Audit.search([("method", "!=", False)]).mapped("method")
+            actions = sorted({m.split("->")[0].strip() for m in methods if m})
+
+            return {
+                "error": False,
+                "users": users,
+                "admins": admins,
+                "actions_list": actions,
+            }
+        except Exception as e:
+            return {"error": True, "message": str(e)}
+
+    @api.model
     def get_paginated_audit_logs(self, filters):
         try:
             page = int(filters.get("page", 1))
@@ -59,7 +92,7 @@ class RbacModel(models.Model):
 
             domain = []
 
-            # 🔍 Filters
+            # 🔍 Apply filters
             if filters.get("search"):
                 term = filters["search"]
                 domain += ["|", ("method", "ilike", term), ("user_uid.name", "ilike", term)]
@@ -71,16 +104,19 @@ class RbacModel(models.Model):
                 domain.append(("create_date", ">=", filters["from"]))
                 domain.append(("create_date", "<=", filters["to"]))
 
-            logs = self.env["rbac.audit"].sudo().search(domain, order="create_date desc", offset=offset, limit=limit)
+            # ⚙️ Fetch logs with pagination
+            logs = (
+                self.env["rbac.audit"]
+                .sudo()
+                .search(domain, order="create_date desc", offset=offset, limit=limit)
+            )
             total = self.env["rbac.audit"].sudo().search_count(domain)
 
             result_logs = []
-            actions = set()
 
             for x in logs:
-                groups_id = x.line_ids.filtered(lambda z: z.field_name == 'groups_id')
-                action_type = x.method.split('->')[0].strip() if x.method else 'Unknown'
-                actions.add(action_type)
+                groups_id = x.line_ids.filtered(lambda z: z.field_name == "groups_id")
+                action_type = x.method.split("->")[0].strip() if x.method else "Unknown"
 
                 log = {
                     "id": x.id,
@@ -95,49 +131,39 @@ class RbacModel(models.Model):
                     "ip_address": x.ip_address,
                 }
 
-                # include the same detailed payload as before
-                log["data_json"] = json.dumps({
-                    **log,
-                    "ip_address": x.ip_address,
-                    "user_agent": x.user_agent,
-                    "location": x.location,
-                    "len_groups_id": len(json.loads(groups_id[-1].new_value.replace("'", '"'))) if groups_id else "N/A",
-                    "line_ids": [
-                        {
-                            "field_name": y.field_name,
-                            "old_value": y.old_value,
-                            "new_value": y.new_value,
-                            "is_many": "many" in y.field_id.ttype,
-                        }
-                        for y in x.line_ids
-                    ],
-                })
+                # 🔹 Include the detailed payload
+                log["data_json"] = json.dumps(
+                    {
+                        **log,
+                        "ip_address": x.ip_address,
+                        "user_agent": x.user_agent,
+                        "location": x.location,
+                        "len_groups_id": len(
+                            json.loads(groups_id[-1].new_value.replace("'", '"'))
+                        )
+                        if groups_id
+                        else "N/A",
+                        "line_ids": [
+                            {
+                                "field_name": y.field_name,
+                                "old_value": y.old_value,
+                                "new_value": y.new_value,
+                                "is_many": "many" in y.field_id.ttype,
+                            }
+                            for y in x.line_ids
+                        ],
+                    }
+                )
 
                 result_logs.append(log)
 
-            # Base response
-            response = {
+            # ✅ Base response only (no dropdowns)
+            return {
                 "error": False,
                 "logs": result_logs,
                 "total": total,
                 "limit": limit,
             }
-
-            # Include dropdown data only for page 1
-            if page == 1:
-                response.update({
-                    "users": [
-                        {"id": u.id, "name": u.name or ""}
-                        for u in self.env["rbac.audit"].sudo().search([]).mapped("user_uid") if u
-                    ],
-                    "admins": [
-                        {"id": a.id, "name": a.name or ""}
-                        for a in self.env["rbac.audit"].sudo().search([]).mapped("create_uid") if a
-                    ],
-                    "actions_list": sorted(list(actions)),
-                })
-
-            return response
 
         except Exception as e:
             return {"error": True, "message": str(e), "logs": []}

@@ -44,10 +44,13 @@
                         </div>
                         <div class="filter-group">
                             <label class="filter-label">Target User</label>
-                            <select class="filter-select" t-ref="userSelect" t-on-change="onUserFilterChange">
+                            <select t-model="filters.user_id" class="filter-select" t-ref="userSelect"
+                                    t-on-change="onUserFilterChange">
                                 <option value="">All Users</option>
                                 <t t-foreach="this.data?.users || []" t-as="user" t-key="user.id">
-                                    <option t-att-value="user.id">
+                                    <option
+                                            t-att-value="user.id"
+                                            t-att-selected="filters.user_id == user.id">
                                         <t t-esc="user.name"/>
                                     </option>
                                 </t>

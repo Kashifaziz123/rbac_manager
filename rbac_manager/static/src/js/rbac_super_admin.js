@@ -514,6 +514,21 @@ export class RBACSuperAdmin extends Component {
 
         this.enabled_inputs_length();
     }
+    async openChangeLog() {
+    try {
+        const userId = this.user?.[0]?.id;
+        if (!userId) {
+            this.notification.add("No user selected to view change log.", { type: "warning" });
+            return;
+        }
+        const url = `/odoo/rbac_audit?target_user=${userId}`;
+        window.location.href = url;
+    } catch (error) {
+        console.error(error);
+        this.notification.add("Failed to open audit log view.", { type: "danger" });
+    }
+}
+
 
     async apply_search(mode = 'all') {
     try {
@@ -526,10 +541,6 @@ export class RBACSuperAdmin extends Component {
         this.notification.add(_t("Failed to apply filter"), { type: "danger" });
     }
 }
-
-    //
-    // widget reset
-    //
     reset_data() {
         $('.category-header').removeClass('closed');
         var risk_filter = $('.permissions-filters');
@@ -537,10 +548,6 @@ export class RBACSuperAdmin extends Component {
         risk_filter.find('.filter-tab.all').addClass('active');
         this.render();
     }
-
-    //
-    //  model CRUD functions
-    //
     async loadAuditLogs(showAll = false) {
     try {
         const offset = this.data.recent_changes.length;
