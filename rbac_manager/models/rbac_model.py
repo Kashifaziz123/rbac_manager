@@ -28,6 +28,185 @@ class RbacModel(models.Model):
         collect_recursive(inverse_implied_ids)
         return collected
 
+    @api.model
+    def get_filtered_audit_logs(self, filters):
+        domain = []
+        if filters.get('user_id'):
+            domain.append(('user_uid', '=', int(filters['user_id'])))
+        if filters.get('admin_id'):
+            domain.append(('create_uid', '=', int(filters['admin_id'])))
+        if filters.get('from') and filters.get('to'):
+            domain += [
+                ('create_date', '>=', filters['from'] + ' 00:00:00'),
+                ('create_date', '<=', filters['to'] + ' 23:59:59')
+            ]
+        logs = self.env['rbac.audit'].sudo().search(domain, order="create_date desc")
+
+        return [{
+            'create_date': [l.create_date.strftime('%Y-%m-%d'), l.create_date.strftime('%H:%M:%S')],
+            'create_uid': [l.create_uid.name, l.create_uid.email, l.create_uid.id],
+            'user_uid': [l.user_uid.name or '', l.user_uid.email or '', l.user_uid.id if l.user_uid else ''],
+            'method': l.method or '',
+            'ip_address': l.ip_address or '',
+        } for l in logs]
+
+    @api.model
+    def get_audit_filter_data(self):
+        """Fetch static dropdown filter data once (optimized with read_group)."""
+        try:
+            Audit = self.env["rbac.audit"].sudo()
+
+            # Users
+            user_groups = Audit.read_group([], ["user_uid"], ["user_uid"])
+            users = [
+                {"id": g["user_uid"][0], "name": g["user_uid"][1]}
+                for g in user_groups if g["user_uid"]
+            ]
+
+            # Admins
+            admin_groups = Audit.read_group([], ["create_uid"], ["create_uid"])
+            admins = [
+                {"id": g["create_uid"][0], "name": g["create_uid"][1]}
+                for g in admin_groups if g["create_uid"]
+            ]
+
+            # Actions
+            methods = Audit.search([("method", "!=", False)]).mapped("method")
+            actions = sorted({m.split("->")[0].strip() for m in methods if m})
+
+            return {
+                "error": False,
+                "users": users,
+                "admins": admins,
+                "actions_list": actions,
+            }
+        except Exception as e:
+            return {"error": True, "message": str(e)}
+
+    @api.model
+    def get_paginated_audit_logs(self, filters):
+        try:
+            page = int(filters.get("page", 1))
+            limit = int(filters.get("limit", 10))
+            offset = (page - 1) * limit
+
+            domain = []
+
+            # 🔍 Apply filters
+            if filters.get("search"):
+                term = filters["search"]
+                domain += ["|", ("method", "ilike", term), ("user_uid.name", "ilike", term)]
+            if filters.get("user_id"):
+                domain.append(("user_uid", "=", int(filters["user_id"])))
+            if filters.get("admin_id"):
+                domain.append(("create_uid", "=", int(filters["admin_id"])))
+            if filters.get("from") and filters.get("to"):
+                domain.append(("create_date", ">=", filters["from"]))
+                domain.append(("create_date", "<=", filters["to"]))
+
+            # ⚙️ Fetch logs with pagination
+            logs = (
+                self.env["rbac.audit"]
+                .sudo()
+                .search(domain, order="create_date desc", offset=offset, limit=limit)
+            )
+            total = self.env["rbac.audit"].sudo().search_count(domain)
+
+            result_logs = []
+
+            for x in logs:
+                groups_id = x.line_ids.filtered(lambda z: z.field_name == "groups_id")
+                action_type = x.method.split("->")[0].strip() if x.method else "Unknown"
+
+                log = {
+                    "id": x.id,
+                    "create_date": [
+                        x.create_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
+                        x.create_date.strftime(DEFAULT_SERVER_TIME_FORMAT),
+                    ],
+                    "create_uid": [x.create_uid.name, x.create_uid.email, x.create_uid.id],
+                    "user_uid": [x.user_uid.name, x.user_uid.email, x.user_uid.id],
+                    "method": x.method,
+                    "action": action_type,
+                    "ip_address": x.ip_address,
+                }
+
+                # 🔹 Include the detailed payload
+                log["data_json"] = json.dumps(
+                    {
+                        **log,
+                        "ip_address": x.ip_address,
+                        "user_agent": x.user_agent,
+                        "location": x.location,
+                        "len_groups_id": len(
+                            json.loads(groups_id[-1].new_value.replace("'", '"'))
+                        )
+                        if groups_id
+                        else "N/A",
+                        "line_ids": [
+                            {
+                                "field_name": y.field_name,
+                                "old_value": y.old_value,
+                                "new_value": y.new_value,
+                                "is_many": "many" in y.field_id.ttype,
+                            }
+                            for y in x.line_ids
+                        ],
+                    }
+                )
+
+                result_logs.append(log)
+
+            # ✅ Base response only (no dropdowns)
+            return {
+                "error": False,
+                "logs": result_logs,
+                "total": total,
+                "limit": limit,
+            }
+
+        except Exception as e:
+            return {"error": True, "message": str(e), "logs": []}
+
+    @api.model
+    def get_filtered_permissions(self, user_id, mode='all'):
+        """
+        Returns filtered permission structure based on the mode:
+        all, granted, denied, high, overrides
+        """
+        user = self.env['res.users'].browse(user_id)
+        base_data = self.get_rbac_super_admin_json(user_id)
+
+        # Apply same filters as JS had
+        if mode == 'granted':
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if v.get('value') not in [False, None]}
+        elif mode == 'denied':
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if v.get('value') is False}
+        elif mode == 'high':
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if v.get('group', {}).get('risk_level') == 'high'}
+        elif mode == 'overrides':
+            # example: direct_add or excluded
+            filtered = {k: v for k, v in base_data['all_categories'].items()
+                        if base_data['group_sources'].get(k) in ['direct_add', 'excluded']}
+        else:
+            filtered = base_data['all_categories']
+
+        # also compute total counts once, server-side
+        totals = {
+            'all_groups_count': sum(len(x.get('groups', [])) for x in filtered.values()),
+            'is_granted': sum(1 for x in filtered.values() if x.get('value')),
+            'is_denied': sum(1 for x in filtered.values() if x.get('value') is False),
+            'is_high_risk': sum(1 for x in filtered.values() if x.get('group', {}).get('risk_level') == 'high'),
+        }
+
+        return {
+            'filtered': filtered,
+            'totals': totals,
+        }
+
     def _get_time_passed(self, dt, now=None):
         if not dt:
             return "Just now"

@@ -27,8 +27,10 @@
                     <div class="card-header">
                         <h3 class="card-title">Permission Audit Log</h3>
                         <div class="action-buttons">
-                            <button class="btn btn-secondary">📥 Export CSV</button>
-                            <button class="btn btn-secondary">📄 Export PDF</button>
+                            <button class="btn btn-secondary" t-on-click="() => this.onExport('csv')">📥 Export CSV
+                            </button>
+                            <button class="btn btn-secondary" t-on-click="() => this.onExport('pdf')">📄 Export PDF
+                            </button>
                         </div>
                     </div>
 
@@ -42,10 +44,13 @@
                         </div>
                         <div class="filter-group">
                             <label class="filter-label">Target User</label>
-                            <select class="filter-select" t-ref="userSelect" t-on-change="onUserFilterChange">
+                            <select t-model="filters.user_id" class="filter-select" t-ref="userSelect"
+                                    t-on-change="onUserFilterChange">
                                 <option value="">All Users</option>
                                 <t t-foreach="this.data?.users || []" t-as="user" t-key="user.id">
-                                    <option t-att-value="user.id">
+                                    <option
+                                            t-att-value="user.id"
+                                            t-att-selected="filters.user_id == user.id">
                                         <t t-esc="user.name"/>
                                     </option>
                                 </t>
@@ -88,7 +93,6 @@
                                    t-on-change="onDateChange"/>
                         </div>
                     </div>
-
                     <table class="audit-table">
                         <thead>
                             <tr>
@@ -102,74 +106,94 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr t-foreach="this.data?.logs" t-as="log" t-key="log_index + '_logs_available' ">
-                                <td>
-                                    <div class="timestamp">
-                                        <t t-esc="log.create_date[0]"/>
-                                    </div>
-                                    <div class="timestamp">
-                                        <t t-esc="log.create_date[1]"/>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="actor">
-                                        <div class="avatar-small">
-                                            <t t-esc="this.getInitials(log.create_uid[0])"/>
+                            <t t-if="this.data.logs.length > 0">
+                                <tr t-foreach="this.data?.logs" t-as="log" t-key="log_index + '_logs_available' ">
+                                    <td>
+                                        <div class="timestamp">
+                                            <t t-esc="log.create_date[0]"/>
                                         </div>
+                                        <div class="timestamp">
+                                            <t t-esc="log.create_date[1]"/>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="actor">
+                                            <div class="avatar-small">
+                                                <t t-esc="this.getInitials(log.create_uid[0])"/>
+                                            </div>
+                                            <div>
+                                                <div class="user-name">
+                                                    <t t-esc="log.create_uid[0]"/>
+                                                </div>
+                                                <div class="user-email">
+                                                    <t t-esc="log.create_uid[1]"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="target">
+                                            <div class="avatar-small">
+                                                <t t-esc="this.getInitials(log.user_uid[0])"/>
+                                            </div>
+                                            <div>
+                                                <div class="user-name">
+                                                    <t t-esc="log.user_uid[0]"/>
+                                                </div>
+                                                <div class="user-email">
+                                                    <t t-esc="log.user_uid[1]"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="action-badge" t-esc="log.action"/>
+                                    </td>
+                                    <td>
                                         <div>
-                                            <div class="user-name">
-                                                <t t-esc="log.create_uid[0]"/>
-                                            </div>
-                                            <div class="user-email">
-                                                <t t-esc="log.create_uid[1]"/>
-                                            </div>
+                                            <t t-esc="log.method"/>
                                         </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="target">
-                                        <div class="avatar-small">
-                                            <t t-esc="this.getInitials(log.user_uid[0])"/>
-                                        </div>
-                                        <div>
-                                            <div class="user-name">
-                                                <t t-esc="log.user_uid[0]"/>
-                                            </div>
-                                            <div class="user-email">
-                                                <t t-esc="log.user_uid[1]"/>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="action-badge" t-esc="log.action"/>
-                                </td>
-                                <td>
-                                    <div>
-                                        <t t-esc="log.method"/>
-                                    </div>
-                                    <div class="action-detail">Reason: ???</div>
-                                </td>
-                                <td class="timestamp">
-                                    <t t-esc="log.ip_address"/>
-                                </td>
-                                <td>
-                                    <a class="details-link" t-att-data-json="log.data_json" t-on-click="open_details">
-                                        View Details
-                                    </a>
-                                </td>
-                            </tr>
+                                        <div class="action-detail">Reason: ???</div>
+                                    </td>
+                                    <td class="timestamp">
+                                        <t t-esc="log.ip_address"/>
+                                    </td>
+                                    <td>
+                                        <a class="details-link" t-att-data-json="log.data_json"
+                                           t-on-click="open_details">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            </t>
+                            <t t-else="">
+                                <tr>
+                                    <td colspan="7" style="text-align:center; padding: 20px; color: #999;">
+                                        No record found.
+                                    </td>
+                                </tr>
+                            </t>
                         </tbody>
                     </table>
-                    <div class="pagination">
-                        <button class="page-btn">← Previous</button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <button class="page-btn">4</button>
-                        <button class="page-btn">5</button>
-                        <button class="page-btn">Next →</button>
-                    </div>
+                    <t t-if="this.data.logs.length > 0">
+                        <div class="pagination">
+                            <button t-att-class="'page-btn ' + (this.currentPage.value === 1 ? 'disabled' : '')"
+                                    t-on-click="() => this.goToPage(this.currentPage.value - 1)">← Previous
+                            </button>
+
+                            <t t-foreach="Array.from({length: this.totalPages.value}, (_, i) => i + 1)" t-as="page"
+                               t-key="page">
+                                <button t-att-class="'page-btn ' + (page === this.currentPage.value ? 'active' : '')"
+                                        t-on-click="() => this.goToPage(page)">
+                                    <t t-esc="page"/>
+                                </button>
+                            </t>
+
+                            <button t-att-class="'page-btn ' + (this.currentPage.value === this.totalPages.value ? 'disabled' : '')"
+                                    t-on-click="() => this.goToPage(this.currentPage.value + 1)">Next →
+                            </button>
+                        </div>
+                    </t>
                 </div>
             </div>
             <!-- Detail Modal -->

@@ -16,6 +16,7 @@ export class RBACAudit extends Component {
         this.action = useService("action");
         this.orm = useService("orm");
         this.user = [];
+        this.LIMIT = 10;
         this.searchQuery = useState({ value: "" });
         this.filters = useState({
             user_id: "",
@@ -24,7 +25,15 @@ export class RBACAudit extends Component {
             from: "",
             to: ""
         });
-        this.data = useState({});
+        this.currentPage = useState({ value: 1 });
+        this.totalPages = useState({ value: 1 });
+        this.data = useState({
+            users: [],
+            admins: [],
+            actions_list: [],
+            logs: [],
+            total: 0,
+        });
         const today = new Date();
         const firstDayLocal = new Date(today.getFullYear(), today.getMonth(), 1);
         const firstDay = firstDayLocal.toLocaleDateString('en-CA');
@@ -32,21 +41,45 @@ export class RBACAudit extends Component {
         this.from_date = useState({ value: firstDay });
         this.to_date = useState({ value: todayStr });
         onWillStart(async () => {
-            await this.fetch_data();
-            this.filters.from = this.from_date.value;
-            this.filters.to = this.to_date.value;
-            await this.applyFilters();
-            await ensureJQuery();
-        });
-    }
-    async fetch_data() {
-        this.data = await this.orm.call("rbac.model", "get_initial_rbac_audit", []);
-        if (this.data.error) {
-            var message = _t("It seems the logs view has errors.")
-            this.notification.add(message, {sticky: true, type: "danger"});
-            this.action.doAction('rbac_manager.act_window_res_users_list_super_admin', {clearBreadcrumbs: true});
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUserId = urlParams.get("target_user");
+        const filterData = await this.orm.call("rbac.model", "get_audit_filter_data", []);
+        this.data.users = filterData.users || [];
+        this.data.admins = filterData.admins || [];
+        this.data.actions_list = filterData.actions_list || [];
+        await this.fetch_data();
+        this.filters.from = this.from_date.value;
+        this.filters.to = this.to_date.value;
+        if (targetUserId) {
+        this.filters.user_id = targetUserId;
         }
+        await this.applyFilters();
+        await ensureJQuery();
+    });
     }
+    async fetch_data(page = 1) {
+    this.currentPage.value = page;
+
+    const filters = {
+        ...this.filters,
+        search: this.searchQuery.value,
+        page,
+        limit: this.LIMIT,
+    };
+
+    // ✅ This ORM should return ONLY logs and pagination info
+    const result = await this.orm.call("rbac.model", "get_paginated_audit_logs", [filters]);
+
+    // ✅ Keep dropdown data persistent (do not overwrite)
+    this.data.logs = result.logs || [];
+    this.data.total = result.total || 0;
+    this.data.limit = result.limit || this.LIMIT;
+    this.totalPages.value = Math.ceil(this.data.total / this.data.limit);
+}
+    async goToPage(page) {
+    if (page < 1 || page > this.totalPages.value) return;
+    await this.fetch_data(page);
+}
     debounceTimer = null;
     async onSearchChange(ev) {
     clearTimeout(this.debounceTimer);
@@ -61,7 +94,7 @@ export class RBACAudit extends Component {
     const to = new Date(this.to_date.value);
 
     if (to < from) {
-        this.notification.add("⚠️ 'Date To' cannot be earlier than 'Date From'.", { type: "danger" });
+        this.notification.add("'Date To' cannot be earlier than 'Date From'.", { type: "danger" });
         this.to_date.value = this.from_date.value;
         return;
     }
@@ -115,10 +148,32 @@ export class RBACAudit extends Component {
     this.data.logs = logs;
     this.render();
 }
+    async onExport(format) {
+    const params = {
+        format,
+        user_id: this.filters.user_id || '',
+        admin_id: this.filters.admin_id || '',
+        from: this.filters.from || '',
+        to: this.filters.to || '',
+        search: this.searchQuery.value || '',
+    };
+
+    const url = `/rbac/audit/export?${new URLSearchParams(params).toString()}`;
+    this.action.doAction({
+        type: 'ir.actions.act_url',
+        url,
+        target: 'self',  // or 'new' if you want new tab
+    });
+}
     getInitials(text) {
-        const words = text?.trim().split(/\s+/) || ['', ''];
-        return words[1] ? words[0][0] + words[1][0] : words[0].slice(0, 2);
+    if (!text || typeof text !== "string") {
+        return "--"; // default placeholder if name not yet loaded
     }
+    const words = text.trim().split(/\s+/);
+    return words.length > 1
+        ? (words[0][0] + words[1][0]).toUpperCase()
+        : words[0].slice(0, 2).toUpperCase();
+}
     async onAdminFilterChange(ev) {
     this.filters.admin_id = ev.target.value;
     await this.applyFilters();

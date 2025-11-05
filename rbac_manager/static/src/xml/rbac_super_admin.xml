@@ -2,31 +2,102 @@
 <templates id="template">
     <t t-name="rbac.SuperAdmin">
         <div class="container rbac_super_admin">
-            <div class="header">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <t t-esc="this.getInitials(this.user[0]?.name)"/>
+
+            <div class="header user-header">
+                <!-- Gradient Top Bar -->
+                <div class="topbar-gradient">
+                    <div class="topbar-left">
+                        <a t-att-href="'/odoo/super_admin/'" class="back-btn">←</a>
+                        <h2 class="page-title">Manage Permissions</h2>
                     </div>
-                    <div class="user-details">
-                        <h1>Manage Permissions:
-                            <t t-esc="this.user[0]?.name"/>
-                        </h1>
-                        <p>
-                            <t t-esc="this.user[0]?.email"/>
-                            • Employee ID:
-                            <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
-                        </p>
-                    </div>
-                    <div class="access-level">
-                        👑 Super Admin Access
+                    <div class="topbar-actions">
+                        <div class="dropdown user-actions">
+                            <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                ⚙️ Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item has-icon archive" t-on-click="archiveUser">Archive</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item has-icon duplicate" t-on-click="duplicateUser">Duplicate</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item has-icon delete text-danger" t-on-click="deleteUser">
+                                        Delete
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider"/>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="openPreferences">Preferences</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="changePassword">Change Password</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="disable2FA">Disable two-factor authentication
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="resetPassword">Send Password Reset
+                                        Instructions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="privacyLookup">Privacy Lookup</a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <a href="/odoo/super_admin" class="btn btn-secondary">← Back to Details</a>
-                    <!--                    <button class="btn btn-primary" t-on-click="writeRecord">💾 Save Changes</button>-->
+
+                <!-- User Info Inline Card -->
+                <div class="user-inline-card">
+                    <div class="user-left">
+                        <div class="user-avatar-wrapper">
+                            <t t-if="this.user[0]?.image_1920">
+                                <div class="user-avatar has-image">
+                                    <img t-att-src="'data:image/png;base64,' + this.user[0].image_1920"
+                                         alt="User Avatar" class="avatar-img"/>
+                                    <div class="avatar-overlay">
+                                        <button class="avatar-btn edit" title="Upload Image" t-on-click="uploadImage">
+                                            ✏️
+                                        </button>
+                                        <button class="avatar-btn delete" title="Remove Image" t-on-click="deleteImage">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="user-avatar initials">
+                                    <t t-esc="this.getInitials(this.user[0]?.name)"/>
+                                    <div class="avatar-overlay">
+                                        <button class="avatar-btn edit" title="Upload Image" t-on-click="uploadImage">
+                                            ✏️
+                                        </button>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="user-meta">
+                            <h3>
+                                <t t-esc="this.user[0]?.name"/>
+                            </h3>
+                            <p>
+                                <t t-esc="this.user[0]?.email"/>
+                                • Employee ID:
+                                <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
+                            </p>
+                        </div>
+                        <div class="access-level">
+                            👑 Super Admin Access
+                        </div>
+                    </div>
                 </div>
             </div>
-
             <!-- Super Admin Toolbar -->
             <div class="admin-toolbar">
                 <div class="toolbar-header">
@@ -34,7 +105,8 @@
                         ⚡ Super Admin Controls
                     </div>
                     <div class="toolbar-actions">
-                        <button class="btn btn-secondary btn-small">📋 View Change Log</button>
+                        <button class="btn btn-secondary btn-small" t-on-click="openChangeLog">📋 View Change Log
+                        </button>
                     </div>
                 </div>
 

@@ -2,7 +2,7 @@
 <odoo>
     <data>
         <menuitem id="menu_user_roles" name="User Roles" parent="base.menu_users"
-                  action="rbac_manager.act_window_res_users_list_user_role" groups="base.group_system"/>
+                  action="rbac_manager.act_window_res_users_list_user_role" groups="base.group_system" sequence="30"/>
         <menuitem id="menu_user_permissions" name="User Permissions" parent="base.menu_users"
                   action="rbac_manager.act_window_res_users_list_user_permission" groups="base.group_system"/>
         <menuitem id="menu_super_admin" name="Master Permission Control" parent="base.menu_users"
@@ -13,8 +13,10 @@
         <!--                  action="rbac_manager.rbac_audit_act_window" groups="base.group_system"/>-->
         <!--        <menuitem id="menu_rbac_line_audit" name="rbac.audit.line" parent="base.menu_users"-->
         <!--                  action="rbac_manager.rbac_audit_line_act_window" groups="base.group_system"/>-->
-        <menuitem id="menu_client_action_rbac_audit" name="Rbac Audit" parent="base.menu_users"
+        <menuitem id="menu_client_action_rbac_audit" name="Rbac Audit" parent="base.menu_users" sequence="40"
                   action="rbac_manager.view_audit_client_rbac_audit" groups="base.group_system"/>
+        <menuitem action="base.action_res_users" id="base.menu_action_res_users" parent="base.menu_users" sequence="0"
+                  active="False"/>
 
         <!--        Inherit       -->
         <record id="base.menu_custom" model="ir.ui.menu">
