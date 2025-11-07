@@ -5,10 +5,12 @@
     <title>Advanced RBAC for Odoo | Description</title>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <meta name="description" content="Enterprise-grade Risk-Based RBAC module for Odoo. Create role templates, classify permissions by risk level, clone user permissions, perform bulk role assignments, and track changes with comprehensive audit logs.">
+    <meta name="description"
+          content="Enterprise-grade Risk-Based RBAC module for Odoo. Create role templates, classify permissions by risk level, clone user permissions, perform bulk role assignments, and track changes with comprehensive audit logs.">
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
     <!-- Bootstrap 5 CSS cdn -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -16,7 +18,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #fff;
         }
-        
+
         /* Hero Section */
         .rbac-hero {
             background-color: #5b4dd6;
@@ -26,18 +28,18 @@
             text-align: center;
             margin-bottom: 40px;
         }
-        
+
         .rbac-hero h1 {
             font-size: calc(1.8rem + 1.2vw);
             font-weight: 800;
             margin-bottom: 20px;
         }
-        
+
         .rbac-hero p {
             font-size: 1.1rem;
             opacity: 0.95;
         }
-        
+
         .rbac-badge {
             display: inline-block;
             background-color: rgba(255, 255, 255, 0.3);
@@ -47,7 +49,7 @@
             font-weight: 500;
             margin-bottom: 20px;
         }
-        
+
         /* Stats Cards */
         .rbac-stat-card {
             background: white;
@@ -58,23 +60,23 @@
             height: 100%;
             transition: transform 0.3s ease;
         }
-        
+
         .rbac-stat-card:hover {
             transform: translateY(-5px);
         }
-        
+
         .rbac-stat-number {
             font-size: 2.5rem;
             font-weight: 700;
             color: #4f46e5;
             margin-bottom: 8px;
         }
-        
+
         .rbac-stat-label {
             color: #64748b;
             font-size: 1rem;
         }
-        
+
         /* Section Titles */
         .rbac-section-title {
             text-align: center;
@@ -83,14 +85,14 @@
             color: #1e293b;
             margin-bottom: 16px;
         }
-        
+
         .rbac-section-subtitle {
             text-align: center;
             font-size: 1.1rem;
             color: #64748b;
             margin-bottom: 40px;
         }
-        
+
         /* Bootstrap Carousel Customization */
         .rbac-carousel {
             border-radius: 20px;
@@ -98,21 +100,21 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             margin-bottom: 30px;
         }
-        
+
         .rbac-carousel .carousel-inner {
             background-color: #f8fafc;
         }
-        
+
         .rbac-carousel .carousel-item {
             height: 700px;
         }
-        
+
         .rbac-slide-content {
             height: 100%;
             display: flex;
             flex-direction: column;
         }
-        
+
         .rbac-slide-image-wrapper {
             flex: 1;
             display: flex;
@@ -121,7 +123,7 @@
             padding: 30px;
             background-color: white;
         }
-        
+
         .rbac-slide-image-wrapper img {
             max-width: 100%;
             max-height: 100%;
@@ -129,26 +131,26 @@
             border-radius: 12px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
-        
+
         .rbac-slide-caption {
             background-color: #5b4dd6;
             color: white;
             padding: 30px 40px;
         }
-        
+
         .rbac-slide-caption h3 {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 12px;
         }
-        
+
         .rbac-slide-caption p {
             font-size: 1rem;
             line-height: 1.6;
             opacity: 0.95;
             margin-bottom: 0;
         }
-        
+
         /* Carousel Controls */
         .rbac-carousel .carousel-control-prev,
         .rbac-carousel .carousel-control-next {
@@ -161,21 +163,21 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
         }
-        
+
         .rbac-carousel .carousel-control-prev {
             left: 20px;
         }
-        
+
         .rbac-carousel .carousel-control-next {
             right: 20px;
         }
-        
+
         .rbac-carousel .carousel-control-prev:hover,
         .rbac-carousel .carousel-control-next:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-        
+
         .rbac-carousel .carousel-control-prev-icon,
         .rbac-carousel .carousel-control-next-icon {
             width: 30px;
@@ -183,7 +185,7 @@
             background-size: 100% 100%;
             filter: invert(32%) sepia(85%) saturate(4145%) hue-rotate(239deg) brightness(92%) contrast(91%);
         }
-        
+
         /* Carousel Indicators */
         .rbac-carousel .carousel-indicators {
             position: relative;
@@ -191,7 +193,7 @@
             padding: 25px;
             background-color: white;
         }
-        
+
         .rbac-carousel .carousel-indicators [data-bs-target] {
             width: 12px;
             height: 12px;
@@ -201,13 +203,13 @@
             opacity: 1;
             transition: all 0.3s ease;
         }
-        
+
         .rbac-carousel .carousel-indicators .active {
             background-color: #4f46e5;
             width: 35px;
             border-radius: 6px;
         }
-        
+
         /* Thumbnails */
         .rbac-thumbnails {
             display: grid;
@@ -215,7 +217,7 @@
             gap: 15px;
             margin-top: 30px;
         }
-        
+
         .rbac-thumbnail {
             aspect-ratio: 16/10;
             border-radius: 12px;
@@ -226,24 +228,24 @@
             background-color: white;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        
+
         .rbac-thumbnail:hover {
             transform: translateY(-6px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
-        
+
         .rbac-thumbnail.active {
             border-color: #4f46e5;
             box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
         }
-        
+
         .rbac-thumbnail img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             padding: 8px;
         }
-        
+
         /* Feature Cards */
         .rbac-feature-card {
             background: white;
@@ -253,12 +255,12 @@
             height: 100%;
             transition: all 0.3s ease;
         }
-        
+
         .rbac-feature-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         }
-        
+
         .rbac-feature-icon {
             width: 60px;
             height: 60px;
@@ -270,19 +272,19 @@
             font-size: 28px;
             margin-bottom: 20px;
         }
-        
+
         .rbac-feature-title {
             font-size: 1.25rem;
             font-weight: 700;
             color: #1e293b;
             margin-bottom: 12px;
         }
-        
+
         .rbac-feature-desc {
             color: #64748b;
             line-height: 1.6;
         }
-        
+
         /* Benefits Section */
         .rbac-benefits-section {
             background-color: #f8fafc;
@@ -290,7 +292,7 @@
             padding: 50px 30px;
             margin: 50px 0;
         }
-        
+
         .rbac-benefit-item {
             display: flex;
             align-items: start;
@@ -301,12 +303,12 @@
             margin-bottom: 15px;
             transition: all 0.3s ease;
         }
-        
+
         .rbac-benefit-item:hover {
             transform: translateX(8px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
-        
+
         .rbac-benefit-icon {
             width: 28px;
             height: 28px;
@@ -320,13 +322,13 @@
             font-weight: 700;
             font-size: 16px;
         }
-        
+
         .rbac-benefit-text {
             color: #1e293b;
             line-height: 1.6;
             font-size: 1rem;
         }
-        
+
         /* Target Audience */
         .rbac-target-section {
             background-color: #1e293b;
@@ -334,7 +336,7 @@
             padding: 50px 30px;
             margin: 50px 0;
         }
-        
+
         .rbac-target-card {
             background-color: #334155;
             border-radius: 16px;
@@ -343,29 +345,29 @@
             height: 100%;
             transition: all 0.3s ease;
         }
-        
+
         .rbac-target-card:hover {
             background-color: #475569;
             transform: translateY(-8px);
         }
-        
+
         .rbac-target-icon {
             font-size: 48px;
             margin-bottom: 20px;
         }
-        
+
         .rbac-target-card h3 {
             color: white;
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 15px;
         }
-        
+
         .rbac-target-card p {
             color: #cbd5e1;
             line-height: 1.6;
         }
-        
+
         /* Services Section */
         .rbac-service-card {
             background: white;
@@ -376,26 +378,26 @@
             height: 100%;
             transition: all 0.3s ease;
         }
-        
+
         .rbac-service-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 12px 32px rgba(79, 70, 229, 0.2);
         }
-        
+
         .rbac-service-icon {
             width: 80px;
             height: 80px;
             margin: 0 auto 20px;
             color: #4f46e5;
         }
-        
+
         .rbac-service-card h3 {
             font-size: 1.25rem;
             font-weight: 600;
             color: #1e293b;
             margin: 0;
         }
-        
+
         .rbac-contact-cta {
             background-color: #5b4dd6;
             border-radius: 20px;
@@ -403,12 +405,12 @@
             text-align: center;
             color: white;
         }
-        
+
         .rbac-contact-cta p {
             font-size: 1.25rem;
             font-weight: 500;
         }
-        
+
         .rbac-contact-btn {
             display: inline-flex;
             align-items: center;
@@ -422,13 +424,13 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        
+
         .rbac-contact-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
             color: #4f46e5;
         }
-        
+
         /* Footer */
         .rbac-footer {
             background-color: #1e293b;
@@ -437,39 +439,39 @@
             padding: 32px 0;
             margin-top: 0;
         }
-        
+
         .rbac-footer p {
             font-size: 1rem;
         }
-        
+
         /* Responsive */
         @media (max-width: 768px) {
             .rbac-carousel .carousel-item {
                 height: 500px;
             }
-            
+
             .rbac-slide-image-wrapper {
                 padding: 20px;
             }
-            
+
             .rbac-slide-caption {
                 padding: 20px 25px;
             }
-            
+
             .rbac-carousel .carousel-control-prev,
             .rbac-carousel .carousel-control-next {
                 width: 45px;
                 height: 45px;
             }
-            
+
             .rbac-carousel .carousel-control-prev {
                 left: 10px;
             }
-            
+
             .rbac-carousel .carousel-control-next {
                 right: 10px;
             }
-            
+
             .rbac-thumbnails {
                 grid-template-columns: repeat(3, 1fr);
             }
@@ -481,16 +483,18 @@
 <section class="py-3" style="background-color: #fff;">
     <div class="container">
         <div class="px-md-5 py-md-4 p-2 mb-4 bg-white shadow" style="border-radius: 20px;">
-            
+
             <!-- Hero Section -->
             <div class="rbac-hero">
                 <div class="rbac-badge">
                     ⭐ Enterprise-Grade Access Control
                 </div>
                 <h1>Advanced RBAC for Odoo</h1>
-                <p class="px-md-5 mb-0">Enterprise-grade Risk-Based RBAC module for Odoo. Create role templates, classify permissions by risk level, clone user permissions instantly, perform bulk role assignments, track all changes with comprehensive audit logs, and ensure compliance.</p>
+                <p class="px-md-5 mb-0">Enterprise-grade Risk-Based RBAC module for Odoo. Create role templates,
+                    classify permissions by risk level, clone user permissions instantly, perform bulk role assignments,
+                    track all changes with comprehensive audit logs, and ensure compliance.</p>
             </div>
-            
+
             <!-- Stats Section -->
             <div class="mb-5">
                 <div class="row g-4">
@@ -520,98 +524,123 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Features Section -->
             <div class="my-5">
                 <h2 class="rbac-section-title">Key Features</h2>
                 <p class="rbac-section-subtitle">Everything you need for enterprise-grade access control in Odoo</p>
-                
+
                 <div class="row g-4">
                     <div class="col-md-6 col-lg-4">
                         <div class="rbac-feature-card">
                             <div class="rbac-feature-icon">🔒</div>
                             <div class="rbac-feature-title">Risk-Based Classification</div>
-                            <div class="rbac-feature-desc">Classify permissions as Critical, High, Medium, or Low risk. Restrict junior admins from modifying critical permissions while maintaining operational flexibility.</div>
+                            <div class="rbac-feature-desc">Classify permissions as Critical, High, Medium, or Low risk.
+                                Restrict junior admins from modifying critical permissions while maintaining operational
+                                flexibility.
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4">
                         <div class="rbac-feature-card">
                             <div class="rbac-feature-icon">📋</div>
                             <div class="rbac-feature-title">Role Templates</div>
-                            <div class="rbac-feature-desc">Create predefined role templates that can be instantly assigned to new users. Eliminate repetitive permission configuration and ensure consistency.</div>
+                            <div class="rbac-feature-desc">Create predefined role templates that can be instantly
+                                assigned to new users. Eliminate repetitive permission configuration and ensure
+                                consistency.
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4">
                         <div class="rbac-feature-card">
                             <div class="rbac-feature-icon">✅</div>
                             <div class="rbac-feature-title">Audit & Compliance</div>
-                            <div class="rbac-feature-desc">Complete audit trails with timestamps, IP addresses, and user actions. Export reports for ISO 27001, SOC2, and GDPR compliance requirements.</div>
+                            <div class="rbac-feature-desc">Complete audit trails with timestamps, IP addresses, and user
+                                actions. Export reports for ISO 27001, SOC2, and GDPR compliance requirements.
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4">
                         <div class="rbac-feature-card">
                             <div class="rbac-feature-icon">📑</div>
                             <div class="rbac-feature-title">Clone Permissions</div>
-                            <div class="rbac-feature-desc">Copy complete permission sets from one user to another. Perfect for onboarding employees with similar responsibilities quickly and accurately.</div>
+                            <div class="rbac-feature-desc">Copy complete permission sets from one user to another.
+                                Perfect for onboarding employees with similar responsibilities quickly and accurately.
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4">
                         <div class="rbac-feature-card">
                             <div class="rbac-feature-icon">⚡</div>
                             <div class="rbac-feature-title">Bulk Operations</div>
-                            <div class="rbac-feature-desc">Assign multiple roles or permissions to users in a single action. Streamline administrative tasks and reduce time spent on routine assignments.</div>
+                            <div class="rbac-feature-desc">Assign multiple roles or permissions to users in a single
+                                action. Streamline administrative tasks and reduce time spent on routine assignments.
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4">
                         <div class="rbac-feature-card">
                             <div class="rbac-feature-icon">🔑</div>
                             <div class="rbac-feature-title">Super Admin Controls</div>
-                            <div class="rbac-feature-desc">Grant all permissions, revoke all access, and export permission configurations. Complete control for system administrators with safety confirmations.</div>
+                            <div class="rbac-feature-desc">Grant all permissions, revoke all access, and export
+                                permission configurations. Complete control for system administrators with safety
+                                confirmations.
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Screenshots Carousel Section -->
             <div class="my-5">
                 <h2 class="rbac-section-title">See It In Action</h2>
-                <p class="rbac-section-subtitle">Explore role cloning, bulk assignments, audit logs, and comprehensive permission management through these detailed screenshots</p>
-                
+                <p class="rbac-section-subtitle">Explore role cloning, bulk assignments, audit logs, and comprehensive
+                    permission management through these detailed screenshots</p>
+
                 <!-- Bootstrap Carousel -->
-                <div id="rbacCarousel" class="carousel slide rbac-carousel" data-bs-ride="carousel" data-bs-interval="5000">
+                <div id="rbacCarousel" class="carousel slide rbac-carousel" data-bs-ride="carousel"
+                     data-bs-interval="5000">
                     <!-- Carousel Inner -->
                     <div class="carousel-inner">
                         <!-- Slide 1 -->
                         <div class="carousel-item active">
                             <div class="rbac-slide-content">
                                 <div class="rbac-slide-image-wrapper">
-                                    <img src="super_admin_1.png" alt="Super Admin Controls" class="d-block" loading="lazy">
+                                    <img src="super_admin_1.png" alt="Super Admin Controls" class="d-block"
+                                         loading="lazy">
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>🔐 Super Admin Controls</h3>
-                                    <p>Powerful administrative controls including bulk operations, role cloning, and comprehensive permission management. Super admins can grant all permissions, revoke access, clone user permissions, and manage bulk role assignments with ease.</p>
+                                    <p>Powerful administrative controls including bulk operations, role cloning, and
+                                        comprehensive permission management. Super admins can grant all permissions,
+                                        revoke access, clone user permissions, and manage bulk role assignments with
+                                        ease.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 2 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
                                 <div class="rbac-slide-image-wrapper">
-                                    <img src="super_admin2.png" alt="Direct Permission Management" class="d-block" loading="lazy">
+                                    <img src="super_admin2.png" alt="Direct Permission Management" class="d-block"
+                                         loading="lazy">
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>⚙️ Direct Permission Management</h3>
-                                    <p>Granular control over individual permissions with risk classification. View permissions by category, identify high-risk permissions, and manage both role-based and custom permissions with precision. Extra and Exclude buttons provide fine-grained control.</p>
+                                    <p>Granular control over individual permissions with risk classification. View
+                                        permissions by category, identify high-risk permissions, and manage both
+                                        role-based and custom permissions with precision. Extra and Exclude buttons
+                                        provide fine-grained control.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 3 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
@@ -620,11 +649,13 @@
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>👥 Clone User Permissions</h3>
-                                    <p>Quickly replicate permission sets from one user to another. Perfect for onboarding new team members with the same role. All roles and permissions are copied while preserving existing permissions.</p>
+                                    <p>Quickly replicate permission sets from one user to another. Perfect for
+                                        onboarding new team members with the same role. All roles and permissions are
+                                        copied while preserving existing permissions.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 4 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
@@ -633,37 +664,47 @@
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>🎯 Manage Roles Interface</h3>
-                                    <p>Intuitive role management dashboard showing all available roles and their permission counts. Toggle between all roles and assigned roles. Assign or remove roles with a single click. Real-time status updates show currently assigned roles.</p>
+                                    <p>Intuitive role management dashboard showing all available roles and their
+                                        permission counts. Toggle between all roles and assigned roles. Assign or remove
+                                        roles with a single click. Real-time status updates show currently assigned
+                                        roles.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 5 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
                                 <div class="rbac-slide-image-wrapper">
-                                    <img src="recent_perm.png" alt="Recent Permission Changes" class="d-block" loading="lazy">
+                                    <img src="recent_perm.png" alt="Recent Permission Changes" class="d-block"
+                                         loading="lazy">
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>📊 Recent Permission Changes</h3>
-                                    <p>Track all permission modifications with timestamps, action types, and who made the changes. Essential for audit trails and compliance. View the last 30 days of permission activities including role additions, grants, and removals.</p>
+                                    <p>Track all permission modifications with timestamps, action types, and who made
+                                        the changes. Essential for audit trails and compliance. View the last 30 days of
+                                        permission activities including role additions, grants, and removals.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 6 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
                                 <div class="rbac-slide-image-wrapper">
-                                    <img src="revoke_all.png" alt="Revoke All Permissions" class="d-block" loading="lazy">
+                                    <img src="revoke_all.png" alt="Revoke All Permissions" class="d-block"
+                                         loading="lazy">
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>🚫 Revoke All Permissions</h3>
-                                    <p>Safety-first permission revocation with confirmation dialogs. Clear summary shows exactly what will be removed including assigned roles and custom permissions. Includes important warnings and confirmation checkboxes to prevent accidental revocations.</p>
+                                    <p>Safety-first permission revocation with confirmation dialogs. Clear summary shows
+                                        exactly what will be removed including assigned roles and custom permissions.
+                                        Includes important warnings and confirmation checkboxes to prevent accidental
+                                        revocations.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 7 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
@@ -672,11 +713,13 @@
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>⚡ Bulk Role Assignment</h3>
-                                    <p>Assign multiple roles to a user simultaneously. Select from available roles and see your selections in real-time. Streamlines the onboarding process and reduces administrative overhead. Existing permissions are preserved.</p>
+                                    <p>Assign multiple roles to a user simultaneously. Select from available roles and
+                                        see your selections in real-time. Streamlines the onboarding process and reduces
+                                        administrative overhead. Existing permissions are preserved.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 8 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
@@ -685,11 +728,14 @@
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>👔 Manager View</h3>
-                                    <p>Comprehensive user overview showing pending permission requests, assigned roles, permission summary, and all individual permissions. Easy navigation with role badges, permission filtering by status (All, Granted, Denied, High-risk), and quick access to permission management.</p>
+                                    <p>Comprehensive user overview showing pending permission requests, assigned roles,
+                                        permission summary, and all individual permissions. Easy navigation with role
+                                        badges, permission filtering by status (All, Granted, Denied, High-risk), and
+                                        quick access to permission management.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Slide 9 -->
                         <div class="carousel-item">
                             <div class="rbac-slide-content">
@@ -698,36 +744,50 @@
                                 </div>
                                 <div class="rbac-slide-caption">
                                     <h3>📋 Permission Audit Log</h3>
-                                    <p>Complete audit trail of all permission changes with advanced filtering options. Search by target user, action type, performed by, and date range. Export to CSV or PDF for compliance reporting. Track who did what, when, and from which IP address.</p>
+                                    <p>Complete audit trail of all permission changes with advanced filtering options.
+                                        Search by target user, action type, performed by, and date range. Export to CSV
+                                        or PDF for compliance reporting. Track who did what, when, and from which IP
+                                        address.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Carousel Controls -->
-                    <button class="carousel-control-prev" type="button" data-bs-target="#rbacCarousel" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#rbacCarousel" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                    
+                    <a class="carousel-control-prev" href="#rbacCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon">
+                        <i class="fa fa-chevron-left" style="font-size:24px"></i>
+                        </span>
+                    </a>
+                    <a class="carousel-control-next" href="#rbacCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon">
+                        <i class="fa fa-chevron-right" style="font-size:24px"></i>
+                            </span>
+                    </a>
+
                     <!-- Indicators/Dots -->
                     <div class="carousel-indicators">
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="4" aria-label="Slide 5"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="5" aria-label="Slide 6"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="6" aria-label="Slide 7"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="7" aria-label="Slide 8"></button>
-                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="8" aria-label="Slide 9"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="0" class="active"
+                                aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="1"
+                                aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="2"
+                                aria-label="Slide 3"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="3"
+                                aria-label="Slide 4"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="4"
+                                aria-label="Slide 5"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="5"
+                                aria-label="Slide 6"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="6"
+                                aria-label="Slide 7"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="7"
+                                aria-label="Slide 8"></button>
+                        <button type="button" data-bs-target="#rbacCarousel" data-bs-slide-to="8"
+                                aria-label="Slide 9"></button>
                     </div>
                 </div>
-                
+
                 <!-- Thumbnails -->
                 <div class="rbac-thumbnails">
                     <div class="rbac-thumbnail active" data-bs-target="#rbacCarousel" data-bs-slide-to="0">
@@ -759,28 +819,34 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Benefits Section -->
             <div class="rbac-benefits-section">
                 <h2 class="rbac-section-title">Enterprise Benefits</h2>
-                
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="rbac-benefit-item">
                             <div class="rbac-benefit-icon">✓</div>
-                            <div class="rbac-benefit-text">Reduce user onboarding time by 90% with instant role assignment</div>
+                            <div class="rbac-benefit-text">Reduce user onboarding time by 90% with instant role
+                                assignment
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="rbac-benefit-item">
                             <div class="rbac-benefit-icon">✓</div>
-                            <div class="rbac-benefit-text">Eliminate manual permission errors across your entire user base</div>
+                            <div class="rbac-benefit-text">Eliminate manual permission errors across your entire user
+                                base
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="rbac-benefit-item">
                             <div class="rbac-benefit-icon">✓</div>
-                            <div class="rbac-benefit-text">Meet enterprise audit requirements with comprehensive access logs</div>
+                            <div class="rbac-benefit-text">Meet enterprise audit requirements with comprehensive access
+                                logs
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -792,70 +858,80 @@
                     <div class="col-md-6">
                         <div class="rbac-benefit-item">
                             <div class="rbac-benefit-icon">✓</div>
-                            <div class="rbac-benefit-text">Delegate safely—junior admins can't access Critical permissions</div>
+                            <div class="rbac-benefit-text">Delegate safely—junior admins can't access Critical
+                                permissions
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="rbac-benefit-item">
                             <div class="rbac-benefit-icon">✓</div>
-                            <div class="rbac-benefit-text">Streamline compliance for ISO 27001, SOC2, and GDPR requirements</div>
+                            <div class="rbac-benefit-text">Streamline compliance for ISO 27001, SOC2, and GDPR
+                                requirements
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="rbac-benefit-item">
                             <div class="rbac-benefit-icon">✓</div>
-                            <div class="rbac-benefit-text">Compatible with Odoo 16, 17, and 18 for seamless upgrades</div>
+                            <div class="rbac-benefit-text">Compatible with Odoo 16, 17, and 18 for seamless upgrades
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="rbac-benefit-item">
                             <div class="rbac-benefit-icon">✓</div>
-                            <div class="rbac-benefit-text">Multi-company support for complex organizational structures</div>
+                            <div class="rbac-benefit-text">Multi-company support for complex organizational structures
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Target Audience Section -->
             <div class="rbac-target-section">
                 <h2 class="rbac-section-title text-white">Perfect For</h2>
-                
+
                 <div class="row g-4">
                     <div class="col-md-4">
                         <div class="rbac-target-card">
                             <div class="rbac-target-icon">🏢</div>
                             <h3>Large Enterprises</h3>
-                            <p>Multi-company Odoo implementations requiring centralized governance and standardized access control</p>
+                            <p>Multi-company Odoo implementations requiring centralized governance and standardized
+                                access control</p>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-4">
                         <div class="rbac-target-card">
                             <div class="rbac-target-icon">🏥</div>
                             <h3>Regulated Industries</h3>
-                            <p>Organizations in finance, healthcare, education, and automotive requiring auditable access structures</p>
+                            <p>Organizations in finance, healthcare, education, and automotive requiring auditable
+                                access structures</p>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-4">
                         <div class="rbac-target-card">
                             <div class="rbac-target-icon">👥</div>
                             <h3>Odoo Consultants</h3>
-                            <p>Implementation partners seeking secure, standardized permission models for client deployments</p>
+                            <p>Implementation partners seeking secure, standardized permission models for client
+                                deployments</p>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Our Services Section -->
             <div class="my-5">
                 <h2 class="rbac-section-title">Our Services</h2>
-                
+
                 <div class="row g-4 mb-4">
                     <div class="col-md-6 col-lg-3">
                         <div class="rbac-service-card">
                             <div class="rbac-service-icon">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="3"></circle>
                                     <path d="M12 1v6m0 6v6m-5.2-5.2l4.2 4.2m6-6l-4.2 4.2m-10.8 0l4.2-4.2m6 6l4.2 4.2"></path>
                                 </svg>
@@ -863,11 +939,12 @@
                             <h3>Odoo Customization</h3>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-3">
                         <div class="rbac-service-card">
                             <div class="rbac-service-icon">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                                     <line x1="8" y1="21" x2="16" y2="21"></line>
                                     <line x1="12" y1="17" x2="12" y2="21"></line>
@@ -876,11 +953,12 @@
                             <h3>Odoo Implementation</h3>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-3">
                         <div class="rbac-service-card">
                             <div class="rbac-service-icon">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                                     <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
                                 </svg>
@@ -888,11 +966,12 @@
                             <h3>Odoo Integration</h3>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-3">
                         <div class="rbac-service-card">
                             <div class="rbac-service-icon">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="9" cy="7" r="4"></circle>
                                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -903,12 +982,13 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Contact CTA -->
                 <div class="rbac-contact-cta">
                     <p class="mb-3">Need help with any of these services? Our experts are ready to assist you.</p>
                     <a href="mailto:support@alhaditech.com" class="rbac-contact-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                             <polyline points="22,6 12,13 2,6"></polyline>
                         </svg>
@@ -916,7 +996,7 @@
                     </a>
                 </div>
             </div>
-            
+
         </div>
     </div>
 </section>
@@ -929,27 +1009,27 @@
 </footer>
 
 <!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>-->
 
-<script>
-    // Sync thumbnails with carousel
-    const thumbnails = document.querySelectorAll('.rbac-thumbnail');
-    const carousel = document.querySelector('#rbacCarousel');
-    
-    carousel.addEventListener('slide.bs.carousel', function (e) {
-        thumbnails.forEach((thumb, index) => {
-            thumb.classList.toggle('active', index === e.to);
-        });
-    });
-    
-    // Click thumbnails to navigate
-    thumbnails.forEach((thumb, index) => {
-        thumb.addEventListener('click', function() {
-            const bsCarousel = bootstrap.Carousel.getInstance(carousel);
-            bsCarousel.to(index);
-        });
-    });
-</script>
+<!--<script>-->
+<!--    // Sync thumbnails with carousel-->
+<!--    const thumbnails = document.querySelectorAll('.rbac-thumbnail');-->
+<!--    const carousel = document.querySelector('#rbacCarousel');-->
+
+<!--    carousel.addEventListener('slide.bs.carousel', function (e) {-->
+<!--        thumbnails.forEach((thumb, index) => {-->
+<!--            thumb.classList.toggle('active', index === e.to);-->
+<!--        });-->
+<!--    });-->
+
+<!--    // Click thumbnails to navigate-->
+<!--    thumbnails.forEach((thumb, index) => {-->
+<!--        thumb.addEventListener('click', function () {-->
+<!--            const bsCarousel = bootstrap.Carousel.getInstance(carousel);-->
+<!--            bsCarousel.to(index);-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
 
 </body>
 </html>
