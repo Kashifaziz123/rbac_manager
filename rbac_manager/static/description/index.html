@@ -93,107 +93,14 @@
             margin-bottom: 40px;
         }
 
-        /* Bootstrap Carousel Customization */
-        .rbac-carousel {
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .rbac-carousel .carousel-inner {
-            background-color: #f8fafc;
-        }
-
-        .rbac-carousel .carousel-item {
-            height: 700px;
-        }
-
-        .rbac-slide-content {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .rbac-slide-image-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            background-color: white;
-        }
-
-        .rbac-slide-image-wrapper img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        }
-
-        .rbac-slide-caption {
-            background-color: #5b4dd6;
-            color: white;
-            padding: 30px 40px;
-        }
-
-        .rbac-slide-caption h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .rbac-slide-caption p {
-            font-size: 1rem;
-            line-height: 1.6;
-            opacity: 0.95;
-            margin-bottom: 0;
-        }
-
         /* Carousel Controls */
-        .rbac-carousel .carousel-control-prev,
-        .rbac-carousel .carousel-control-next {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 50%;
-            top: 45%;
-            opacity: 1;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .rbac-carousel .carousel-control-prev {
-            left: 20px;
-        }
-
-        .rbac-carousel .carousel-control-next {
-            right: 20px;
-        }
-
         .rbac-carousel .carousel-control-prev:hover,
         .rbac-carousel .carousel-control-next:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .rbac-carousel .carousel-control-prev-icon,
-        .rbac-carousel .carousel-control-next-icon {
-            width: 30px;
-            height: 30px;
-            background-size: 100% 100%;
-            filter: invert(32%) sepia(85%) saturate(4145%) hue-rotate(239deg) brightness(92%) contrast(91%);
-        }
-
         /* Carousel Indicators */
-        .rbac-carousel .carousel-indicators {
-            position: relative;
-            margin: 0;
-            padding: 25px;
-            background-color: white;
-        }
-
         .rbac-carousel .carousel-indicators [data-bs-target] {
             width: 12px;
             height: 12px;
@@ -575,19 +482,25 @@
 
                 <!-- Bootstrap Carousel -->
                 <div id="rbacCarousel" class="carousel slide rbac-carousel" data-bs-ride="carousel"
-                     data-bs-interval="5000">
+                     data-bs-interval="5000"
+                     style="border-radius: 20px;overflow: hidden;box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);margin-bottom: 30px;">
                     <!-- Carousel Inner -->
-                    <div class="carousel-inner">
+                    <div class="carousel-inner" style="background-color: #f8fafc;">
                         <!-- Slide 1 -->
-                        <div class="carousel-item active">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
+                        <div class="carousel-item active" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
                                     <img src="super_admin_1.png" alt="Super Admin Controls" class="d-block"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>🔐 Super Admin Controls</h3>
-                                    <p>Powerful administrative controls including bulk operations, role cloning, and
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">🔐 Super Admin
+                                        Controls</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">Powerful
+                                        administrative controls including bulk operations, role cloning, and
                                         comprehensive permission management. Super admins can grant all permissions,
                                         revoke access, clone user permissions, and manage bulk role assignments with
                                         ease.</p>
@@ -596,15 +509,20 @@
                         </div>
 
                         <!-- Slide 2 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
                                     <img src="super_admin2.png" alt="Direct Permission Management" class="d-block"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>⚙️ Direct Permission Management</h3>
-                                    <p>Granular control over individual permissions with risk classification. View
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">⚙️ Direct
+                                        Permission Management</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">Granular
+                                        control over individual permissions with risk classification. View
                                         permissions by category, identify high-risk permissions, and manage both
                                         role-based and custom permissions with precision. Extra and Exclude buttons
                                         provide fine-grained control.</p>
@@ -613,14 +531,19 @@
                         </div>
 
                         <!-- Slide 3 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
-                                    <img src="clone.png" alt="Clone User Permissions" class="d-block" loading="lazy">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
+                                    <img src="clone.png" alt="Clone User Permissions" class="d-block" loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>👥 Clone User Permissions</h3>
-                                    <p>Quickly replicate permission sets from one user to another. Perfect for
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">👥 Clone User
+                                        Permissions</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">Quickly
+                                        replicate permission sets from one user to another. Perfect for
                                         onboarding new team members with the same role. All roles and permissions are
                                         copied while preserving existing permissions.</p>
                                 </div>
@@ -628,14 +551,19 @@
                         </div>
 
                         <!-- Slide 4 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
-                                    <img src="manage_role_manage.png" alt="Manage Roles" class="d-block" loading="lazy">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
+                                    <img src="manage_role_manage.png" alt="Manage Roles" class="d-block" loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>🎯 Manage Roles Interface</h3>
-                                    <p>Intuitive role management dashboard showing all available roles and their
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">🎯 Manage Roles
+                                        Interface</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">
+                                        Intuitive role management dashboard showing all available roles and their
                                         permission counts. Toggle between all roles and assigned roles. Assign or remove
                                         roles with a single click. Real-time status updates show currently assigned
                                         roles.</p>
@@ -644,15 +572,20 @@
                         </div>
 
                         <!-- Slide 5 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
                                     <img src="recent_perm.png" alt="Recent Permission Changes" class="d-block"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>📊 Recent Permission Changes</h3>
-                                    <p>Track all permission modifications with timestamps, action types, and who made
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">📊 Recent
+                                        Permission Changes</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">Track
+                                        all permission modifications with timestamps, action types, and who made
                                         the changes. Essential for audit trails and compliance. View the last 30 days of
                                         permission activities including role additions, grants, and removals.</p>
                                 </div>
@@ -660,15 +593,21 @@
                         </div>
 
                         <!-- Slide 6 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
                                     <img src="revoke_all.png" alt="Revoke All Permissions" class="d-block"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>🚫 Revoke All Permissions</h3>
-                                    <p>Safety-first permission revocation with confirmation dialogs. Clear summary shows
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">🚫 Revoke All
+                                        Permissions</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">
+                                        Safety-first permission revocation with confirmation dialogs. Clear summary
+                                        shows
                                         exactly what will be removed including assigned roles and custom permissions.
                                         Includes important warnings and confirmation checkboxes to prevent accidental
                                         revocations.</p>
@@ -677,14 +616,19 @@
                         </div>
 
                         <!-- Slide 7 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
-                                    <img src="bulk_role.png" alt="Bulk Role Assignment" class="d-block" loading="lazy">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
+                                    <img src="bulk_role.png" alt="Bulk Role Assignment" class="d-block" loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>⚡ Bulk Role Assignment</h3>
-                                    <p>Assign multiple roles to a user simultaneously. Select from available roles and
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">⚡ Bulk Role
+                                        Assignment</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">Assign
+                                        multiple roles to a user simultaneously. Select from available roles and
                                         see your selections in real-time. Streamlines the onboarding process and reduces
                                         administrative overhead. Existing permissions are preserved.</p>
                                 </div>
@@ -692,14 +636,19 @@
                         </div>
 
                         <!-- Slide 8 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
-                                    <img src="managerview.png" alt="Manager View" class="d-block" loading="lazy">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
+                                    <img src="managerview.png" alt="Manager View" class="d-block" loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>👔 Manager View</h3>
-                                    <p>Comprehensive user overview showing pending permission requests, assigned roles,
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">👔 Manager
+                                        View</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">
+                                        Comprehensive user overview showing pending permission requests, assigned roles,
                                         permission summary, and all individual permissions. Easy navigation with role
                                         badges, permission filtering by status (All, Granted, Denied, High-risk), and
                                         quick access to permission management.</p>
@@ -708,14 +657,19 @@
                         </div>
 
                         <!-- Slide 9 -->
-                        <div class="carousel-item">
-                            <div class="rbac-slide-content">
-                                <div class="rbac-slide-image-wrapper">
-                                    <img src="audit_log.png" alt="Audit Log" class="d-block" loading="lazy">
+                        <div class="carousel-item" style="height: 700px;">
+                            <div class="rbac-slide-content" style="height: 100%;display: flex;flex-direction: column;">
+                                <div class="rbac-slide-image-wrapper"
+                                     style="flex: 1;display: flex;align-items: center;justify-content: center;padding: 30px;background-color: white;">
+                                    <img src="audit_log.png" alt="Audit Log" class="d-block" loading="lazy"
+                                         style="max-width: 100%;max-height: 100%;object-fit: contain;border-radius: 12px;box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
                                 </div>
-                                <div class="rbac-slide-caption">
-                                    <h3>📋 Permission Audit Log</h3>
-                                    <p>Complete audit trail of all permission changes with advanced filtering options.
+                                <div class="rbac-slide-caption"
+                                     style="background-color: #5b4dd6;color: white;padding: 30px 40px;">
+                                    <h3 style="font-size: 1.5rem;font-weight: 700;margin-bottom: 12px;">📋 Permission
+                                        Audit Log</h3>
+                                    <p style="font-size: 1rem;line-height: 1.6;opacity: 0.95;margin-bottom: 0;">Complete
+                                        audit trail of all permission changes with advanced filtering options.
                                         Search by target user, action type, performed by, and date range. Export to CSV
                                         or PDF for compliance reporting. Track who did what, when, and from which IP
                                         address.</p>
@@ -725,20 +679,24 @@
                     </div>
 
                     <!-- Carousel Controls -->
-                    <a class="carousel-control-prev" href="#rbacCarousel" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon">
+                    <a class="carousel-control-prev" href="#rbacCarousel" data-bs-slide="prev" style="left: 20px;width: 60px;height: 60px;background-color: rgba(255, 255, 255, 0.95);border-radius: 50%;top: 45%;opacity: 1;box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);transition: all 0.3s ease;">
+                        <span class="carousel-control-prev-icon"
+                              style="width: 30px;height: 30px;background-size: 100% 100%;filter: invert(32%) sepia(85%) saturate(4145%) hue-rotate(239deg) brightness(92%) contrast(91%);">
                         <i class="fa fa-chevron-left" style="font-size:24px"></i>
                         </span>
                     </a>
-                    <a class="carousel-control-next" href="#rbacCarousel" data-bs-slide="next">
-                        <span class="carousel-control-next-icon">
+                    <a class="carousel-control-next" href="#rbacCarousel" data-bs-slide="next" style="right: 20px;width: 60px;height: 60px;background-color: rgba(255, 255, 255, 0.95);border-radius: 50%;top: 45%;opacity: 1;box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);transition: all 0.3s ease;">
+                        <span class="carousel-control-next-icon"
+                              style="width: 30px;height: 30px;background-size: 100% 100%;filter: invert(32%) sepia(85%) saturate(4145%) hue-rotate(239deg) brightness(92%) contrast(91%);">
                         <i class="fa fa-chevron-right" style="font-size:24px"></i>
                             </span>
                     </a>
 
                     <!-- Indicators/Dots -->
-                    <div class="carousel-indicators">
-                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></li>
+                    <div class="carousel-indicators"
+                         style="position: relative;margin: 0;padding: 25px;background-color: white;">
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="0" class="active" aria-current="true"
+                            aria-label="Slide 1"></li>
                         <li data-bs-target="#rbacCarousel" data-bs-slide-to="1" aria-label="Slide 2"></li>
                         <li data-bs-target="#rbacCarousel" data-bs-slide-to="2" aria-label="Slide 3"></li>
                         <li data-bs-target="#rbacCarousel" data-bs-slide-to="3" aria-label="Slide 4"></li>
@@ -751,42 +709,52 @@
                 </div>
 
                 <!-- Thumbnails -->
-                <div class="rbac-thumbnails" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));display: grid;gap: 15px;margin-top: 30px;">
+                <div class="rbac-thumbnails"
+                     style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));display: grid;gap: 15px;margin-top: 30px;">
                     <div class="rbac-thumbnail active" data-bs-target="#rbacCarousel" data-bs-slide-to="0"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="super_admin_1.png" alt="Super Admin" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="super_admin_1.png" alt="Super Admin" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="1"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="super_admin2.png" alt="Permission Management" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="super_admin2.png" alt="Permission Management" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="2"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="clone.png" alt="Clone User" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="clone.png" alt="Clone User" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="3"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="manage_role_manage.png" alt="Manage Roles" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="manage_role_manage.png" alt="Manage Roles" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="4"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="recent_perm.png" alt="Recent Changes" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="recent_perm.png" alt="Recent Changes" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="5"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="revoke_all.png" alt="Revoke All" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="revoke_all.png" alt="Revoke All" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="6"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="bulk_role.png" alt="Bulk Assignment" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="bulk_role.png" alt="Bulk Assignment" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="7"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="managerview.png" alt="Manager View" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="managerview.png" alt="Manager View" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                     <div class="rbac-thumbnail" data-bs-target="#rbacCarousel" data-bs-slide-to="8"
                          style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                        <img src="audit_log.png" alt="Audit Log" loading="lazy" style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
+                        <img src="audit_log.png" alt="Audit Log" loading="lazy"
+                             style="width: 100%;height: 100%;object-fit: contain;padding: 8px;">
                     </div>
                 </div>
             </div>
