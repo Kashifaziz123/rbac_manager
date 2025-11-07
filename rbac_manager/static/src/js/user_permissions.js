@@ -56,7 +56,7 @@ export class RBACUserPermissions extends Component {
 
     } catch (error) {
         console.error(error);
-        this.notification.add("Failed to open change password wizard", { type: "danger" });
+        this.notification.add(_t("Failed to open change password wizard"), { type: "danger" });
     }
 }
     async resetPassword() {
@@ -65,12 +65,12 @@ export class RBACUserPermissions extends Component {
 
     try {
         await this.orm.call("res.users", "action_reset_password", [[userId]]);
-        this.notification.add("Password reset instructions sent successfully", {
+        this.notification.add(_t("Password reset instructions sent successfully"), {
             type: "success",
         });
     } catch (error) {
         console.error(error);
-        this.notification.add("Failed to send password reset instructions", {
+        this.notification.add(_t("Failed to send password reset instructions"), {
             type: "danger",
         });
     }
@@ -90,13 +90,13 @@ export class RBACUserPermissions extends Component {
                 const result = await this.orm.call("res.users", "action_totp_disable", [[userId]]);
 
                 if (result !== false) {
-                    this.notification.add("Two-factor authentication disabled", { type: "success" });
+                    this.notification.add(_t("Two-factor authentication disabled"), { type: "success" });
                 } else {
-                    this.notification.add("Failed to disable 2FA", { type: "danger" });
+                    this.notification.add(_t("Failed to disable 2FA"), { type: "danger" });
                 }
             } catch (error) {
                 console.error(error);
-                this.notification.add("Error disabling 2FA", { type: "danger" });
+                this.notification.add(_t("Error disabling 2FA"), { type: "danger" });
             }
         },
     });
@@ -110,7 +110,7 @@ export class RBACUserPermissions extends Component {
         const result = await this.orm.read("res.users", [userId], ["partner_id"]);
         const partnerId = result?.[0]?.partner_id?.[0];
         if (!partnerId) {
-            this.notification.add("No linked partner found for this user️", { type: "warning" });
+            this.notification.add(_t("No linked partner found for this user"), { type: "warning" });
             return;
         }
 
@@ -121,7 +121,7 @@ export class RBACUserPermissions extends Component {
 
     } catch (error) {
         console.error(error);
-        this.notification.add("Failed to open Privacy Lookup", { type: "danger" });
+        this.notification.add(_t("Failed to open Privacy Lookup"), { type: "danger" });
     }
 }
     async archiveUser() {
@@ -137,14 +137,16 @@ export class RBACUserPermissions extends Component {
             try {
                 const result = await this.orm.call("res.users", "write", [[userId], { active: false }]);
                 if (result) {
-                    this.notification.add("User archived successfully", { type: "success" });
-                    window.location.href = "/odoo/user_permission/";
+                    this.notification.add(_t("User archived successfully"), { type: "success" });
+                    await this.action.doAction("rbac_manager.act_window_res_users_list_user_permission", {
+                        clearBreadcrumbs: true,
+                    });
                 } else {
-                    this.notification.add("Failed to archive user", { type: "danger" });
+                    this.notification.add(_t("Failed to archive user"), { type: "danger" });
                 }
             } catch (error) {
                 console.error(error);
-                this.notification.add("Error archiving user", { type: "danger" });
+                this.notification.add(_t("Error archiving user"), { type: "danger" });
             }
         },
         cancel: () => {},
@@ -164,14 +166,16 @@ export class RBACUserPermissions extends Component {
             try {
                 const result = await this.orm.call("res.users", "unlink", [[userId]]);
                 if (result) {
-                    this.notification.add("User deleted successfully️", { type: "success" });
-                    window.location.href = "/odoo/user_permission/";
+                    this.notification.add(_t("User deleted successfully️"), { type: "success" });
+                    await this.action.doAction("rbac_manager.act_window_res_users_list_user_permission", {
+                        clearBreadcrumbs: true,
+                    });
                 } else {
-                    this.notification.add("Failed to delete user", { type: "danger" });
+                    this.notification.add(_t("Failed to delete user"), { type: "danger" });
                 }
             } catch (error) {
                 console.error(error);
-                this.notification.add("Error deleting user", { type: "danger" });
+                this.notification.add(_t("Error deleting user"), { type: "danger" });
             }
         },
         cancel: () => {},
@@ -184,14 +188,14 @@ export class RBACUserPermissions extends Component {
     try {
         const newUserId = await this.orm.call("res.users", "copy", [[userId]]);
         if (newUserId) {
-            this.notification.add("User duplicated successfully", { type: "success" });
-            window.location.href = `/odoo/user_permission/${newUserId}`;
+            this.notification.add(_t("User duplicated successfully"), { type: "success" });
+            this.action.doAction("rbac_manager.act_window_res_users_list_user_permission", { clearBreadcrumbs: true, });
         } else {
-            this.notification.add("Failed to duplicate user", { type: "danger" });
+            this.notification.add(_t("Failed to duplicate user"), { type: "danger" });
         }
     } catch (error) {
         console.error(error);
-        this.notification.add("Error duplicating user", { type: "danger" });
+        this.notification.add(_t("Error duplicating user"), { type: "danger" });
     }
 }
     async request_permissions(){
@@ -302,12 +306,12 @@ export class RBACUserPermissions extends Component {
         confirm: async () => {
             try {
                 await this.orm.write("res.users", [userId], { image_1920: false });
-                this.notification.add("Profile image removed", { type: "success" });
+                this.notification.add(_t("Profile image removed"), { type: "success" });
                 await this.fetch_data();
                 this.render();
             } catch (error) {
                 console.error(error);
-                this.notification.add("Failed to remove image", { type: "danger" });
+                this.notification.add(_t("Failed to remove image"), { type: "danger" });
             }
         },
         cancel: () => {},
@@ -328,7 +332,7 @@ export class RBACUserPermissions extends Component {
         });
     } catch (error) {
         console.error("Error opening preferences:", error);
-        this.notification.add("Failed to open preferences.", { type: "danger" });
+        this.notification.add(_t("Failed to open preferences."), { type: "danger" });
     }
 }
 
@@ -350,12 +354,12 @@ export class RBACUserPermissions extends Component {
             const base64Data = e.target.result.split(",")[1];
             try {
                 await this.orm.write("res.users", [userId], { image_1920: base64Data });
-                this.notification.add("Profile image updated successfully", { type: "success" });
+                this.notification.add(_t("Profile image updated successfully"), { type: "success" });
                 await this.fetch_data();
                 this.render();
             } catch (error) {
                 console.error(error);
-                this.notification.add("Failed to upload image ❌", { type: "danger" });
+                this.notification.add(_t("Failed to upload image ❌"), { type: "danger" });
             }
         };
         reader.readAsDataURL(file);

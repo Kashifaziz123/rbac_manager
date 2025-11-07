@@ -94,7 +94,7 @@ export class RBACAudit extends Component {
     const to = new Date(this.to_date.value);
 
     if (to < from) {
-        this.notification.add("'Date To' cannot be earlier than 'Date From'.", { type: "danger" });
+        this.notification.add(_t("'Date To' cannot be earlier than 'Date From'."), { type: "danger" });
         this.to_date.value = this.from_date.value;
         return;
     }

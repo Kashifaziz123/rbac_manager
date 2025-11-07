@@ -45,7 +45,7 @@ class RbacModel(models.Model):
         return [{
             'create_date': [l.create_date.strftime('%Y-%m-%d'), l.create_date.strftime('%H:%M:%S')],
             'create_uid': [l.create_uid.name, l.create_uid.email, l.create_uid.id],
-            'user_uid': [l.user_uid.name or '', l.user_uid.email or '', l.user_uid.id if l.user_uid else ''],
+            'user_uid': [l.user_uid.name, l.user_uid.email, l.user_uid.id],
             'method': l.method or '',
             'ip_address': l.ip_address or '',
         } for l in logs]
