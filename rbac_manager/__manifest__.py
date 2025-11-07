@@ -15,7 +15,7 @@ Hassle-Free Setup - Intuitive interface that simplifies complex permission manag
 Perfect for: Organizations requiring strict access controls, compliance requirements, or managing large teams with diverse permission needs.
 Improve your ERP security. Hassle-free.""",
     "description": """Role-Based Access Control (RBAC) Manager""",
-    "version": "18.0.0.0.1",
+    "version": "17.0.0.0.1",
     "category": "Extra Tools",
     "author": "Alhaditech",
     "website": "alhaditech.com",
