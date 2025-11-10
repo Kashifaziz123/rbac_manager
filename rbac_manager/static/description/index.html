@@ -910,142 +910,70 @@
 
                     <!-- Indicators/Dots -->
                     <div class="carousel-indicators"
-                         style="position: relative; margin: 30px 0; text-align: center;">
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0 active"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="0"
-                                aria-current="true"
-                                aria-label="Super Admin"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="super_admin_1.png" alt="Super Admin" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="1"
-                                aria-label="Permission Management"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="super_admin2.png" alt="Permission Management" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="2"
-                                aria-label="Clone User"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="clone.png" alt="Clone User" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="3"
-                                aria-label="Manage Roles"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="manage_role_manage.png" alt="Manage Roles" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="4"
-                                aria-label="Recent Changes"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="recent_perm.png" alt="Recent Changes" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="5"
-                                aria-label="Revoke All"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="revoke_all.png" alt="Revoke All" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="6"
-                                aria-label="Bulk Assignment"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="bulk_role.png" alt="Bulk Assignment" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="7"
-                                aria-label="Manager View"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="managerview.png" alt="Manager View" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
-                        <li type="button"
-                                class="rbac-thumbnail oe_row_tab border-0"
-                                data-bs-target="#rbacCarousel"
-                                data-bs-slide-to="8"
-                                aria-label="Audit Log"
-                                style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
-                            <img src="audit_log.png" alt="Audit Log" loading="lazy"
-                                 style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </li>
+                         style="position: relative;margin: 0;padding: 25px;">
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="0" class="active" aria-current="true"
+                            aria-label="Slide 1"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="1" aria-label="Slide 2"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="2" aria-label="Slide 3"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="3" aria-label="Slide 4"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="4" aria-label="Slide 5"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="5" aria-label="Slide 6"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="6" aria-label="Slide 7"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="7" aria-label="Slide 8"></li>
+                        <li data-bs-target="#rbacCarousel" data-bs-slide-to="8" aria-label="Slide 9"></li>
                     </div>
                 </div>
 
-<!--                &lt;!&ndash; Thumbnails &ndash;&gt;-->
-<!--                <div class="rbac-thumbnails"-->
-<!--                     style="text-align: center; margin: 30px 0;">-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0 active" data-bs-target="#rbacCarousel"-->
-<!--                         data-bs-slide-to="0"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="super_admin_1.png" alt="Super Admin" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="1"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="super_admin2.png" alt="Permission Management" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="2"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="clone.png" alt="Clone User" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="3"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="manage_role_manage.png" alt="Manage Roles" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="4"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="recent_perm.png" alt="Recent Changes" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="5"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="revoke_all.png" alt="Revoke All" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="6"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="bulk_role.png" alt="Bulk Assignment" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="7"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="managerview.png" alt="Manager View" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="8"-->
-<!--                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">-->
-<!--                        <img src="audit_log.png" alt="Audit Log" loading="lazy"-->
-<!--                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">-->
-<!--                    </div>-->
-<!--                </div>-->
+                <!-- Thumbnails -->
+                <div class="rbac-thumbnails"
+                     style="text-align: center; margin: 30px 0;">
+                    <div class="rbac-thumbnail oe_row_tab border-0 active" data-bs-target="#rbacCarousel"
+                         data-bs-slide-to="0"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="super_admin_1.png" alt="Super Admin" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="1"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="super_admin2.png" alt="Permission Management" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="2"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="clone.png" alt="Clone User" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="3"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="manage_role_manage.png" alt="Manage Roles" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="4"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="recent_perm.png" alt="Recent Changes" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="5"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="revoke_all.png" alt="Revoke All" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="6"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="bulk_role.png" alt="Bulk Assignment" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="7"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="managerview.png" alt="Manager View" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                    <div class="rbac-thumbnail oe_row_tab border-0" data-bs-target="#rbacCarousel" data-bs-slide-to="8"
+                         style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%; cursor: pointer;">
+                        <img src="audit_log.png" alt="Audit Log" loading="lazy"
+                             style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
+                    </div>
+                </div>
             </div>
 
             <!-- Benefits Section -->
