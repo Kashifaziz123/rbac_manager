@@ -22,6 +22,8 @@
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet">
+    <!-- Bootstrap 5 CSS cdn -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -295,7 +297,7 @@
                     <!-- Critical Risk Level -->
                     <div class="col-md-6 col-lg-4">
                         <div class="oe_row_tab border-0"
-                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;">
+                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;height: 100%;">
                             <span class="risk-badge-large critical"
                                   style="display: inline-block;padding: 8px 16px;border-radius: 8px;font-weight: 700;font-size: 0.85rem;text-transform: uppercase;letter-spacing: 0.5px;margin-bottom: 15px;background-color: #fee2e2;color: #dc2626;">⚠️ Critical</span>
                             <h3 style="color: #1e293b;font-size: 1.4rem;font-weight: 700;margin-bottom: 12px;">Protected
@@ -330,7 +332,7 @@
                     <!-- High Risk Level -->
                     <div class="col-md-6 col-lg-4">
                         <div class="oe_row_tab border-0"
-                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;">
+                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;height: 100%;">
                         <span class="risk-badge-large high"
                               style="display: inline-block;padding: 8px 16px;border-radius: 8px;font-weight: 700;font-size: 0.85rem;text-transform: uppercase;letter-spacing: 0.5px;margin-bottom: 15px;background-color: #ffedd5;color: #ea580c;">🔴 High Risk</span>
                             <h3 style="color: #1e293b;font-size: 1.4rem;font-weight: 700;margin-bottom: 12px;">Sensitive
@@ -364,7 +366,7 @@
                     <!-- Medium Risk Level -->
                     <div class="col-md-6 col-lg-4">
                         <div class="oe_row_tab border-0"
-                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;">
+                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;height: 100%;">
                         <span class="risk-badge-large medium"
                               style="display: inline-block;padding: 8px 16px;border-radius: 8px;font-weight: 700;font-size: 0.85rem;text-transform: uppercase;letter-spacing: 0.5px;margin-bottom: 15px;background-color: #fef3c7;color: #ca8a04;">🟡 Medium Risk</span>
                             <h3 style="color: #1e293b;font-size: 1.4rem;font-weight: 700;margin-bottom: 12px;">Standard
@@ -397,7 +399,7 @@
                     <!-- Low Risk Level -->
                     <div class="col-md-6 col-lg-4">
                         <div class="oe_row_tab border-0"
-                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;">
+                             style="background-color: rgba(255, 255, 255, 0.95);border-radius: 16px;padding: 30px;transition: all 0.3s ease;position: relative;overflow: hidden;height: 100%;">
                         <span class="risk-badge-large low"
                               style="display: inline-block;padding: 8px 16px;border-radius: 8px;font-weight: 700;font-size: 0.85rem;text-transform: uppercase;letter-spacing: 0.5px;margin-bottom: 15px;background-color: #dcfce7;color: #16a34a;">🟢 Low Risk</span>
                             <h3 style="color: #1e293b;font-size: 1.4rem;font-weight: 700;margin-bottom: 12px;">Routine
@@ -911,7 +913,7 @@
                     <!-- Indicators/Dots -->
                     <div class="carousel-indicators"
                          style="position: relative; margin: 30px 0; text-align: center;">
-                        <button type="button"
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0 active"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="0"
@@ -920,8 +922,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="super_admin_1.png" alt="Super Admin" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="1"
@@ -929,8 +931,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="super_admin2.png" alt="Permission Management" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="2"
@@ -938,8 +940,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="clone.png" alt="Clone User" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="3"
@@ -947,8 +949,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="manage_role_manage.png" alt="Manage Roles" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="4"
@@ -956,8 +958,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="recent_perm.png" alt="Recent Changes" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="5"
@@ -965,8 +967,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="revoke_all.png" alt="Revoke All" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="6"
@@ -974,8 +976,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="bulk_role.png" alt="Bulk Assignment" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="7"
@@ -983,8 +985,8 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="managerview.png" alt="Manager View" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
-                        <button type="button"
+                        </li>
+                        <li type="button"
                                 class="rbac-thumbnail oe_row_tab border-0"
                                 data-bs-target="#rbacCarousel"
                                 data-bs-slide-to="8"
@@ -992,7 +994,7 @@
                                 style="aspect-ratio: 16/10;border-radius: 12px;overflow: hidden;cursor: pointer;border: 3px solid transparent;transition: all 0.3s ease;background-color: white;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);display: inline-block;width: 10%;">
                             <img src="audit_log.png" alt="Audit Log" loading="lazy"
                                  style="width: 100%;padding: 8px;max-width: 100%;border: 1px solid #ddd;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);min-height: 100%;height: 70px !important;object-fit: fill !important;">
-                        </button>
+                        </li>
                     </div>
                 </div>
 
@@ -1283,7 +1285,8 @@
             solutions.</p>
     </div>
 </footer>
-
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Sync thumbnails with carousel
     const thumbnails = document.querySelectorAll('.rbac-thumbnail');
