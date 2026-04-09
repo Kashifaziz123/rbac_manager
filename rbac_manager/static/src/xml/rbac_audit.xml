@@ -33,59 +33,63 @@
                     </div>
 
                     <div class="filters-bar">
-                        <div class="filter-group">
+                        <!-- Row 1: Search -->
+                        <div class="filter-group filter-search">
                             <label class="filter-label">Search</label>
                             <input type="text"
                                    class="filter-input"
                                    placeholder="Search users, permissions..."
                                    t-on-input="onSearchChange"/>
                         </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Target User</label>
-                            <select class="filter-select" t-ref="userSelect" t-on-change="onUserFilterChange">
-                                <option value="">All Users</option>
-                                <t t-foreach="this.data?.users || []" t-as="user" t-key="user.id">
-                                    <option t-att-value="user.id">
-                                        <t t-esc="user.name"/>
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Action Type</label>
-                            <select class="filter-select" t-on-change="onActionFilterChange">
-                                <option value="">All Actions</option>
-                                <t t-foreach="this.data?.actions_list || []" t-as="action" t-key="action">
-                                    <option t-att-value="action">
-                                        <t t-esc="action"/>
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Performed By</label>
-                            <select class="filter-select" t-on-change="onAdminFilterChange">
-                                <option value="">All Admins</option>
-                                <t t-foreach="this.data?.admins || []" t-as="admin" t-key="admin.id">
-                                    <option t-att-value="admin.id">
-                                        <t t-esc="admin.name"/>
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Date From</label>
-                            <input type="date"
-                                   class="filter-input"
-                                   t-model="from_date.value"
-                                   t-on-change="onDateChange"/>
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Date To</label>
-                            <input type="date"
-                                   class="filter-input"
-                                   t-model="to_date.value"
-                                   t-on-change="onDateChange"/>
+                        <!-- Row 2: Dropdowns + Date pickers -->
+                        <div class="filters-row">
+                            <div class="filter-group">
+                                <label class="filter-label">Target User</label>
+                                <select class="filter-select" t-ref="userSelect" t-on-change="onUserFilterChange">
+                                    <option value="">All Users</option>
+                                    <t t-foreach="this.data?.users || []" t-as="user" t-key="user.id">
+                                        <option t-att-value="user.id">
+                                            <t t-esc="user.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Action Type</label>
+                                <select class="filter-select" t-on-change="onActionFilterChange">
+                                    <option value="">All Actions</option>
+                                    <t t-foreach="this.data?.actions_list || []" t-as="action" t-key="action">
+                                        <option t-att-value="action">
+                                            <t t-esc="action"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Performed By</label>
+                                <select class="filter-select" t-on-change="onAdminFilterChange">
+                                    <option value="">All Admins</option>
+                                    <t t-foreach="this.data?.admins || []" t-as="admin" t-key="admin.id">
+                                        <option t-att-value="admin.id">
+                                            <t t-esc="admin.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Date From</label>
+                                <input type="date"
+                                       class="filter-input"
+                                       t-model="from_date.value"
+                                       t-on-change="onDateChange"/>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Date To</label>
+                                <input type="date"
+                                       class="filter-input"
+                                       t-model="to_date.value"
+                                       t-on-change="onDateChange"/>
+                            </div>
                         </div>
                     </div>
 

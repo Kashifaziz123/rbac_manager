@@ -198,6 +198,7 @@ body.o_web_client div.o_action_manager div.role_template * {
 
 .role_template .expand-icon {
     transition: transform 0.2s;
+    cursor: pointer;
 }
 
 .role_template .category-header.closed .expand-icon {

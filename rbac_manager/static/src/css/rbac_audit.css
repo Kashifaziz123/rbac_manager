@@ -249,10 +249,26 @@ body.o_web_client div.o_action_manager div.rbac_audit * {
 }
 
 .rbac_audit .filters-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     margin-bottom: 24px;
+}
+
+/* Row 1: search input full-width */
+.rbac_audit .filter-group.filter-search {
+    width: 100%;
+}
+
+.rbac_audit .filter-group.filter-search .filter-input {
+    width: 100%;
+}
+
+/* Row 2: all dropdown/date filters side-by-side */
+.rbac_audit .filters-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
 }
 
 .rbac_audit .filter-group {

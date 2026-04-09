@@ -5,8 +5,9 @@ from odoo import api, fields, models, exceptions, _
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
-    perm_groups_id = fields.Many2many('res.groups', 'res_groups_users_rel', 'uid', 'gid',
-                                      string='Groups ', default=lambda s: s._default_groups())
+    # NOTE: group_ids (formerly groups_id) is already defined in Odoo 19 core.
+    # We do NOT redefine it here to avoid conflicts with the same relation table.
+
     is_user_role = fields.Boolean(string='User Role', default=False)
     description = fields.Char(string='Description')
 
@@ -45,5 +46,5 @@ class ResUsers(models.Model):
         records = super().create(vals_list)
         if self._context.get('default_name', '') == 'New User Role':
             for record in records:
-                record.groups_id = default_user.sudo().groups_id if default_user else [(5, 0, 0)]
+                record.group_ids = default_user.sudo().group_ids if default_user else [(5, 0, 0)]
         return records

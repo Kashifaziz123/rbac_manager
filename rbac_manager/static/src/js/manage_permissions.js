@@ -169,6 +169,19 @@ export class RBACManagePermissions extends Component {
 
     async submitRecord() {
         let values = Object.fromEntries(new FormData($('form')[0]));
+
+        // Validate that a permission has been selected
+        if (!values['group_id'] || values['group_id'].trim() === '') {
+            this.notification.add(_t("Please select a permission before submitting."), {sticky: false, type: "warning"});
+            return;
+        }
+
+        // Validate that a request type is selected
+        if (!values['type'] || values['type'].trim() === '') {
+            this.notification.add(_t("Please select a request type (Grant or Deny)."), {sticky: false, type: "warning"});
+            return;
+        }
+
         values['user_id'] = this.record_id;
         values = JSON.stringify(values);
         let record = await this.orm.call("request.rbac.permission", 'submit_manage_permission_record', [], {values});
@@ -176,8 +189,11 @@ export class RBACManagePermissions extends Component {
             this.notification.add(record.message, {sticky: false, type: "danger"});
             await this.fetch_data();
             this.reset_data();
-        } else
+        } else {
             this.notification.add(record.message, {sticky: false, type: "info"});
+            await this.fetch_data();
+            this.reset_data();
+        }
     }
 
 }

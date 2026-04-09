@@ -36,14 +36,17 @@ export class RBACSuperAdmin extends Component {
             () => [this.data, this.custom_props.changed_data]
         );
 
+        this._auditTotalCount = 0;
+        this._auditLoaded = 0;
+
         onWillStart(async () => {
             await this.fetch_data();
             await ensureJQuery();
-            // loadCSS('/rbac_manager/static/src/css/rbac_super_admin.css');
         });
 
         onMounted(() => {
             this.enabled_inputs_length();
+            this.loadAuditLogs();
         });
     }
 
@@ -450,6 +453,11 @@ export class RBACSuperAdmin extends Component {
         risk_filter.find('.filter-tab').removeClass('active');
         risk_filter.find('.filter-tab.all').addClass('active');
         this.render();
+        // Refresh audit log after every user action (jQuery + DOM are ready here)
+        this._auditTotalCount = 0;
+        this._auditLoaded = 0;
+        this._auditRecords = [];
+        this.loadAuditLogs();
     }
 
     //
@@ -470,6 +478,90 @@ export class RBACSuperAdmin extends Component {
         this.custom_props.original_data = JSON.parse(JSON.stringify(this.data || {}));
         this.custom_props.changed_data = JSON.parse(JSON.stringify(this.custom_props.original_data));
         this.total_counts();
+        // NOTE: do NOT call loadAuditLogs() here — fetch_data runs during onWillStart
+        // before jQuery and the DOM are ready. loadAuditLogs is called from onMounted
+        // (initial load) and reset_data (after every action).
+    }
+
+    async loadAuditLogs(showAll = false) {
+        try {
+            const offset = showAll ? this._auditLoaded : 0;
+            const limit = 10;
+
+            const resp = await this.orm.call("rbac.model", "get_recent_audit_changes", [
+                this.record_id, limit, offset,
+            ]);
+
+            if (resp.error) {
+                $("#audit_logs_container").html('<div class="text-danger">Failed to load changes.</div>');
+                return;
+            }
+
+            this._auditTotalCount = resp.total_count || 0;
+
+            if (showAll) {
+                this._auditLoaded += (resp.records || []).length;
+                // append new records — re-render full list from accumulated data
+                this._auditRecords = [...(this._auditRecords || []), ...(resp.records || [])];
+            } else {
+                this._auditLoaded = (resp.records || []).length;
+                this._auditRecords = resp.records || [];
+            }
+
+            const records = this._auditRecords;
+            const container = $("#audit_logs_container");
+
+            if (!records.length) {
+                container.html('<div class="no-data text-muted">No permission changes in the last 30 days.</div>');
+                return;
+            }
+
+            const renderChange = (c) => `
+                <div class="change-item ${c.indicator}">
+                    <div class="change-indicator ${c.indicator}">
+                        ${c.indicator === 'added' ? '✓' : c.indicator === 'removed' ? '✕' : c.indicator === 'modified' ? '✎' : '•'}
+                    </div>
+                    <div class="change-content">
+                        <div class="change-title">
+                            <span class="change-badge badge-${c.indicator}">${c.action}</span>
+                            ${c.details || ''}
+                        </div>
+                        <div class="change-meta">
+                            🕐 ${c.timestamp} • ${c.ago} • by ${c.performed_by}
+                        </div>
+                    </div>
+                </div>`;
+
+            let html = records.map(renderChange).join('');
+
+            if (this._auditLoaded < this._auditTotalCount) {
+                html += `<div class="view-all-link"><a id="toggle_audit_logs" href="#">Show more (${this._auditLoaded}/${this._auditTotalCount}) →</a></div>`;
+            } else if (records.length > 10) {
+                html += `<div class="view-all-link"><a id="toggle_audit_logs_less" href="#">← Show less</a></div>`;
+            } else {
+                html += `<div class="view-all-link text-muted">All records loaded.</div>`;
+            }
+
+            container.html(html);
+
+            container.off("click", "#toggle_audit_logs");
+            container.on("click", "#toggle_audit_logs", (ev) => {
+                ev.preventDefault();
+                this.loadAuditLogs(true);
+            });
+            container.off("click", "#toggle_audit_logs_less");
+            container.on("click", "#toggle_audit_logs_less", (ev) => {
+                ev.preventDefault();
+                // Reset to first page
+                this._auditTotalCount = 0;
+                this._auditLoaded = 0;
+                this._auditRecords = [];
+                this.loadAuditLogs(false);
+            });
+        } catch (err) {
+            console.error("Audit log fetch failed:", err);
+            $("#audit_logs_container").html('<div class="text-danger">Failed to load changes.</div>');
+        }
     }
 
     getInitials(text) {
@@ -507,13 +599,45 @@ export class RBACSuperAdmin extends Component {
             return result;
         }
 
+        /**
+         * Odoo 19 removed the dynamic in_group_X / sel_groups_X_Y_Z fields on res.users.
+         * Convert them to group_ids Many2many commands instead.
+         */
+        function convertToGroupIdCommands(changedValues) {
+            const commands = [];
+            for (const [fieldName, value] of Object.entries(changedValues)) {
+                if (fieldName.startsWith('in_group_')) {
+                    const groupId = parseInt(fieldName.replace('in_group_', ''), 10);
+                    if (value) {
+                        commands.push([4, groupId]);  // link
+                    } else {
+                        commands.push([3, groupId]);  // unlink
+                    }
+                } else if (fieldName.startsWith('sel_groups_')) {
+                    const ids = fieldName.replace('sel_groups_', '').split('_').map(Number);
+                    // Unlink every group in the selection set
+                    for (const id of ids) {
+                        commands.push([3, id]);
+                    }
+                    // Link the chosen group (if any)
+                    if (value) {
+                        commands.push([4, parseInt(value, 10)]);
+                    }
+                }
+            }
+            return commands;
+        }
+
         this.dialogService.add(ConfirmationDialog, {
             body: _t("Are you sure that you save the changes ?"),
             cancelLabel: _t("No"),
             confirmLabel: _t("Yes"),
             confirm: async () => {
                 const changedValues = getChangedValues(this.custom_props.original_data.all_categories, this.custom_props.changed_data.all_categories);
-                await this.orm.write("res.users", [this.record_id], changedValues);
+                const groupIdCommands = convertToGroupIdCommands(changedValues);
+                if (groupIdCommands.length > 0) {
+                    await this.orm.write("res.users", [this.record_id], {group_ids: groupIdCommands});
+                }
                 await this.fetch_data();
                 this.reset_data();
             },

@@ -18,14 +18,14 @@
 
         <!--        Inherit       -->
         <record id="base.menu_custom" model="ir.ui.menu">
-            <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
         </record>
         <record id="base.menu_administration" model="ir.ui.menu">
-<!--            <field name="groups_id" eval="[(6,0, [ref('rbac_manager.permission_group_admin')])]"/>-->
-            <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
+<!--            <field name="group_ids" eval="[(6,0, [ref('rbac_manager.permission_group_admin')])]"/>-->
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
         </record>
         <record id="base.menu_action_res_users" model="ir.ui.menu">
-            <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
             <field name="name">Users</field>
         </record>
 <!--        <record id="base.menu_action_res_users" model="ir.ui.menu">-->

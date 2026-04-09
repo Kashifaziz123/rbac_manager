@@ -27,12 +27,14 @@
                     </div>
 
                     <div class="risk-filter">
-                        <div class="risk-badge low" t-on-click="(ev) => this.toggle_risk_level(ev.target)">Low Risk
+                        <div t-att-class="'risk-badge low' + (this.is_risk_active('low') ? ' active' : '')"
+                             t-on-click="() => this.toggle_risk_level('low')">Low Risk
                         </div>
-                        <div class="risk-badge medium" t-on-click="(ev) => this.toggle_risk_level(ev.target)">Medium
-                            Risk
+                        <div t-att-class="'risk-badge medium' + (this.is_risk_active('medium') ? ' active' : '')"
+                             t-on-click="() => this.toggle_risk_level('medium')">Medium Risk
                         </div>
-                        <div class="risk-badge high" t-on-click="(ev) => this.toggle_risk_level(ev.target)">High Risk
+                        <div t-att-class="'risk-badge high' + (this.is_risk_active('high') ? ' active' : '')"
+                             t-on-click="() => this.toggle_risk_level('high')">High Risk
                         </div>
                     </div>
                 </div>
@@ -43,11 +45,10 @@
                     <div>Permission</div>
                     <div>Risk Level</div>
                     <div>Enabled</div>
-                    <!--                    <div>Actions</div>-->
                 </div>
 
                 <div class="permissions-grids">
-                    <t t-foreach="categories" t-as="category" t-key="category">
+                    <t t-foreach="this.categories" t-as="category" t-key="category">
                         <div class="category-section">
                             <div class="category-header" t-on-click="(ev) => this.toggle_category_section(ev.target)">
                                 <div class="category-info">
@@ -60,7 +61,7 @@
                                 </div>
                                 <div class="category-stats">
                                     <span>
-                                        <t t-esc="Object.keys(categories[category]).length"/>
+                                        <t t-esc="Object.keys(this.categories[category]).length"/>
                                         permissions
                                     </span>
                                     <span>
@@ -80,49 +81,39 @@
                                     <span class="expand-icon">▼</span>
                                 </div>
                             </div>
-                            <t t-foreach="categories[category]" t-as="field" t-key="field">
-                                <t t-if="categories[category][field]['group']">
+                            <t t-foreach="this.categories[category]" t-as="field" t-key="field">
+                                <t t-if="this.categories[category][field]['group']">
                                     <div class="permission-item">
                                         <div class="permission-info">
                                             <h4>
-                                                <t t-esc="categories[category][field]['group']['name']"/>
+                                                <t t-esc="this.categories[category][field]['group']['name']"/>
                                             </h4>
-                                            <!--                                            <div class="permission-description">Basic teacher access to academic modules-->
-                                            <!--                                            </div>-->
                                         </div>
-                                        <div t-att-class="'risk-badge ' +  categories[category][field]['group']['risk_level']">
-                                            <t t-esc="categories[category][field]['group']['risk_level']"/>
+                                        <div t-att-class="'risk-badge ' + this.categories[category][field]['group']['risk_level']">
+                                            <t t-esc="this.categories[category][field]['group']['risk_level']"/>
                                         </div>
                                         <div>
                                             <label class="toggle-switch">
                                                 <input type="checkbox"
                                                        t-att-name="field"
-                                                       t-att-checked="categories[category][field]['value']"
+                                                       t-att-checked="this.getFieldValue(field, this.categories[category][field]) ? 'checked' : undefined"
                                                        t-on-change="(ev) => this.update_values(ev.target)"
                                                 />
                                                 <span class="slider"/>
                                             </label>
                                         </div>
-                                        <!--                                        <div>-->
-                                        <!--                                            <button class="btn btn-secondary"-->
-                                        <!--                                                    style="padding: 6px 12px; font-size: 12px;">-->
-                                        <!--                                                Configure-->
-                                        <!--                                            </button>-->
-                                        <!--                                        </div>-->
                                     </div>
                                 </t>
                                 <t t-else="">
-                                    <t t-foreach="categories[category][field]['groups']" t-as="group"
+                                    <t t-foreach="this.categories[category][field]['groups']" t-as="group"
                                        t-key="group.id">
                                         <div class="permission-item">
                                             <div class="permission-info">
                                                 <h4>
                                                     <t t-esc="group.name"/>
                                                 </h4>
-                                                <!--                                            <div class="permission-description">Basic teacher access to academic modules-->
-                                                <!--                                            </div>-->
                                             </div>
-                                            <div t-att-class="'risk-badge ' +  group.risk_level">
+                                            <div t-att-class="'risk-badge ' + group.risk_level">
                                                 <t t-esc="group.risk_level"/>
                                             </div>
                                             <div>
@@ -130,18 +121,12 @@
                                                     <input type="radio"
                                                            t-att-name="field"
                                                            t-att-value="group.id"
-                                                           t-att-checked="group.id === categories[category][field]['value'] ? 'checked' : undefined"
+                                                           t-att-checked="group.id === this.getFieldValue(field, this.categories[category][field]) ? 'checked' : undefined"
                                                            t-on-change="(ev) => this.update_values(ev.target)"
                                                     />
                                                     <span class="slider"/>
                                                 </label>
                                             </div>
-                                            <!--                                            <div>-->
-                                            <!--                                                <button class="btn btn-secondary"-->
-                                            <!--                                                        style="padding: 6px 12px; font-size: 12px;">-->
-                                            <!--                                                    Configure-->
-                                            <!--                                                </button>-->
-                                            <!--                                            </div>-->
                                         </div>
                                     </t>
                                 </t>
@@ -154,12 +139,19 @@
 
             <div class="actions">
                 <div class="pagination">
-                    <span>Showing 1-20 of 45 permissions</span>
-                    <button class="page-btn">← Previous</button>
-                    <button class="page-btn active">1</button>
-                    <button class="page-btn">2</button>
-                    <button class="page-btn">3</button>
-                    <button class="page-btn">Next →</button>
+                    <span>Showing <t t-esc="this.paginationStart"/>–<t t-esc="this.paginationEnd"/> of <t t-esc="this.pageInfo.total"/> permissions</span>
+                    <button class="page-btn"
+                            t-att-disabled="this.filterState.currentPage &lt;= 1 ? 'disabled' : undefined"
+                            t-on-click="prevPage">← Previous</button>
+                    <t t-foreach="this.getPageNumbers()" t-as="page" t-key="page">
+                        <button t-att-class="'page-btn' + (page === this.filterState.currentPage ? ' active' : '')"
+                                t-on-click="() => this.goToPage(page)">
+                            <t t-esc="page"/>
+                        </button>
+                    </t>
+                    <button class="page-btn"
+                            t-att-disabled="this.filterState.currentPage >= this.pageInfo.totalPages ? 'disabled' : undefined"
+                            t-on-click="nextPage">Next →</button>
                 </div>
 
                 <div style="display: flex; gap: 12px;">

@@ -236,7 +236,7 @@ export class RBACAudit extends Component {
                             </div>`
 
         const groups_id = data_json.line_ids
-            .filter(c => c.field_name === 'groups_id')
+            .filter(c => c.field_name === 'group_ids')
             .filter((item, index, self) =>
                 index === self.findIndex(t => JSON.stringify(t) === JSON.stringify(item))
             );

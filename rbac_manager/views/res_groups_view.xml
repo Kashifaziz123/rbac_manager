@@ -8,7 +8,7 @@
             <field name="name" position="after">
                 <field name="risk_level"/>
                 <field name="description"/>
-                <field name="inverse_implied_ids" widget="many2many_tags"/>
+                <field name="implied_by_ids" widget="many2many_tags"/>
             </field>
         </field>
     </record>
