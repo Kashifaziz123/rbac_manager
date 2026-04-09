@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <menuitem id="menu_user_roles" name="User Roles" parent="base.menu_users"
-                  action="rbac_manager.act_window_res_users_list_user_role" groups="base.group_system"/>
-        <menuitem id="menu_user_permissions" name="User Permissions" parent="base.menu_users"
-                  action="rbac_manager.act_window_res_users_list_user_permission" groups="base.group_system"/>
-        <menuitem id="menu_super_admin" name="Super Admin" parent="base.menu_users"
-                  action="rbac_manager.act_window_res_users_list_super_admin" groups="base.group_system"/>
-        <menuitem id="menu_request_rbac_permission" name="Permission Requests" parent="base.menu_users"
-                  action="rbac_manager.request_rbac_permission_act_window" groups="base.group_system"/>
-        <menuitem id="menu_rbac_audit" name="rbac.audit" parent="base.menu_users"
-                  action="rbac_manager.rbac_audit_act_window" groups="base.group_system"/>
-        <menuitem id="menu_rbac_line_audit" name="rbac.audit.line" parent="base.menu_users"
-                  action="rbac_manager.rbac_audit_line_act_window" groups="base.group_system"/>
-        <menuitem id="menu_client_action_rbac_audit" name="Rbac Audit" parent="base.menu_users"
-                  action="rbac_manager.view_audit_client_rbac_audit" groups="base.group_system"/>
+        <!-- Root RBAC menu -->
+        <menuitem id="menu_rbac_root" name="RBAC" sequence="100" groups="base.group_system"/>
+
+        <!-- RBAC sub-menus under root -->
+        <menuitem id="menu_user_roles" name="User Roles" parent="rbac_manager.menu_rbac_root"
+                  action="rbac_manager.act_window_res_users_list_user_role" sequence="10" groups="base.group_system"/>
+        <menuitem id="menu_user_permissions" name="User Permissions" parent="rbac_manager.menu_rbac_root"
+                  action="rbac_manager.act_window_res_users_list_user_permission" sequence="20" groups="base.group_system"/>
+        <menuitem id="menu_super_admin" name="Super Admin View" parent="rbac_manager.menu_rbac_root"
+                  action="rbac_manager.act_window_res_users_list_super_admin" sequence="30" groups="base.group_system"/>
+        <menuitem id="menu_request_rbac_permission" name="Permission Requests" parent="rbac_manager.menu_rbac_root"
+                  action="rbac_manager.request_rbac_permission_act_window" sequence="40" groups="base.group_system"/>
+        <!-- Audit submenu -->
+        <menuitem id="menu_audit_parent" name="Audit" parent="rbac_manager.menu_rbac_root"
+                  sequence="50" groups="base.group_system"/>
+        <menuitem id="menu_client_action_rbac_audit" name="Dashboard" parent="rbac_manager.menu_audit_parent"
+                  action="rbac_manager.view_audit_client_rbac_audit" sequence="10" groups="base.group_system"/>
+        <menuitem id="menu_rbac_audit" name="Rbac Audit" parent="rbac_manager.menu_audit_parent"
+                  action="rbac_manager.rbac_audit_act_window" sequence="20" groups="base.group_system"/>
+        <menuitem id="menu_rbac_line_audit" name="Rbac Audit Line" parent="rbac_manager.menu_audit_parent"
+                  action="rbac_manager.rbac_audit_line_act_window" sequence="30" groups="base.group_system"/>
 
         <!--        Inherit       -->
         <record id="base.menu_custom" model="ir.ui.menu">
