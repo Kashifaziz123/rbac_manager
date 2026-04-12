@@ -1,7 +1,46 @@
 <odoo>
     <data>
+        <record id="view_res_users_kanban_user_role" model="ir.ui.view">
+            <field name="name">User Roles Kanban</field>
+            <field name="model">res.users</field>
+            <field name="arch" type="xml">
+                <kanban class="rbac_kanban_view">
+                    <field name="id"/>
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="group_ids"/>
+                    <templates>
+                        <t t-name="card">
+                            <article class="rbac_kanban_card">
+                                <div class="rbac_card_icon_wrapper">
+                                    <div class="rbac_card_icon">
+                                        <i class="fa fa-shield"/>
+                                    </div>
+                                </div>
+                                <div class="rbac_kanban_card_content">
+                                    <h3 class="rbac_kanban_card_title">
+                                        <t t-esc="record.name.value"/>
+                                    </h3>
+                                    <t t-if="record.description.value">
+                                        <p class="rbac_kanban_card_description">
+                                            <t t-esc="record.description.value"/>
+                                        </p>
+                                    </t>
+                                    <div class="rbac_kanban_card_footer">
+                                        <button type="object" name="client_action_view_user_role" class="rbac_kanban_btn_view">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
         <record id="view_res_users_list_user_role" model="ir.ui.view">
-            <field name="name">User Roles Form</field>
+            <field name="name">User Roles List</field>
             <field name="model">res.users</field>
             <field name="arch" type="xml">
                 <list editable="bottom">
@@ -13,14 +52,16 @@
                 </list>
             </field>
         </record>
+
         <record id="act_window_res_users_list_user_role" model="ir.actions.act_window">
             <field name="name">User Roles</field>
             <field name="res_model">res.users</field>
             <field name="path">user_roles</field>
-            <field name="view_mode">list</field>
+            <field name="view_mode">kanban,list</field>
             <field name="domain">[('active', '=', False), ('is_user_role', '=', True)]</field>
             <field name="context">{'default_active': False, 'default_is_user_role': True, 'default_name': 'New User Role'}</field>
             <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_res_users_kanban_user_role')}),
                 (0, 0, {'view_mode': 'list', 'view_id': ref('view_res_users_list_user_role')})]"/>
         </record>
     </data>
