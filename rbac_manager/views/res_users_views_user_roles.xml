@@ -12,26 +12,45 @@
                     <templates>
                         <t t-name="card">
                             <article class="rbac_kanban_card">
-                                <div class="rbac_card_icon_wrapper">
+
+                                <!-- Invisible full-card click target -->
+                                <button type="object" name="client_action_view_user_role"
+                                        class="rbac_kanban_full_card_btn"
+                                        aria-label="Open role"/>
+
+                                <!-- Gradient header with icon -->
+                                <div class="rbac_card_header">
+                                    <span class="rbac_orb_a" aria-hidden="true"/>
+                                    <span class="rbac_orb_b" aria-hidden="true"/>
                                     <div class="rbac_card_icon">
                                         <i class="fa fa-shield"/>
                                     </div>
                                 </div>
-                                <div class="rbac_kanban_card_content">
+
+                                <!-- White body -->
+                                <div class="rbac_card_body">
                                     <h3 class="rbac_kanban_card_title">
                                         <t t-esc="record.name.value"/>
                                     </h3>
+
                                     <t t-if="record.description.value">
                                         <p class="rbac_kanban_card_description">
                                             <t t-esc="record.description.value"/>
                                         </p>
                                     </t>
-                                    <div class="rbac_kanban_card_footer">
-                                        <button type="object" name="client_action_view_user_role" class="rbac_kanban_btn_view">
-                                            View Details
+
+                                    <div class="rbac_card_footer">
+                                        <span class="rbac_stat_chip">
+                                            <i class="fa fa-lock"/>
+                                            <t t-esc="(record.group_ids.value || []).length"/> permissions
+                                        </span>
+                                        <button type="object" name="client_action_view_user_role"
+                                                class="rbac_open_btn">
+                                            Open Role
                                         </button>
                                     </div>
                                 </div>
+
                             </article>
                         </t>
                     </templates>
@@ -53,16 +72,68 @@
             </field>
         </record>
 
+        <!-- ══════════════════════════════════════════════════════
+             Custom Form View — Create / Edit a Role Template
+             ══════════════════════════════════════════════════════ -->
+        <record id="view_res_users_form_user_role" model="ir.ui.view">
+            <field name="name">User Role Form</field>
+            <field name="model">res.users</field>
+            <field name="arch" type="xml">
+                <form class="rbac_role_form">
+                    <header>
+                        <button name="client_action_view_user_role"
+                                type="object"
+                                string="Save &amp; Configure Permissions"
+                                class="btn-primary"/>
+                    </header>
+                    <sheet>
+                        <field name="active"       invisible="True"/>
+                        <field name="is_user_role" invisible="True"/>
+
+                        <div class="rbac_form_hero">
+                            <span class="rbac_form_orb_1" aria-hidden="true"/>
+                            <span class="rbac_form_orb_2" aria-hidden="true"/>
+                            <div class="rbac_form_hero_icon">
+                                <i class="fa fa-shield"/>
+                            </div>
+                            <div class="rbac_form_hero_text">
+                                <h2 class="rbac_form_hero_title">New Role</h2>
+                                <p class="rbac_form_hero_sub">
+                                    Enter a name, then click <strong>Save &amp; Configure Permissions</strong> to set up access rights.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="rbac_form_card">
+                            <div class="rbac_form_field_block">
+                                <div class="rbac_field_label">
+                                    Role Name <span class="rbac_required_star">*</span>
+                                </div>
+                                <field name="name" nolabel="1"
+                                       placeholder="e.g. HR Manager, Sales Person, Accountant…"/>
+                            </div>
+                            <div class="rbac_form_field_block">
+                                <div class="rbac_field_label">Description</div>
+                                <field name="description" nolabel="1"
+                                       placeholder="Describe what access this role provides…"/>
+                            </div>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
         <record id="act_window_res_users_list_user_role" model="ir.actions.act_window">
             <field name="name">User Roles</field>
             <field name="res_model">res.users</field>
             <field name="path">user_roles</field>
-            <field name="view_mode">kanban,list</field>
+            <field name="view_mode">kanban,list,form</field>
             <field name="domain">[('active', '=', False), ('is_user_role', '=', True)]</field>
             <field name="context">{'default_active': False, 'default_is_user_role': True, 'default_name': 'New User Role'}</field>
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_res_users_kanban_user_role')}),
-                (0, 0, {'view_mode': 'list', 'view_id': ref('view_res_users_list_user_role')})]"/>
+                (0, 0, {'view_mode': 'list',   'view_id': ref('view_res_users_list_user_role')}),
+                (0, 0, {'view_mode': 'form',   'view_id': ref('view_res_users_form_user_role')})]"/>
         </record>
     </data>
 </odoo>

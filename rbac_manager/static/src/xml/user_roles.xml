@@ -2,128 +2,153 @@
 <templates id="template">
     <t t-name="rbac.UserRoles">
         <div class="container role_template">
-            <div class="header">
-                <p>
-                    <a t-att-href=" this.is_wizard ? void(0) : '/odoo/user_roles' ">Role Template</a>
-                </p>
-                <h1>Define Role Template:
-                    <t t-esc="this.user[0]?.name"/>
-                </h1>
-                <p>Configure permissions and access rights for this role template</p>
-            </div>
 
-            <div class="controls">
-                <div class="search-filter-row">
-                    <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" placeholder="Search permissions by name, code, or description..."
-                               t-ref="searchInput" t-on-keyup="apply_search"/>
+            <!-- ── Page Header ─────────────────────────────────────────── -->
+            <div class="rp_page_header">
+                <div class="rp_breadcrumb">
+                    <a t-att-href="this.is_wizard ? void(0) : '/odoo/user_roles'" class="rp_breadcrumb_link">
+                        User Roles
+                    </a>
+                    <span class="rp_breadcrumb_sep">/</span>
+                    <span class="rp_breadcrumb_current"><t t-esc="this.roleState.name || this.user[0]?.name"/></span>
+                </div>
+                <div class="rp_header_row">
+                    <div class="rp_title_wrap">
+                        <t t-if="this.isNewRole.value">
+                            <input class="rp_role_name_input"
+                                   t-att-class="{ rp_input_error: this.uiState.nameError }"
+                                   t-att-value="this.roleState.name"
+                                   t-on-input="(ev) => { this.roleState.name = ev.target.value; this.uiState.nameError = false; }"
+                                   placeholder="Enter role name…"/>
+                        </t>
+                        <t t-else="">
+                            <h2 class="rp_role_name_static">
+                                <t t-esc="this.roleState.name || this.user[0]?.name"/>
+                            </h2>
+                        </t>
+                        <p class="rp_subtitle">Configure permissions and access rights for this role template</p>
                     </div>
-
-                    <div class="filter-dropdown">
-                        <div class="filter-btn">
-                            All Categories
-                        </div>
-                    </div>
-
-                    <div class="risk-filter">
-                        <div t-att-class="'risk-badge low' + (this.is_risk_active('low') ? ' active' : '')"
-                             t-on-click="() => this.toggle_risk_level('low')">Low Risk
-                        </div>
-                        <div t-att-class="'risk-badge medium' + (this.is_risk_active('medium') ? ' active' : '')"
-                             t-on-click="() => this.toggle_risk_level('medium')">Medium Risk
-                        </div>
-                        <div t-att-class="'risk-badge high' + (this.is_risk_active('high') ? ' active' : '')"
-                             t-on-click="() => this.toggle_risk_level('high')">High Risk
-                        </div>
+                    <div class="rp_header_actions">
+                        <t t-if="this.isNewRole.value">
+                            <button class="rp_btn rp_btn_secondary" t-on-click="discardNewRole">
+                                Discard
+                            </button>
+                            <button class="rp_btn rp_btn_primary" t-on-click="saveNewRole">
+                                Save
+                            </button>
+                        </t>
+                        <t t-else="">
+                            <button class="rp_btn rp_btn_primary" t-on-click="newRole">
+                                + New Role
+                            </button>
+                        </t>
                     </div>
                 </div>
             </div>
 
-            <div class="permissions-grid">
-                <div class="grid-header">
+            <!-- ── Toolbar ─────────────────────────────────────────────── -->
+            <div class="rp_toolbar">
+                <div class="rp_search_wrap">
+                    <i class="fa fa-search rp_search_icon"/>
+                    <input type="text" class="rp_search_input"
+                           placeholder="Search permissions by name, code, or description..."
+                           t-ref="searchInput" t-on-keyup="apply_search"/>
+                </div>
+                <div class="rp_risk_filters">
+                    <span class="rp_filter_label">Risk:</span>
+                    <div t-att-class="'rp_risk_badge rp_risk_low' + (this.is_risk_active('low') ? ' active' : '')"
+                         t-on-click="() => this.toggle_risk_level('low')">Low</div>
+                    <div t-att-class="'rp_risk_badge rp_risk_medium' + (this.is_risk_active('medium') ? ' active' : '')"
+                         t-on-click="() => this.toggle_risk_level('medium')">Medium</div>
+                    <div t-att-class="'rp_risk_badge rp_risk_high' + (this.is_risk_active('high') ? ' active' : '')"
+                         t-on-click="() => this.toggle_risk_level('high')">High</div>
+                </div>
+            </div>
+
+            <!-- ── Permissions Grid ────────────────────────────────────── -->
+            <div class="rp_permissions_wrap">
+                <div class="rp_grid_header">
                     <div>Permission</div>
                     <div>Risk Level</div>
                     <div>Enabled</div>
                 </div>
 
-                <div class="permissions-grids">
+                <div class="permissions-grids rp_categories">
                     <t t-foreach="this.categories" t-as="category" t-key="category">
-                        <div class="category-section">
-                            <div class="category-header" t-on-click="(ev) => this.toggle_category_section(ev.target)">
-                                <div class="category-info">
-                                    <div class="category-icon academics">
+                        <div class="category-section rp_category_card">
+
+                            <!-- Category header row -->
+                            <div class="category-header rp_category_header"
+                                 t-on-click="(ev) => this.toggle_category_section(ev.target)">
+                                <div class="rp_cat_info">
+                                    <div class="category-icon academics rp_cat_icon">
                                         <t t-esc="this.getInitials(category)"/>
                                     </div>
-                                    <div class="category-title">
-                                        <t t-esc="category"/>
+                                    <div>
+                                        <div class="rp_cat_name"><t t-esc="category"/></div>
+                                        <div class="rp_cat_meta">
+                                            <span class="enabled_count">0</span>&#160;/&#160;<t t-esc="Object.keys(this.categories[category]).length"/> enabled
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="category-stats">
-                                    <span>
-                                        <t t-esc="Object.keys(this.categories[category]).length"/>
-                                        permissions
-                                    </span>
-                                    <span>
-                                        <span class="enabled_count"/>
-                                        enabled
-                                    </span>
-                                </div>
-                                <div class="category-actions">
-                                    <button class="btn btn-secondary btn-small"
-                                            t-on-click="(ev) => this.toggle_category_all_checked_enabled(1, ev.target)">
-                                        ✅ Enable All
-                                    </button>
-                                    <button class="btn btn-danger btn-small"
-                                            t-on-click="(ev) => this.toggle_category_all_checked_enabled(0, ev.target)">
-                                        ❌ Disable All
-                                    </button>
-                                    <span class="expand-icon">▼</span>
+                                <div class="rp_cat_right">
+                                    <div class="rp_cat_actions">
+                                        <button class="rp_btn_xs rp_btn_enable"
+                                                t-on-click="(ev) => this.toggle_category_all_checked_enabled(1, ev.target)">
+                                            Enable All
+                                        </button>
+                                        <button class="rp_btn_xs rp_btn_disable"
+                                                t-on-click="(ev) => this.toggle_category_all_checked_enabled(0, ev.target)">
+                                            Disable All
+                                        </button>
+                                    </div>
+                                    <i class="fa fa-chevron-down expand-icon rp_expand_icon"/>
                                 </div>
                             </div>
+
+                            <!-- Permission rows -->
                             <t t-foreach="this.categories[category]" t-as="field" t-key="field">
                                 <t t-if="this.categories[category][field]['group']">
-                                    <div class="permission-item">
-                                        <div class="permission-info">
-                                            <h4>
+                                    <div class="permission-item rp_permission_row">
+                                        <div class="rp_perm_info">
+                                            <span class="rp_perm_name">
                                                 <t t-esc="this.categories[category][field]['group']['name']"/>
-                                            </h4>
-                                        </div>
-                                        <div t-att-class="'risk-badge ' + this.categories[category][field]['group']['risk_level']">
-                                            <t t-esc="this.categories[category][field]['group']['risk_level']"/>
+                                            </span>
                                         </div>
                                         <div>
+                                            <span t-att-class="'rp_risk_pill rp_risk_' + this.categories[category][field]['group']['risk_level']">
+                                                <t t-esc="this.categories[category][field]['group']['risk_level']"/>
+                                            </span>
+                                        </div>
+                                        <div class="rp_toggle_wrap">
                                             <label class="toggle-switch">
                                                 <input type="checkbox"
                                                        t-att-name="field"
                                                        t-att-checked="this.getFieldValue(field, this.categories[category][field]) ? 'checked' : undefined"
-                                                       t-on-change="(ev) => this.update_values(ev.target)"
-                                                />
+                                                       t-on-change="(ev) => this.update_values(ev.target)"/>
                                                 <span class="slider"/>
                                             </label>
                                         </div>
                                     </div>
                                 </t>
                                 <t t-else="">
-                                    <t t-foreach="this.categories[category][field]['groups']" t-as="group"
-                                       t-key="group.id">
-                                        <div class="permission-item">
-                                            <div class="permission-info">
-                                                <h4>
-                                                    <t t-esc="group.name"/>
-                                                </h4>
-                                            </div>
-                                            <div t-att-class="'risk-badge ' + group.risk_level">
-                                                <t t-esc="group.risk_level"/>
+                                    <t t-foreach="this.categories[category][field]['groups']" t-as="group" t-key="group.id">
+                                        <div class="permission-item rp_permission_row">
+                                            <div class="rp_perm_info">
+                                                <span class="rp_perm_name"><t t-esc="group.name"/></span>
                                             </div>
                                             <div>
+                                                <span t-att-class="'rp_risk_pill rp_risk_' + group.risk_level">
+                                                    <t t-esc="group.risk_level"/>
+                                                </span>
+                                            </div>
+                                            <div class="rp_toggle_wrap">
                                                 <label class="toggle-switch">
                                                     <input type="radio"
                                                            t-att-name="field"
                                                            t-att-value="group.id"
                                                            t-att-checked="group.id === this.getFieldValue(field, this.categories[category][field]) ? 'checked' : undefined"
-                                                           t-on-change="(ev) => this.update_values(ev.target)"
-                                                    />
+                                                           t-on-change="(ev) => this.update_values(ev.target)"/>
                                                     <span class="slider"/>
                                                 </label>
                                             </div>
@@ -131,18 +156,21 @@
                                     </t>
                                 </t>
                             </t>
+
                         </div>
                     </t>
                 </div>
             </div>
 
-
-            <div class="actions">
-                <div class="pagination">
-                    <span>Showing <t t-esc="this.paginationStart"/>–<t t-esc="this.paginationEnd"/> of <t t-esc="this.pageInfo.total"/> permissions</span>
+            <!-- ── Footer: pagination + actions ───────────────────────── -->
+            <div class="rp_footer">
+                <div class="rp_pagination">
+                    <span class="rp_page_info">
+                        Showing <t t-esc="this.paginationStart"/>–<t t-esc="this.paginationEnd"/> of <t t-esc="this.pageInfo.total"/> permissions
+                    </span>
                     <button class="page-btn"
                             t-att-disabled="this.filterState.currentPage &lt;= 1 ? 'disabled' : undefined"
-                            t-on-click="prevPage">← Previous</button>
+                            t-on-click="prevPage">← Prev</button>
                     <t t-foreach="this.getPageNumbers()" t-as="page" t-key="page">
                         <button t-att-class="'page-btn' + (page === this.filterState.currentPage ? ' active' : '')"
                                 t-on-click="() => this.goToPage(page)">
@@ -153,12 +181,14 @@
                             t-att-disabled="this.filterState.currentPage >= this.pageInfo.totalPages ? 'disabled' : undefined"
                             t-on-click="nextPage">Next →</button>
                 </div>
-
-                <div style="display: flex; gap: 12px;">
-                    <button class="btn btn-secondary" t-on-click="discardRecord">Discard Changes</button>
-                    <button class="btn btn-primary" t-on-click="writeRecord">Save Role Template</button>
+                <div class="rp_footer_btns">
+                    <button class="rp_btn rp_btn_secondary" t-on-click="discardRecord">Discard Changes</button>
+                    <button class="rp_btn rp_btn_primary" t-on-click="writeRecord">
+                        Save Role
+                    </button>
                 </div>
             </div>
+
         </div>
     </t>
 </templates>

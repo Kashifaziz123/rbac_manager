@@ -85,7 +85,9 @@ class ResGroups(models.Model):
 
     def get_categories_groups_json(self, user_id):
         sorted_tuples = self.get_groups_by_application()
-        res_user = self.env['res.users'].browse([user_id])
+        # Role templates are inactive (active=False) users — must bypass active_test
+        # so their group_ids are readable. sudo() avoids access-right filtering too.
+        res_user = self.env['res.users'].with_context(active_test=False).sudo().browse([user_id])
         json_dict = {}
 
         def get_toggle_value(group_id):

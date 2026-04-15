@@ -22,6 +22,9 @@ export class RBACUserRoles extends Component {
         this.record_id = this.props?.action?.context?.active_id;
         this.is_wizard = this.props?.action?.context?.is_wizard;
         this.user = [];
+        this.roleState = useState({ name: '' });
+        this.isNewRole = useState({ value: !!this.props?.action?.context?.is_new_role });
+        this.uiState  = useState({ nameError: false });
 
         // All filtering/pagination parameters sent to Python on every fetch.
         this.filterState = useState({
@@ -192,6 +195,12 @@ export class RBACUserRoles extends Component {
             [['id', '=', this.record_id], ['is_user_role', '=', true], ['active', '=', false]],
             ["name"]
         );
+        // For existing roles: always sync name from server.
+        // For new roles being created: leave roleState.name as-is so the user's
+        // typed value survives pagination and the placeholder shows on first load.
+        if (!this.isNewRole.value) {
+            this.roleState.name = this.user[0]?.name || '';
+        }
         if (!this.user[0]?.name) {
             this.notification.add(
                 _t("Record %s not found. It may have been deleted.", this.record_id),
@@ -223,6 +232,51 @@ export class RBACUserRoles extends Component {
         if (this.filterState.currentPage > this.pageInfo.totalPages) {
             this.filterState.currentPage = this.pageInfo.totalPages;
         }
+    }
+
+    // ── New Role ──────────────────────────────────────────────────────────────
+
+    async newRole() {
+        const action = await this.orm.call('res.users', 'action_create_new_user_role', []);
+        await this.action.doAction(action);
+    }
+
+    async discardNewRole() {
+        // Delete the blank role template that was just created and return to kanban
+        if (this.record_id) {
+            await this.orm.call('res.users', 'discard_new_user_role', [this.record_id]);
+        }
+        await this.action.doAction(
+            'rbac_manager.act_window_res_users_list_user_role',
+            { clearBreadcrumbs: true }
+        );
+    }
+
+    async saveNewRole() {
+        // Validate name
+        const newName = this.roleState.name.trim();
+        if (!newName) {
+            this.uiState.nameError = true;
+            this.notification.add(_t("Role name cannot be empty."), { type: "danger" });
+            return;
+        }
+        const duplicate = await this.orm.searchCount(
+            'res.users',
+            [['name', '=', newName], ['is_user_role', '=', true], ['id', '!=', this.record_id]],
+            { context: { active_test: false } }
+        );
+        if (duplicate > 0) {
+            this.uiState.nameError = true;
+            this.notification.add(
+                _t('A role named "%s" already exists. Please choose a different name.', newName),
+                { type: "danger" }
+            );
+            return;
+        }
+        this.uiState.nameError = false;
+        await this.orm.write("res.users", [this.record_id], { name: newName });
+        this.isNewRole.value = false;
+        await this.fetch_data();
     }
 
     // ── Reset ─────────────────────────────────────────────────────────────────
@@ -257,16 +311,50 @@ export class RBACUserRoles extends Component {
             return cmds;
         }
 
+        // Validate name before showing confirmation dialog
+        const newName = this.roleState.name.trim();
+        if (!newName) {
+            this.uiState.nameError = true;
+            this.notification.add(_t("Role name cannot be empty."), { type: "danger" });
+            return;
+        }
+        if (newName !== (this.user[0]?.name || '')) {
+            const duplicate = await this.orm.searchCount(
+                'res.users',
+                [
+                    ['name', '=', newName],
+                    ['is_user_role', '=', true],
+                    ['id', '!=', this.record_id],
+                ],
+                { context: { active_test: false } }
+            );
+            if (duplicate > 0) {
+                this.uiState.nameError = true;
+                this.notification.add(
+                    _t('A role named "%s" already exists. Please choose a different name.', newName),
+                    { type: "danger" }
+                );
+                return;
+            }
+        }
+        this.uiState.nameError = false;
+
         this.dialogService.add(ConfirmationDialog, {
             body: _t("Are you sure you want to save the changes?"),
             cancelLabel:  _t("No"),
             confirmLabel: _t("Yes"),
             confirm: async () => {
                 const cmds = toGroupIdCommands(this.changes);
-                if (cmds.length) {
-                    await this.orm.write("res.users", [this.record_id], {group_ids: cmds});
+                const writes = {};
+                if (cmds.length) writes.group_ids = cmds;
+                if (newName && newName !== (this.user[0]?.name || '')) {
+                    writes.name = newName;
                 }
-                this.changes = {};      // clear pending edits after save
+                if (Object.keys(writes).length) {
+                    await this.orm.write("res.users", [this.record_id], writes);
+                }
+                this.changes = {};           // clear pending edits after save
+                this.isNewRole.value = false; // lock name after first save
                 await this.fetch_data();
                 this.reset_data();
             },
@@ -280,7 +368,8 @@ export class RBACUserRoles extends Component {
             cancelLabel:  _t("No"),
             confirmLabel: _t("Yes"),
             confirm: async () => {
-                this.changes = {};     // drop all pending edits
+                this.changes = {};
+                this.roleState.name = ''; // clear so fetch_data always reloads from server
                 await this.fetch_data();
                 this.reset_data();
             },
