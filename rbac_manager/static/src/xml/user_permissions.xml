@@ -2,29 +2,71 @@
 <templates id="template">
     <t t-name="rbac.UserPermissions">
         <div class="container user_permission">
-            <div class="header">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <t t-esc="this.getInitials(this.user[0]?.name)"/>
+            <div class="user-header">
+                <!-- Gradient Top Bar -->
+                <div class="topbar-gradient">
+                    <div class="topbar-left">
+                        <a t-att-href="'/odoo/user_permission/'" class="back-btn">←</a>
+                        <h2 class="page-title">User Permissions</h2>
                     </div>
-                    <div class="user-details">
-                        <h1>
-                            <t t-esc="this.user[0]?.name"/>
-                        </h1>
-                        <p>
-                            <t t-esc="this.user[0]?.email"/>
-                            • Employee ID:
-                            <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
-                        </p>
+                    <div class="topbar-actions">
+                        <div class="dropdown user-actions">
+                            <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                ⚙️ Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item has-icon archive" t-on-click="archiveUser">Archive</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item has-icon duplicate" t-on-click="duplicateUser">Duplicate</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item has-icon delete text-danger" t-on-click="deleteUser">Delete</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider"/>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="openPreferences">Preferences</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="changePassword">Change Password</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="disable2FA">Disable two-factor authentication</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="resetPassword">Send Password Reset Instructions</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="privacyLookup">Privacy Lookup</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <button class="btn btn-primary" t-on-click="request_permissions">
+                            ✏️ Manage Permissions
+                        </button>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <a t-att-href="'/odoo/user_permission/'" class="btn btn-secondary">
-                        ← Back to Users
-                    </a>
-                    <a t-att-href="'/odoo/manage_permission/' + this.record_id" class="btn btn-primary">
-                        ✏️ Manage Permissions
-                    </a>
+
+                <!-- User Info Inline Card -->
+                <div class="user-inline-card">
+                    <div class="user-left">
+                        <div class="user-avatar">
+                            <t t-esc="this.getInitials(this.user[0]?.name)"/>
+                        </div>
+                        <div class="user-meta">
+                            <h3>
+                                <t t-esc="this.user[0]?.name"/>
+                            </h3>
+                            <p>
+                                <t t-esc="this.user[0]?.email"/>
+                                • Employee ID:
+                                <t t-esc="this.data?.employee?.barcode || 'N/A'"/>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -59,7 +101,12 @@
             </div>
 
             <div class="role-badges">
-                <h3>Assigned Roles &amp; Exceptions</h3>
+                <div class="section-header">
+                    <h3>Assigned Roles &amp; Exceptions</h3>
+                    <button class="btn btn-primary" style="margin-left: auto;" t-on-click="requestRoles">
+                        ⚙️ Manage Roles
+                    </button>
+                </div>
                 <div class="badges-container">
                     <t t-foreach="this.data?.assigned_roles" t-as="assigned_role"
                        t-key="assigned_role.id + '_user_permission' ">
@@ -223,6 +270,19 @@
             <div class="floating-actions" style="display:none;">
                 <button class="fab" title="Export Permissions">📄</button>
                 <button class="fab" title="Generate Report">📊</button>
+            </div>
+
+            <div class="recent-changes">
+                <h3>
+                    📋 Recent Permission Changes
+                    <span class="time-filter">Last 30 days</span>
+                </h3>
+                <div class="changes-list" id="audit_logs_container">
+                    <div class="loading-state text-muted">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Loading recent permission changes...
+                    </div>
+                </div>
             </div>
         </div>
     </t>

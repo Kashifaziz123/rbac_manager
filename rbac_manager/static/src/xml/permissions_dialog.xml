@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.PermissionsDialog">
+        <Dialog size="'md'" title="props.title">
+            <div class="rbac_dialog permissions_dialog" t-if="!state.loading">
+                <div class="request-section">
+                    <h2>📝 Request Additional Permission</h2>
+                    <div class="alert warning">
+                        ⚠️ <strong>Permission Manager Notice:</strong>
+                        Requests for permissions outside assigned roles require Super Admin approval.
+                    </div>
+                    <form class="request-form" t-on-submit.prevent="submitRecord">
+                        <div class="form-group">
+                            <label>Request Type</label>
+                            <select t-model="state.type">
+                                <option value="grant">Extra Permission (Grant)</option>
+                                <option value="deny">Exclusion (Deny)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Permission</label>
+                            <div class="permission-search">
+                                <span class="search-icon">🔍</span>
+                                <input type="text"
+                                       placeholder="Search for permissions..."
+                                       t-model="state.search"
+                                       t-on-input="searchPermissions"/>
+                                <div t-if="state.filtered.length" class="permission-suggestions">
+                                    <t t-foreach="state.filtered" t-as="p" t-key="p.id">
+                                        <div class="suggestion-item" t-on-click="() => this.selectPermission(p)">
+                                            <t t-esc="p.name"/>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div t-if="!state.filtered.length and state.search" class="no-results">
+                                    No matches found.
+                                </div>
+                            </div>
+                            <t t-if="state.selected">
+                                <div class="selected-item">
+                                    <strong t-esc="state.selected.name"/>
+                                    <span class="remove" t-on-click="clearSelection">❌</span>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="form-group">
+                            <label>Business Justification</label>
+                            <textarea rows="3"
+                                      placeholder="Please provide a detailed justification for this permission request..."
+                                      t-model="state.description"
+                                      required="required"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div t-if="state.loading" class="text-center py-3">
+                <span class="spinner-border text-primary" role="status"/>
+                <span class="ms-2 text-muted">Loading...</span>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="submitRecord">
+                    <t t-esc="props.confirmLabel"/>
+                </button>
+                <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel">
+                    <t t-esc="props.cancelLabel"/>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="rbac.RolesDialog">
+        <Dialog size="'lg'" title="props.title">
+            <div class="rbac_dialog roles_dialog">
+                <div class="alert info">
+                    <span class="alert-icon">ℹ️</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Role Management</div>
+                        <div class="alert-text">
+                            Assign or remove roles to grant permission bundles. Each role includes predefined permissions.
+                        </div>
+                    </div>
+                </div>
+                <div class="roles-search mb-3">
+                    <span class="search-icon">🔍</span>
+                    <input t-model="state.search"
+                           t-on-input="onSearch"
+                           placeholder="Search available roles..."
+                           class="form-control"/>
+                </div>
+                <div class="role-filters mb-3">
+                    <button t-attf-class="filter-chip #{state.filter === 'all' ? 'active' : ''}"
+                            t-on-click="() => this.onFilterChange('all')">All Roles</button>
+                    <button t-attf-class="filter-chip #{state.filter === 'assigned' ? 'active' : ''}"
+                            t-on-click="() => this.onFilterChange('assigned')">✓ Assigned</button>
+                </div>
+                <t t-if="state.loading">
+                    <div class="text-center py-3">
+                        <span class="spinner-border text-primary" role="status"/>
+                        <span class="ms-2 text-muted">Loading roles...</span>
+                    </div>
+                </t>
+                <t t-elif="filteredRoles.length">
+                    <div class="available-roles-grid">
+                        <t t-foreach="filteredRoles" t-as="role" t-key="role.id">
+                            <div t-attf-class="available-role-card #{role.assigned ? 'assigned' : ''}">
+                                <div class="role-card-header">
+                                    <div class="role-icon"><t t-esc="role.icon"/></div>
+                                    <h4><t t-esc="role.name"/></h4>
+                                </div>
+                                <div class="role-card-description"><t t-esc="role.description"/></div>
+                                <div class="role-permissions-count">
+                                    📋 <t t-esc="role.permissions_count"/> permissions
+                                </div>
+                                <div class="role-card-footer">
+                                    <t t-if="role.assigned">
+                                        <span class="role-assigned-badge">✓ Currently Assigned</span>
+                                        <button class="btn btn-small btn-danger"
+                                                t-on-click="() => this.toggleRole(role, false)">Remove</button>
+                                    </t>
+                                    <t t-else="">
+                                        <button class="btn btn-small btn-primary"
+                                                t-on-click="() => this.toggleRole(role, true)">+ Assign</button>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="text-center text-muted py-3">
+                        <p>🔍 No roles found matching your search or filter.</p>
+                    </div>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button t-if="props.cancel" class="btn btn-secondary"
+                        t-on-click="_cancel"
+                        t-esc="props.cancelLabel"/>
+            </t>
+        </Dialog>
+    </t>
+</templates>
