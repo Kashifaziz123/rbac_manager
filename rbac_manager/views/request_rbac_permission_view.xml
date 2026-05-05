@@ -51,5 +51,9 @@
             <field name="res_model">request.rbac.permission</field>
             <field name="view_mode">list,form</field>
         </record>
+        <record id="request_rbac_permission_dashboard_action" model="ir.actions.client">
+            <field name="name">Requests</field>
+            <field name="tag">rbac.requests_dashboard</field>
+        </record>
     </data>
 </odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rbac.Settings">
+        <div class="rs_wrap">
+            <div class="rs_header">
+                <h1>Settings</h1>
+                <p>Configure defaults.</p>
+            </div>
+
+            <div class="rs_card">
+                <t t-if="state.loading">
+                    <div class="rs_empty">Loading settings...</div>
+                </t>
+                <t t-else="">
+                    <div class="rs_form_group">
+                        <label>Default approval timeout</label>
+                        <select class="rs_select"
+                                t-att-value="state.values.default_approval_timeout"
+                                t-on-change="(ev) => this.onTimeoutChange(ev)"
+                                t-att-disabled="state.saving ? 'disabled' : undefined">
+                            <t t-foreach="state.values.timeout_options || []" t-as="option" t-key="option.value">
+                                <option t-att-value="option.value"
+                                        t-att-selected="option.value === state.values.default_approval_timeout ? 'selected' : undefined">
+                                    <t t-esc="option.label"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+
+                    <button type="button"
+                            class="rs_toggle_row"
+                            t-on-click="toggleAutoExpire"
+                            t-att-disabled="state.saving ? 'disabled' : undefined">
+                        <span>
+                            <strong>Auto-expire temporary extras</strong>
+                            <small>Extras with expiry auto-revoked</small>
+                        </span>
+                        <span t-att-class="'rs_switch' + (state.values.auto_expire_temporary_extras ? ' on' : '')">
+                            <span/>
+                        </span>
+                    </button>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,577 @@
+/* @odoo-module */
+
+import {Component, onMounted, onWillStart, onWillUnmount, useRef, useState} from "@odoo/owl";
+import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
+import {download} from "@web/core/network/download";
+import {useService} from "@web/core/utils/hooks";
+import {_t} from "@web/core/l10n/translation";
+import {registry} from "@web/core/registry";
+
+const COLORS = ["#3a5bd9", "#7c3aed", "#16a34a", "#ea580c", "#0891b2", "#d99a00", "#0d9488"];
+
+function initials(name) {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "?";
+    return parts.length > 1 ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+}
+
+function pickColor(seed) {
+    let h = 0;
+    for (const char of String(seed || "")) h = (h * 31 + char.charCodeAt(0)) & 0xfffffff;
+    return COLORS[h % COLORS.length];
+}
+
+export class RBACUsersDirectory extends Component {
+    static template = "rbac.UsersDirectory";
+
+    setup() {
+        this.orm = useService("orm");
+        this.action = useService("action");
+        this.notification = useService("notification");
+        this.dialog = useService("dialog");
+        this.userRef = useRef("requestUser");
+        this.groupRef = useRef("requestGroup");
+        this.categoryRef = useRef("requestCategory");
+        this.durationRef = useRef("requestDuration");
+        this.durationValueRef = useRef("requestDurationValue");
+        this.durationUnitRef = useRef("requestDurationUnit");
+        this.reasonRef = useRef("requestReason");
+        this.cloneUserRef = useRef("cloneUser");
+
+        this.state = useState({
+            loading: true,
+            saving: false,
+            users: [],
+            departments: [],
+            roles: [],
+            groups: [],
+            search: "",
+            department: "",
+            panelOpen: false,
+            actionOpen: false,
+            activeUser: null,
+            permTab: "all",
+            requestOpen: false,
+            requestType: "grant",
+            requestCategory: "",
+            durationType: "permanent",
+            roleModalOpen: false,
+            selectedRoleIds: [],
+            roleSearch: "",
+            roleFilter: "all",
+            permissionModalOpen: false,
+            selectedExtraIds: [],
+            selectedExcludedIds: [],
+            permissionSearch: "",
+            permissionCategory: "",
+            permissionStateFilter: "all",
+            cloneModalOpen: false,
+        });
+
+        onWillStart(async () => this.loadData());
+        onMounted(() => {
+            this._onDocumentClick = (ev) => {
+                if (this.state.actionOpen && !ev.target.closest(".ud_actions_wrap")) {
+                    this.state.actionOpen = false;
+                }
+            };
+            this._onDocumentKeydown = (ev) => {
+                if (ev.key === "Escape" && this.state.actionOpen) {
+                    this.state.actionOpen = false;
+                }
+            };
+            document.addEventListener("click", this._onDocumentClick);
+            document.addEventListener("keydown", this._onDocumentKeydown);
+        });
+        onWillUnmount(() => {
+            document.removeEventListener("click", this._onDocumentClick);
+            document.removeEventListener("keydown", this._onDocumentKeydown);
+        });
+    }
+
+    async loadData() {
+        this.state.loading = true;
+        try {
+            const data = await this.orm.call("rbac.model", "get_rbac_users_directory", [], {});
+            this.state.users = data.users || [];
+            this.state.departments = data.departments || [];
+            this.state.roles = data.roles || [];
+            this.state.groups = data.groups || [];
+            if (this.state.activeUser) {
+                const fresh = this.state.users.find((user) => user.id === this.state.activeUser.id);
+                this.state.activeUser = fresh || null;
+            }
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    get filteredUsers() {
+        const query = this.state.search.trim().toLowerCase();
+        return this.state.users.filter((user) => {
+            const matchesQuery = !query || `${user.name} ${user.email} ${user.department} ${(user.roles || []).map((role) => role.name).join(" ")}`.toLowerCase().includes(query);
+            const matchesDepartment = !this.state.department || user.department === this.state.department;
+            return matchesQuery && matchesDepartment;
+        });
+    }
+
+    get requestCategories() {
+        return [...new Set((this.state.groups || []).map((group) => group.category || "Other"))].sort();
+    }
+
+    get requestGroups() {
+        if (!this.state.requestCategory) {
+            return this.state.groups;
+        }
+        return this.state.groups.filter((group) => group.category === this.state.requestCategory);
+    }
+
+    get panelPermissions() {
+        const user = this.state.activeUser;
+        if (!user) return [];
+        if (this.state.permTab === "all") return user.permissions || [];
+        return (user.permissions || []).filter((perm) => perm.type === this.state.permTab);
+    }
+
+    get permissionCategories() {
+        return [...new Set((this.state.groups || []).map((group) => group.category || "Other"))].sort();
+    }
+
+    get permissionCatalog() {
+        const query = this.state.permissionSearch.trim().toLowerCase();
+        return (this.state.groups || []).filter((group) => {
+            const matchesCategory = !this.state.permissionCategory || group.category === this.state.permissionCategory;
+            const state = this.permissionState(group.id);
+            const matchesState =
+                this.state.permissionStateFilter === "all" ||
+                state === this.state.permissionStateFilter ||
+                (this.state.permissionStateFilter === "base" && state === "assigned");
+            const text = `${group.full_name || ""} ${group.name || ""} ${group.category || ""}`.toLowerCase();
+            const matchesQuery = !query || text.includes(query);
+            return matchesCategory && matchesState && matchesQuery;
+        });
+    }
+
+    get filteredRolesForModal() {
+        const query = this.state.roleSearch.trim().toLowerCase();
+        return (this.state.roles || []).filter((role) => {
+            const assigned = this.isRoleChecked(role.id);
+            const matchesFilter =
+                this.state.roleFilter === "all" ||
+                (this.state.roleFilter === "assigned" && assigned) ||
+                (this.state.roleFilter === "unassigned" && !assigned);
+            const matchesQuery = !query || `${role.name || ""}`.toLowerCase().includes(query);
+            return matchesFilter && matchesQuery;
+        });
+    }
+
+    get roleSummary() {
+        const total = (this.state.roles || []).length;
+        const assigned = this.state.selectedRoleIds.length;
+        return {
+            total,
+            assigned,
+            unassigned: Math.max(total - assigned, 0),
+        };
+    }
+
+    get permissionSummary() {
+        const groups = this.state.groups || [];
+        return {
+            total: groups.length,
+            base: groups.filter((group) => this.permissionState(group.id) === "base" || this.permissionState(group.id) === "assigned").length,
+            extra: this.state.selectedExtraIds.length,
+            excluded: this.state.selectedExcludedIds.length,
+            unassigned: groups.filter((group) => this.permissionState(group.id) === "none").length,
+        };
+    }
+
+    initials(name) {
+        return initials(name);
+    }
+
+    avatarStyle(name) {
+        return `background:${pickColor(name)};`;
+    }
+
+    statusLabel(user) {
+        return user.status?.label || "Full";
+    }
+
+    statusKey(user) {
+        return user.status?.key || "full";
+    }
+
+    statusHelp(user) {
+        return user.status_help || "";
+    }
+
+    roleNames(user) {
+        return (user.roles || []).map((role) => role.name).join(", ");
+    }
+
+    onSearch(ev) {
+        this.state.search = ev.target.value || "";
+    }
+
+    onDepartment(ev) {
+        this.state.department = ev.target.value || "";
+    }
+
+    openPanel(user) {
+        this.state.activeUser = user;
+        this.state.panelOpen = true;
+        this.state.permTab = "all";
+        this.state.actionOpen = false;
+    }
+
+    closePanel() {
+        this.state.panelOpen = false;
+        this.state.actionOpen = false;
+    }
+
+    setPermTab(tab) {
+        this.state.permTab = tab;
+    }
+
+    toggleActions() {
+        this.state.actionOpen = !this.state.actionOpen;
+    }
+
+    openRequestModal() {
+        this.state.requestType = "grant";
+        this.state.requestCategory = "";
+        this.state.durationType = "permanent";
+        this.state.requestOpen = true;
+        this.state.actionOpen = false;
+    }
+
+    closeRequestModal() {
+        this.state.requestOpen = false;
+    }
+
+    setRequestType(type) {
+        this.state.requestType = type;
+    }
+
+    onRequestCategory(ev) {
+        this.state.requestCategory = ev.target.value || "";
+    }
+
+    onDurationType(ev) {
+        this.state.durationType = ev.target.value || "permanent";
+    }
+
+    async submitRequest() {
+        const userId = this.state.activeUser?.id || Number(this.userRef.el?.value || 0);
+        const groupId = Number(this.groupRef.el?.value || 0);
+        const duration = this.durationRef.el?.value || "permanent";
+        const durationValue = this.durationValueRef.el?.value || "";
+        const durationUnit = this.durationUnitRef.el?.value || "";
+        const reason = this.reasonRef.el?.value || "";
+        const durationLabel = duration === "temporary"
+            ? `Temporary: ${durationValue || 1} ${durationUnit || "days"}`
+            : "Permanent";
+        const description = [reason, `Duration: ${durationLabel}`].filter(Boolean).join("\n");
+        this.state.saving = true;
+        try {
+            const result = await this.orm.call("request.rbac.permission", "create_request_from_dashboard", [], {
+                values: {
+                    user_id: userId,
+                    group_id: groupId,
+                    type: this.state.requestType,
+                    description,
+                },
+            });
+            if (result.error) {
+                this.notification.add(result.message || _t("Unable to submit request."), {type: "danger"});
+                return;
+            }
+            this.notification.add(result.message || _t("Request submitted."), {type: "success"});
+            this.closeRequestModal();
+            await this.refreshActiveUser();
+        } finally {
+            this.state.saving = false;
+        }
+    }
+
+    async refreshActiveUser() {
+        if (!this.state.activeUser) {
+            await this.loadData();
+            return;
+        }
+        const card = await this.orm.call("rbac.model", "get_rbac_user_card", [], {user_id: this.state.activeUser.id});
+        if (card && card.id) {
+            const idx = this.state.users.findIndex((user) => user.id === card.id);
+            if (idx >= 0) this.state.users.splice(idx, 1, card);
+            this.state.activeUser = card;
+        } else {
+            await this.loadData();
+        }
+    }
+
+    confirmAction(title, body, confirmLabel, callback, danger = false) {
+        this.state.actionOpen = false;
+        this.dialog.add(ConfirmationDialog, {
+            title,
+            body,
+            confirmLabel,
+            cancelLabel: _t("Cancel"),
+            confirmClass: danger ? "btn-danger" : "btn-primary",
+            confirm: callback,
+        });
+    }
+
+    grantAll() {
+        const user = this.state.activeUser;
+        this.confirmAction(_t("Grant All Permissions"), _t("Grant all available permissions to %s?", user.name), _t("Grant All"), async () => {
+            await this.orm.call("res.users", "grant_all_permissions", [user.id]);
+            this.notification.add(_t("All permissions granted."), {type: "success"});
+            await this.refreshActiveUser();
+        });
+    }
+
+    revokeAll() {
+        const user = this.state.activeUser;
+        this.confirmAction(_t("Revoke All Permissions"), _t("Revoke roles, extras, and exclusions for %s?", user.name), _t("Revoke All"), async () => {
+            await this.orm.call("res.users", "revoke_all_permissions", [user.id]);
+            this.notification.add(_t("Permissions revoked."), {type: "warning"});
+            await this.refreshActiveUser();
+        }, true);
+    }
+
+    openCloneModal() {
+        this.state.cloneModalOpen = true;
+        this.state.actionOpen = false;
+    }
+
+    closeCloneModal() {
+        this.state.cloneModalOpen = false;
+    }
+
+    async clonePermissions() {
+        const cloneUserId = Number(this.cloneUserRef.el?.value || 0);
+        if (!cloneUserId || !this.state.activeUser) return;
+        const result = await this.orm.call("rbac.model", "clone_groups_from_user", [], {
+            user_id: this.state.activeUser.id,
+            clone_user_id: cloneUserId,
+        });
+        if (result?.error) {
+            this.notification.add(result.message || result.error, {type: "danger"});
+            return;
+        }
+        this.notification.add(result?.message || _t("Permissions cloned."), {type: "success"});
+        this.closeCloneModal();
+        await this.refreshActiveUser();
+    }
+
+    openRoleModal() {
+        this.state.selectedRoleIds = (this.state.activeUser?.roles || []).map((role) => role.id);
+        this.state.roleSearch = "";
+        this.state.roleFilter = "all";
+        this.state.roleModalOpen = true;
+        this.state.actionOpen = false;
+    }
+
+    closeRoleModal() {
+        this.state.roleModalOpen = false;
+    }
+
+    isRoleChecked(roleId) {
+        return this.state.selectedRoleIds.includes(roleId);
+    }
+
+    toggleRole(roleId) {
+        const idx = this.state.selectedRoleIds.indexOf(roleId);
+        if (idx >= 0) {
+            this.state.selectedRoleIds.splice(idx, 1);
+        } else {
+            this.state.selectedRoleIds.push(roleId);
+        }
+    }
+
+    onRoleSearch(ev) {
+        this.state.roleSearch = ev.target.value || "";
+    }
+
+    setRoleFilter(filter) {
+        this.state.roleFilter = filter;
+    }
+
+    async applyRoles() {
+        const user = this.state.activeUser;
+        const current = new Set((user.roles || []).map((role) => role.id));
+        const target = new Set(this.state.selectedRoleIds);
+        for (const roleId of target) {
+            if (!current.has(roleId)) {
+                await this.orm.call("res.users", "assign_role", [user.id], {role_id: roleId});
+            }
+        }
+        for (const roleId of current) {
+            if (!target.has(roleId)) {
+                await this.orm.call("res.users", "remove_role", [user.id], {role_id: roleId});
+            }
+        }
+        this.notification.add(_t("Roles updated."), {type: "success"});
+        this.closeRoleModal();
+        await this.refreshActiveUser();
+    }
+
+    openPermissionModal() {
+        const user = this.state.activeUser;
+        this.state.selectedExtraIds = [...(user?.extra_group_ids || [])];
+        this.state.selectedExcludedIds = [...(user?.excluded_group_ids || [])];
+        this.state.permissionSearch = "";
+        this.state.permissionCategory = "";
+        this.state.permissionStateFilter = "all";
+        this.state.permissionModalOpen = true;
+        this.state.actionOpen = false;
+    }
+
+    closePermissionModal() {
+        this.state.permissionModalOpen = false;
+    }
+
+    onPermissionSearch(ev) {
+        this.state.permissionSearch = ev.target.value || "";
+    }
+
+    onPermissionCategory(ev) {
+        this.state.permissionCategory = ev.target.value || "";
+    }
+
+    setPermissionStateFilter(filter) {
+        this.state.permissionStateFilter = filter;
+    }
+
+    permissionState(groupId) {
+        if (this.state.selectedExcludedIds.includes(groupId)) return "excluded";
+        if (this.state.selectedExtraIds.includes(groupId)) return "extra";
+        if ((this.state.activeUser?.base_group_ids || []).includes(groupId)) return "base";
+        if ((this.state.activeUser?.effective_group_ids || []).includes(groupId)) return "assigned";
+        return "none";
+    }
+
+    permissionStateLabel(groupId) {
+        const state = this.permissionState(groupId);
+        if (state === "base") return "Base";
+        if (state === "assigned") return "Assigned";
+        if (state === "extra") return "+ Extra";
+        if (state === "excluded") return "Excluded";
+        return "Unassigned";
+    }
+
+    permissionStateHint(groupId) {
+        const state = this.permissionState(groupId);
+        if (state === "extra") return "Granted directly to this user.";
+        if (state === "excluded") return "Blocked for this user even if a role grants it.";
+        if (state === "base" || state === "assigned") return "Currently granted by role/default access.";
+        return "Not currently granted to this user.";
+    }
+
+    setPermissionState(groupId, state) {
+        this.state.selectedExtraIds = this.state.selectedExtraIds.filter((id) => id !== groupId);
+        this.state.selectedExcludedIds = this.state.selectedExcludedIds.filter((id) => id !== groupId);
+        if (state === "extra") {
+            this.state.selectedExtraIds.push(groupId);
+        } else if (state === "excluded") {
+            this.state.selectedExcludedIds.push(groupId);
+        }
+    }
+
+    async applyPermissions() {
+        const user = this.state.activeUser;
+        if (!user) return;
+        const currentExtra = new Set(user.extra_group_ids || []);
+        const currentExcluded = new Set(user.excluded_group_ids || []);
+        const targetExtra = new Set(this.state.selectedExtraIds);
+        const targetExcluded = new Set(this.state.selectedExcludedIds);
+
+        for (const groupId of currentExtra) {
+            if (!targetExtra.has(groupId)) {
+                await this.orm.call("res.users", "remove_direct_group_additions", [user.id], {group_id: groupId});
+            }
+        }
+        for (const groupId of currentExcluded) {
+            if (!targetExcluded.has(groupId)) {
+                await this.orm.call("res.users", "remove_direct_group_exclusions", [user.id], {group_id: groupId});
+            }
+        }
+        for (const groupId of targetExtra) {
+            if (!currentExtra.has(groupId)) {
+                await this.orm.call("res.users", "add_direct_group_additions", [user.id], {group_id: groupId});
+            }
+        }
+        for (const groupId of targetExcluded) {
+            if (!currentExcluded.has(groupId)) {
+                await this.orm.call("res.users", "add_direct_group_exclusions", [user.id], {group_id: groupId});
+            }
+        }
+        this.notification.add(_t("Permissions updated."), {type: "success"});
+        this.closePermissionModal();
+        await this.refreshActiveUser();
+    }
+
+    async exportPermissions() {
+        this.state.actionOpen = false;
+        await download({
+            data: {
+                data: JSON.stringify(await this.orm.call("rbac.model", "export_permissions_csv", [], {user_id: this.state.activeUser.id})),
+            },
+            url: "/web/export/csv",
+        });
+    }
+
+    async changePassword() {
+        this.state.actionOpen = false;
+        await this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Change Password",
+            res_model: "change.password.wizard",
+            views: [[false, "form"]],
+            target: "new",
+            context: {active_model: "res.users", active_ids: [this.state.activeUser.id]},
+        });
+    }
+
+    async resetPassword() {
+        this.state.actionOpen = false;
+        await this.orm.call("res.users", "action_reset_password", [[this.state.activeUser.id]]);
+        this.notification.add(_t("Password reset instructions sent."), {type: "success"});
+    }
+
+    async disable2FA() {
+        const user = this.state.activeUser;
+        this.confirmAction(_t("Disable Two-Factor Auth"), _t("Disable two-factor authentication for %s?", user.name), _t("Disable"), async () => {
+            await this.orm.call("res.users", "action_totp_disable", [[user.id]]);
+            this.notification.add(_t("Two-factor authentication disabled."), {type: "success"});
+        }, true);
+    }
+
+    invite2FA() {
+        this.state.actionOpen = false;
+        this.notification.add(_t("Odoo sends 2FA enrollment from the user's preferences/security flow."), {type: "info"});
+    }
+
+    archiveUser() {
+        const user = this.state.activeUser;
+        this.confirmAction(_t("Archive User"), _t("Archive %s?", user.name), _t("Archive"), async () => {
+            await this.orm.write("res.users", [user.id], {active: false});
+            this.notification.add(_t("User archived."), {type: "success"});
+            this.closePanel();
+            await this.loadData();
+        }, true);
+    }
+
+    deleteUser() {
+        const user = this.state.activeUser;
+        this.confirmAction(_t("Delete User"), _t("Permanently delete %s?", user.name), _t("Delete"), async () => {
+            await this.orm.call("res.users", "unlink", [[user.id]]);
+            this.notification.add(_t("User deleted."), {type: "success"});
+            this.closePanel();
+            await this.loadData();
+        }, true);
+    }
+}
+
+registry.category("actions").add("rbac.users_directory", RBACUsersDirectory);

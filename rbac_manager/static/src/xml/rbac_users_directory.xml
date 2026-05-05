@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rbac.UsersDirectory">
+        <div class="ud_wrap">
+            <div class="ud_header">
+                <h1>Users</h1>
+                <p>View role-based, extra, and excluded permissions per user.</p>
+            </div>
+
+            <div class="ud_filters">
+                <div class="ud_search">
+                    <i class="fa fa-search"/>
+                    <input type="text" placeholder="Search users..." t-on-input="(ev) => this.onSearch(ev)"/>
+                </div>
+                <select class="ud_select" t-on-change="(ev) => this.onDepartment(ev)">
+                    <option value="">All Departments</option>
+                    <t t-foreach="state.departments" t-as="department" t-key="department">
+                        <option t-att-value="department"><t t-esc="department"/></option>
+                    </t>
+                </select>
+            </div>
+
+            <div class="ud_table">
+                <div class="ud_thead">
+                    <div><input type="checkbox"/></div>
+                    <div>User</div>
+                    <div>Roles</div>
+                    <div>Base</div>
+                    <div>Extra</div>
+                    <div>Excl.</div>
+                    <div>Status</div>
+                </div>
+                <t t-if="state.loading">
+                    <div class="ud_empty">Loading users...</div>
+                </t>
+                <t t-elif="!this.filteredUsers.length">
+                    <div class="ud_empty">No users found.</div>
+                </t>
+                <t t-else="">
+                    <t t-foreach="this.filteredUsers" t-as="user" t-key="user.id">
+                        <button class="ud_row" type="button" t-on-click="() => this.openPanel(user)">
+                            <div><input type="checkbox" t-on-click.stop="() => {}"/></div>
+                            <div class="ud_user_cell">
+                                <span class="ud_avatar" t-att-style="this.avatarStyle(user.name)"><t t-esc="this.initials(user.name)"/></span>
+                                <span class="ud_user_text">
+                                    <strong t-esc="user.name"/>
+                                    <small t-esc="user.email"/>
+                                </span>
+                            </div>
+                            <div class="ud_roles">
+                                <t t-if="!(user.roles || []).length"><span class="ud_muted">No roles</span></t>
+                                <t t-foreach="(user.roles || []).slice(0, 3)" t-as="role" t-key="role.id">
+                                    <span class="ud_role_tag" t-esc="role.name"/>
+                                </t>
+                                <t t-if="(user.roles || []).length > 3">
+                                    <span class="ud_role_tag">+<t t-esc="(user.roles || []).length - 3"/></span>
+                                </t>
+                            </div>
+                            <div class="ud_count base" t-esc="user.base"/>
+                            <div class="ud_count extra">+<t t-esc="user.extra"/></div>
+                            <div t-att-class="'ud_count excl' + (user.excluded ? '' : ' zero')">
+                                <t t-if="user.excluded">-<t t-esc="user.excluded"/></t>
+                                <t t-else="">0</t>
+                            </div>
+                            <div><span t-att-class="'ud_status ' + this.statusKey(user)"><i class="fa fa-circle"/><t t-esc="this.statusLabel(user)"/></span></div>
+                        </button>
+                    </t>
+                </t>
+            </div>
+
+            <div t-att-class="'ud_overlay' + (state.panelOpen ? ' open' : '')" t-on-click="closePanel"/>
+            <aside t-att-class="'ud_panel' + (state.panelOpen ? ' open' : '')">
+                <t t-if="state.activeUser">
+                    <div class="ud_panel_head">
+                        <div class="ud_panel_icon"><i class="fa fa-user-o"/></div>
+                        <div>
+                            <h2>Manage Permissions: <t t-esc="state.activeUser.name"/></h2>
+                            <p><t t-esc="this.roleNames(state.activeUser) || 'No role'"/> · <t t-esc="state.activeUser.department"/></p>
+                        </div>
+                        <button class="ud_close" t-on-click="closePanel"><i class="fa fa-times"/></button>
+                    </div>
+
+                    <div class="ud_panel_body">
+                        <div class="ud_profile">
+                            <span class="ud_profile_avatar" t-att-style="this.avatarStyle(state.activeUser.name)">
+                                <t t-esc="this.initials(state.activeUser.name)"/>
+                            </span>
+                            <div>
+                                <h3 t-esc="state.activeUser.name"/>
+                                <p><t t-esc="state.activeUser.email"/> · <t t-esc="state.activeUser.department"/></p>
+                                <span t-att-class="'ud_status big ' + this.statusKey(state.activeUser)">
+                                    <i class="fa fa-circle"/><t t-esc="this.statusLabel(state.activeUser)"/> Access
+                                </span>
+                                <p class="ud_status_help" t-esc="this.statusHelp(state.activeUser)"/>
+                            </div>
+                        </div>
+
+                        <div class="ud_section_head">
+                            <div class="ud_section_label">Assigned Roles</div>
+                            <button class="ud_inline_btn" t-on-click="openRoleModal">Manage Roles</button>
+                        </div>
+                        <div class="ud_panel_roles">
+                            <t t-if="!(state.activeUser.roles || []).length"><span class="ud_muted">No roles assigned.</span></t>
+                            <t t-foreach="state.activeUser.roles || []" t-as="role" t-key="role.id">
+                                <span class="ud_role_tag"><t t-esc="role.name"/> <small>(<t t-esc="role.permissions_count"/> perms)</small></span>
+                            </t>
+                        </div>
+
+                        <div class="ud_stats">
+                            <div><strong t-esc="state.activeUser.base"/><span>Base</span></div>
+                            <div class="extra"><strong>+<t t-esc="state.activeUser.extra"/></strong><span>Extra</span></div>
+                            <div class="excl"><strong>-<t t-esc="state.activeUser.excluded"/></strong><span>Excluded</span></div>
+                        </div>
+
+                        <div class="ud_rules_head">
+                            <div class="ud_section_label">Access Studio Rules Affecting This User</div>
+                            <span><t t-esc="(state.activeUser.rules || []).length"/> rules active</span>
+                        </div>
+                        <div class="ud_rules">
+                            <t t-if="!(state.activeUser.rules || []).length">
+                                <div class="ud_empty_inner">No active exclusion rules.</div>
+                            </t>
+                            <t t-foreach="state.activeUser.rules || []" t-as="rule" t-key="rule.id">
+                                <div class="ud_rule">
+                                    <i class="fa fa-shield"/>
+                                    <div>
+                                        <strong t-esc="rule.name"/>
+                                        <p>Applied via: <b t-esc="rule.applied_via"/></p>
+                                        <t t-foreach="rule.tags || []" t-as="tag" t-key="tag">
+                                            <span class="ud_rule_tag" t-esc="tag"/>
+                                        </t>
+                                    </div>
+                                    <span t-att-class="'ud_risk ' + rule.risk" t-esc="rule.risk"/>
+                                    <span class="ud_active"><i class="fa fa-circle"/> Active</span>
+                                </div>
+                            </t>
+                        </div>
+
+                        <div class="ud_tabs">
+                            <button t-att-class="state.permTab === 'all' ? 'active' : ''" t-on-click="() => this.setPermTab('all')">All (<t t-esc="state.activeUser.total"/>)</button>
+                            <button t-att-class="state.permTab === 'base' ? 'active' : ''" t-on-click="() => this.setPermTab('base')">Base (<t t-esc="state.activeUser.base"/>)</button>
+                            <button t-att-class="state.permTab === 'extra' ? 'active' : ''" t-on-click="() => this.setPermTab('extra')">Extra (<t t-esc="state.activeUser.extra"/>)</button>
+                            <button t-att-class="state.permTab === 'excluded' ? 'active' : ''" t-on-click="() => this.setPermTab('excluded')">Excluded (<t t-esc="state.activeUser.excluded"/>)</button>
+                        </div>
+                        <div class="ud_legend">
+                            <span><i class="base"/> Base</span><span><i class="extra"/> + Extra</span><span><i class="excluded"/> - Exclude</span>
+                            <button class="ud_inline_btn" t-on-click="openPermissionModal">Manage Permissions</button>
+                        </div>
+
+                        <t t-if="state.permTab === 'all'">
+                            <div class="ud_categories">
+                                <t t-foreach="state.activeUser.categories || []" t-as="cat" t-key="cat.name">
+                                    <details class="ud_category">
+                                        <summary>
+                                            <span class="ud_cat_icon"><t t-esc="cat.code"/></span>
+                                            <span><strong t-esc="cat.name"/><small><t t-esc="cat.total"/> perms · <t t-esc="cat.enabled"/> enabled</small></span>
+                                            <i class="fa fa-chevron-down"/>
+                                        </summary>
+                                        <div class="ud_perm_list">
+                                            <t t-foreach="cat.permissions || []" t-as="perm" t-key="perm.id + '-' + perm.type">
+                                                <div class="ud_perm"><i t-att-class="perm.dot"/><span t-esc="perm.full_name"/><b t-esc="perm.status"/></div>
+                                            </t>
+                                        </div>
+                                    </details>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="ud_perm_list single">
+                                <t t-if="!this.panelPermissions.length"><div class="ud_empty_inner">No permissions in this group.</div></t>
+                                <t t-foreach="this.panelPermissions" t-as="perm" t-key="perm.id + '-' + perm.type">
+                                    <div class="ud_perm"><i t-att-class="perm.dot"/><span t-esc="perm.full_name"/><b t-esc="perm.status"/></div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+
+                    <div class="ud_panel_footer">
+                        <div class="ud_actions_wrap">
+                            <button class="ud_footer_btn" t-on-click="toggleActions"><i class="fa fa-cog"/> Actions <i class="fa fa-caret-down"/></button>
+                            <div t-att-class="'ud_actions_menu' + (state.actionOpen ? ' open' : '')">
+                                <div class="ud_menu_label">Permission Actions</div>
+                                <button t-on-click="grantAll"><i class="fa fa-check-circle-o"/> Grant All Permissions</button>
+                                <button class="danger" t-on-click="revokeAll"><i class="fa fa-ban"/> Revoke All Permissions</button>
+                                <button t-on-click="openCloneModal"><i class="fa fa-clone"/> Clone Permissions from User</button>
+                                <button t-on-click="openRoleModal"><i class="fa fa-star-o"/> Bulk Role Assignment</button>
+                                <button t-on-click="openPermissionModal"><i class="fa fa-key"/> Manage Direct Permissions</button>
+                                <button t-on-click="exportPermissions"><i class="fa fa-download"/> Export Permissions</button>
+                                <div class="ud_menu_label border">Default</div>
+                                <button t-on-click="changePassword"><i class="fa fa-lock"/> Change Password</button>
+                                <button t-on-click="resetPassword"><i class="fa fa-envelope-o"/> Send Password Reset</button>
+                                <button t-on-click="disable2FA"><i class="fa fa-shield"/> Disable Two-Factor Auth</button>
+                                <button t-on-click="invite2FA"><i class="fa fa-shield"/> Invite to Use 2FA</button>
+                                <button t-on-click="archiveUser"><i class="fa fa-archive"/> Archive</button>
+                                <button class="danger" t-on-click="deleteUser"><i class="fa fa-trash-o"/> Delete</button>
+                            </div>
+                        </div>
+                        <button class="ud_footer_btn" t-on-click="openRequestModal">Request Permission</button>
+                        <button class="ud_done" t-on-click="closePanel">Done</button>
+                    </div>
+                </t>
+            </aside>
+
+            <div t-att-class="'ud_modal_overlay' + (state.requestOpen ? ' open' : '')" t-on-click.self="closeRequestModal">
+                <div class="ud_modal">
+                    <div class="ud_modal_head"><h2>Request Permission</h2><button t-on-click="closeRequestModal"><i class="fa fa-times"/></button></div>
+                    <div class="ud_modal_body">
+                        <div class="ud_form_group"><label>Requesting For</label><input class="ud_input" readonly="readonly" t-att-value="state.activeUser ? state.activeUser.name : ''" t-ref="requestUser"/></div>
+                        <div class="ud_radio_row">
+                            <button t-att-class="state.requestType === 'grant' ? 'selected' : ''" t-on-click="() => this.setRequestType('grant')">+ Extra Permission</button>
+                            <button t-att-class="state.requestType === 'deny' ? 'selected' : ''" t-on-click="() => this.setRequestType('deny')">Remove Exclusion</button>
+                        </div>
+                        <div class="ud_form_group"><label>Application / Module</label><select class="ud_input" t-ref="requestCategory" t-on-change="(ev) => this.onRequestCategory(ev)"><option value="">Select module...</option><t t-foreach="this.requestCategories" t-as="cat" t-key="cat"><option t-att-value="cat"><t t-esc="cat"/></option></t></select></div>
+                        <div class="ud_form_group"><label>Specific Permission</label><select class="ud_input" t-ref="requestGroup"><option value="">Select permission...</option><t t-foreach="this.requestGroups" t-as="group" t-key="group.id"><option t-att-value="group.id"><t t-esc="group.full_name"/></option></t></select></div>
+                        <div class="ud_form_group"><label>Duration</label><div t-att-class="'ud_duration' + (state.durationType === 'temporary' ? ' three' : '')"><select class="ud_input" t-ref="requestDuration" t-on-change="(ev) => this.onDurationType(ev)"><option value="permanent">Permanent</option><option value="temporary">Temporary</option></select><t t-if="state.durationType === 'temporary'"><input class="ud_input" type="number" min="1" value="1" t-ref="requestDurationValue"/><select class="ud_input" t-ref="requestDurationUnit"><option value="minutes">Minutes</option><option value="hours">Hours</option><option value="days">Days</option><option value="months">Months</option><option value="years">Years</option></select></t></div></div>
+                        <div class="ud_form_group"><label>Reason</label><textarea class="ud_input" rows="3" t-ref="requestReason" placeholder="Explain why this permission is needed."/></div>
+                    </div>
+                    <div class="ud_modal_footer"><button t-on-click="closeRequestModal">Cancel</button><button class="primary" t-on-click="submitRequest" t-att-disabled="state.saving ? 'disabled' : undefined">Submit Request</button></div>
+                </div>
+            </div>
+
+            <div t-att-class="'ud_modal_overlay' + (state.cloneModalOpen ? ' open' : '')" t-on-click.self="closeCloneModal">
+                <div class="ud_modal small">
+                    <div class="ud_modal_head"><h2>Clone Permissions</h2><button t-on-click="closeCloneModal"><i class="fa fa-times"/></button></div>
+                    <div class="ud_modal_body"><div class="ud_form_group"><label>Clone From</label><select class="ud_input" t-ref="cloneUser"><t t-foreach="state.users.filter((u) => !state.activeUser || u.id !== state.activeUser.id)" t-as="user" t-key="user.id"><option t-att-value="user.id"><t t-esc="user.name"/></option></t></select></div></div>
+                    <div class="ud_modal_footer"><button t-on-click="closeCloneModal">Cancel</button><button class="primary" t-on-click="clonePermissions">Clone</button></div>
+                </div>
+            </div>
+
+            <div t-att-class="'ud_modal_overlay' + (state.roleModalOpen ? ' open' : '')" t-on-click.self="closeRoleModal">
+                <div class="ud_modal wide">
+                    <div class="ud_modal_head">
+                        <div>
+                            <h2>Manage Roles</h2>
+                            <p><t t-esc="this.roleSummary.assigned"/> assigned of <t t-esc="this.roleSummary.total"/> available roles.</p>
+                        </div>
+                        <button t-on-click="closeRoleModal"><i class="fa fa-times"/></button>
+                    </div>
+                    <div class="ud_modal_body">
+                        <div class="ud_role_toolbar">
+                            <div class="ud_search compact"><i class="fa fa-search"/><input type="text" placeholder="Search roles..." t-on-input="(ev) => this.onRoleSearch(ev)"/></div>
+                            <div class="ud_segmented">
+                                <button t-att-class="state.roleFilter === 'all' ? 'active' : ''" t-on-click="() => this.setRoleFilter('all')">All <span t-esc="this.roleSummary.total"/></button>
+                                <button t-att-class="state.roleFilter === 'assigned' ? 'active' : ''" t-on-click="() => this.setRoleFilter('assigned')">Assigned <span t-esc="this.roleSummary.assigned"/></button>
+                                <button t-att-class="state.roleFilter === 'unassigned' ? 'active' : ''" t-on-click="() => this.setRoleFilter('unassigned')">Unassigned <span t-esc="this.roleSummary.unassigned"/></button>
+                            </div>
+                        </div>
+                        <div class="ud_role_grid upgraded">
+                            <t t-if="!this.filteredRolesForModal.length"><div class="ud_empty_inner">No roles match the current filter.</div></t>
+                            <t t-foreach="this.filteredRolesForModal" t-as="role" t-key="role.id">
+                                <button t-att-class="this.isRoleChecked(role.id) ? 'checked' : ''" t-on-click="() => this.toggleRole(role.id)">
+                                    <input type="checkbox" t-att-checked="this.isRoleChecked(role.id) ? 'checked' : undefined"/>
+                                    <span>
+                                        <strong t-esc="role.name"/>
+                                        <small><t t-esc="role.permissions_count"/> permissions</small>
+                                    </span>
+                                    <b t-att-class="this.isRoleChecked(role.id) ? 'ud_alloc assigned' : 'ud_alloc'">
+                                        <t t-if="this.isRoleChecked(role.id)">Assigned</t>
+                                        <t t-else="">Unassigned</t>
+                                    </b>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="ud_modal_footer"><button t-on-click="closeRoleModal">Cancel</button><button class="primary" t-on-click="applyRoles">Apply Roles</button></div>
+                </div>
+            </div>
+
+            <div t-att-class="'ud_modal_overlay' + (state.permissionModalOpen ? ' open' : '')" t-on-click.self="closePermissionModal">
+                <div class="ud_modal xwide">
+                    <div class="ud_modal_head">
+                        <div>
+                            <h2>Permission Manager</h2>
+                            <p>Grant a permission directly, block a permission for this user, or return it to role/default behavior.</p>
+                        </div>
+                        <button t-on-click="closePermissionModal"><i class="fa fa-times"/></button>
+                    </div>
+                    <div class="ud_modal_body">
+                        <div class="ud_perm_flow">
+                            <div><b>Give permission</b><span>Find it, press <strong>Grant to User</strong>, then Apply.</span></div>
+                            <div><b>Remove permission</b><span>If role/default grants it, press <strong>Block/Revoke</strong>. If it is an extra, press <strong>Use Role Default</strong>.</span></div>
+                            <div><b>Undo custom change</b><span><strong>Use Role Default</strong> removes direct grants and exclusions.</span></div>
+                        </div>
+                        <div class="ud_perm_summary">
+                            <button t-att-class="state.permissionStateFilter === 'all' ? 'active' : ''" t-on-click="() => this.setPermissionStateFilter('all')"><strong t-esc="this.permissionSummary.total"/><span>All</span></button>
+                            <button t-att-class="state.permissionStateFilter === 'base' ? 'active base' : 'base'" t-on-click="() => this.setPermissionStateFilter('base')"><strong t-esc="this.permissionSummary.base"/><span>Role/Base</span></button>
+                            <button t-att-class="state.permissionStateFilter === 'extra' ? 'active extra' : 'extra'" t-on-click="() => this.setPermissionStateFilter('extra')"><strong t-esc="this.permissionSummary.extra"/><span>+ Extra</span></button>
+                            <button t-att-class="state.permissionStateFilter === 'excluded' ? 'active excluded' : 'excluded'" t-on-click="() => this.setPermissionStateFilter('excluded')"><strong t-esc="this.permissionSummary.excluded"/><span>Excluded</span></button>
+                            <button t-att-class="state.permissionStateFilter === 'none' ? 'active' : ''" t-on-click="() => this.setPermissionStateFilter('none')"><strong t-esc="this.permissionSummary.unassigned"/><span>Unassigned</span></button>
+                        </div>
+                        <div class="ud_perm_tools">
+                            <div class="ud_search compact"><i class="fa fa-search"/><input type="text" placeholder="Search permissions..." t-on-input="(ev) => this.onPermissionSearch(ev)"/></div>
+                            <select class="ud_select" t-on-change="(ev) => this.onPermissionCategory(ev)">
+                                <option value="">All Applications</option>
+                                <t t-foreach="this.permissionCategories" t-as="category" t-key="category">
+                                    <option t-att-value="category"><t t-esc="category"/></option>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="ud_permission_grid">
+                            <t t-if="!this.permissionCatalog.length"><div class="ud_empty_inner">No permissions found.</div></t>
+                            <t t-foreach="this.permissionCatalog" t-as="group" t-key="group.id">
+                                <div t-att-class="'ud_permission_choice ' + this.permissionState(group.id)">
+                                    <div>
+                                        <strong t-esc="group.full_name"/>
+                                        <small><t t-esc="group.category"/> · <t t-esc="this.permissionStateHint(group.id)"/></small>
+                                    </div>
+                                    <span t-att-class="'ud_perm_state ' + this.permissionState(group.id)" t-esc="this.permissionStateLabel(group.id)"/>
+                                    <div class="ud_perm_choice_actions">
+                                        <button t-att-class="this.permissionState(group.id) === 'none' || this.permissionState(group.id) === 'base' || this.permissionState(group.id) === 'assigned' ? 'active' : ''" t-on-click="() => this.setPermissionState(group.id, 'none')">Use Role Default</button>
+                                        <button t-att-class="this.permissionState(group.id) === 'extra' ? 'active extra' : 'extra'" t-on-click="() => this.setPermissionState(group.id, 'extra')">Grant to User</button>
+                                        <button t-att-class="this.permissionState(group.id) === 'excluded' ? 'active excluded' : 'excluded'" t-on-click="() => this.setPermissionState(group.id, 'excluded')">Block/Revoke</button>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="ud_modal_footer"><button t-on-click="closePermissionModal">Cancel</button><button class="primary" t-on-click="applyPermissions">Apply Permissions</button></div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

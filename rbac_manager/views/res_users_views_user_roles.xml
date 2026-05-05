@@ -1,5 +1,23 @@
 <odoo>
     <data>
+        <!-- Client action - legacy shell entry now opens the roles page inside the global shell -->
+        <record id="act_client_rbac_shell" model="ir.actions.client">
+            <field name="name">RBAC</field>
+            <field name="tag">rbac.roles_directory</field>
+        </record>
+
+        <!-- Client action — Access Studio -->
+        <record id="act_client_rbac_access_studio" model="ir.actions.client">
+            <field name="name">Access Studio</field>
+            <field name="tag">rbac.access_studio</field>
+        </record>
+
+        <!-- Client action - Roles Directory (new OWL component) -->
+        <record id="act_client_rbac_roles_directory" model="ir.actions.client">
+            <field name="name">User Roles</field>
+            <field name="tag">rbac.roles_directory</field>
+        </record>
+
         <record id="view_res_users_kanban_user_role" model="ir.ui.view">
             <field name="name">User Roles Kanban</field>
             <field name="model">res.users</field>

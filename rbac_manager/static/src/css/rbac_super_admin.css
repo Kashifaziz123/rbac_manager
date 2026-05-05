@@ -260,7 +260,7 @@ body.o_web_client div.o_action_manager div.rbac_super_admin * {
 }
 
 .rbac_super_admin .role-icon.librarian {
-    background: #8b5cf6;
+    background: #6681e8;
 }
 
 .rbac_super_admin .role-icon.event {
@@ -412,7 +412,7 @@ body.o_web_client div.o_action_manager div.rbac_super_admin * {
 }
 
 .rbac_super_admin .category-icon.inventory {
-    background: #8b5cf6;
+    background: #6681e8;
 }
 
 .rbac_super_admin .category-icon.finance {

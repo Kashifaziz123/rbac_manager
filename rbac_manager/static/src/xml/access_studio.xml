@@ -1,0 +1,677 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+<t t-name="rbac.AccessStudio">
+<div class="as_wrap">
+
+    <!-- ── Page Header ──────────────────────────────────────────────────── -->
+    <div class="as_page_header">
+        <div>
+            <h1 class="as_page_title">Access Studio</h1>
+            <p class="as_page_sub">Create restriction rules that override role-based permissions.</p>
+        </div>
+        <button class="as_btn as_btn_primary" t-on-click="openNew">+ New Access Rule</button>
+    </div>
+
+    <!-- ── Filter Bar ───────────────────────────────────────────────────── -->
+    <div class="as_filter_bar">
+        <div class="as_search_wrap">
+            <i class="fa fa-search as_search_icon"/>
+            <input class="as_search_input" type="text" placeholder="Search rules..."
+                   t-on-input="onSearch"/>
+        </div>
+        <select class="as_filter_select" t-on-change="onStatusFilter">
+            <option value="">All Status ▾</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+        </select>
+        <select class="as_filter_select" t-on-change="onRiskFilter">
+            <option value="">All Risk ▾</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+        </select>
+    </div>
+
+    <!-- ── Data Table ───────────────────────────────────────────────────── -->
+    <div class="as_table">
+        <div class="as_table_head">
+            <div>RULE</div>
+            <div>APPLIES TO</div>
+            <div>IMPACT</div>
+            <div>STATUS</div>
+            <div>RISK</div>
+        </div>
+
+        <t t-if="this.filteredRules.length === 0">
+            <div class="as_empty">No rules match your filters.</div>
+        </t>
+
+        <t t-foreach="this.filteredRules" t-as="rule" t-key="rule.id">
+            <div class="as_row" t-on-click="() => this.openEdit(rule)">
+                <!-- Rule name + sub -->
+                <div class="as_cell_rule">
+                    <div class="as_rule_name"><t t-esc="rule.name"/></div>
+                    <div class="as_rule_sub"><t t-esc="rule.sub"/></div>
+                </div>
+                <!-- Audience pills -->
+                <div class="as_cell_tags">
+                    <t t-foreach="rule.audience" t-as="pill" t-key="pill.label">
+                        <span t-att-class="'as_pill as_pill_' + pill.type">
+                            <t t-esc="pill.label"/>
+                        </span>
+                    </t>
+                </div>
+                <!-- Impact badges -->
+                <div class="as_cell_tags">
+                    <t t-foreach="rule.impact" t-as="badge" t-key="badge.label">
+                        <span t-att-class="'as_badge as_badge_' + badge.type">
+                            <t t-esc="badge.label"/>
+                        </span>
+                    </t>
+                </div>
+                <!-- Status chip -->
+                <div>
+                    <span t-att-class="'as_status as_status_' + rule.status">
+                        <t t-if="rule.status === 'active'">● Active</t>
+                        <t t-else="">○ Draft</t>
+                    </span>
+                </div>
+                <!-- Risk chip -->
+                <div>
+                    <span t-att-class="'as_risk as_risk_' + rule.risk">
+                        <t t-esc="rule.risk.charAt(0).toUpperCase() + rule.risk.slice(1)"/>
+                    </span>
+                </div>
+            </div>
+        </t>
+    </div>
+
+    <!-- ── Wizard Modal ──────────────────────────────────────────────────── -->
+    <t t-if="this.state.wizardOpen">
+        <div class="as_modal_overlay" t-on-click.self="closeWizard">
+            <div class="as_modal">
+
+                <!-- Modal header -->
+                <div class="as_modal_head">
+                    <div>
+                        <div class="as_modal_title">
+                            <t t-if="this.state.wizardMode === 'edit'">Edit Rule: <t t-esc="this.state.activeRule.name"/></t>
+                            <t t-else="">New Access Rule</t>
+                        </div>
+                        <div class="as_modal_sub">
+                            <t t-if="this.state.wizardMode === 'edit'">Rule overview — use steps above to edit any section</t>
+                            <t t-else="">Step <t t-esc="this.state.wizardStep"/> of 4 — <t t-esc="this.wizardStepLabel"/></t>
+                        </div>
+                    </div>
+                    <button class="as_modal_close" t-on-click="closeWizard">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+
+                <!-- Stepper -->
+                <div class="as_stepper">
+                    <t t-foreach="[1,2,3,4]" t-as="step" t-key="step">
+                        <div t-att-class="'as_step' + (this.state.wizardStep === step ? ' active' : '') + (this.state.wizardStep > step ? ' done' : '')">
+                            <div class="as_step_num">
+                                <t t-if="this.state.wizardStep > step"><i class="fa fa-check"/></t>
+                                <t t-else=""><t t-esc="step"/></t>
+                            </div>
+                            <div class="as_step_label">
+                                <t t-if="step === 1">Define</t>
+                                <t t-elif="step === 2">Audience</t>
+                                <t t-elif="step === 3">Restrictions</t>
+                                <t t-else="">Review</t>
+                            </div>
+                        </div>
+                        <t t-if="step &lt; 4">
+                            <div t-att-class="'as_step_line' + (this.state.wizardStep > step ? ' done' : '')"/>
+                        </t>
+                    </t>
+                </div>
+
+                <!-- Modal body (scrollable) -->
+                <div class="as_modal_body">
+
+                    <!-- Step 1: Define -->
+                    <t t-if="this.state.wizardStep === 1">
+                        <div class="as_info_box">
+                            Access Studio rules apply <strong>restrictions</strong> on top of role-based permissions.
+                        </div>
+                        <div class="as_form_group">
+                            <label class="as_form_label">Rule Name <span class="as_req">*</span></label>
+                            <input class="as_form_input as_wizard_name_input" type="text"
+                                   placeholder="e.g. Disable Import for Sales Team"
+                                   t-att-value="this.state.wName"
+                                   t-on-input="(ev) => { this.state.wName = ev.target.value; }"/>
+                        </div>
+                        <div class="as_form_group">
+                            <label class="as_form_label">Description</label>
+                            <textarea class="as_form_input as_textarea" rows="3"
+                                      placeholder="What does this rule restrict?"
+                                      t-on-input="(ev) => { this.state.wDesc = ev.target.value; }"><t t-esc="this.state.wDesc"/></textarea>
+                        </div>
+                        <div class="as_form_row">
+                            <div class="as_form_group">
+                                <label class="as_form_label">Type</label>
+                                <select class="as_form_select"
+                                        t-on-change="(ev) => { this.state.wType = ev.target.value; }">
+                                    <option>Restriction</option>
+                                    <option>Readonly</option>
+                                    <option>Visibility</option>
+                                    <option>Developer Mode</option>
+                                </select>
+                            </div>
+                            <div class="as_form_group">
+                                <label class="as_form_label">Priority</label>
+                                <select class="as_form_select"
+                                        t-on-change="(ev) => { this.state.wPriority = ev.target.value; }">
+                                    <option>Normal (50)</option>
+                                    <option>High (100)</option>
+                                    <option>Low (10)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="as_toggle_row">
+                            <div>
+                                <div class="as_toggle_label">Activate immediately</div>
+                                <div class="as_toggle_sub">Applies on publish</div>
+                            </div>
+                            <label class="as_toggle_switch">
+                                <input type="checkbox"
+                                       t-att-checked="this.state.wActivate ? 'checked' : undefined"
+                                       t-on-change="(ev) => { this.state.wActivate = ev.target.checked; }"/>
+                                <span class="as_toggle_track"/>
+                                <span class="as_toggle_thumb"/>
+                            </label>
+                        </div>
+                    </t>
+
+                    <!-- Step 2: Audience -->
+                    <t t-elif="this.state.wizardStep === 2">
+                        <div class="as_info_box">
+                            <strong>Who should this rule restrict?</strong> You can target roles, departments, companies, AND/OR specific individual users.
+                        </div>
+
+                        <!-- Roles -->
+                        <div class="as_form_group">
+                            <label class="as_form_label">Apply to Roles</label>
+                            <div class="as_tokenizer_wrap">
+                                <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('roles')">
+                                    <t t-foreach="this.state.wRoles" t-as="item" t-key="item.id">
+                                        <span class="as_tag as_tag_role">
+                                            <t t-esc="item.name"/>
+                                            <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('roles', item.id)">×</span>
+                                        </span>
+                                    </t>
+                                    <input type="text" class="as_tokenizer_input"
+                                           t-att-placeholder="this.state.wRoles.length ? '' : 'Search roles...'"
+                                           t-att-value="this.state.wSearches.roles"
+                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'roles')"
+                                           t-on-focus="() => this.openDropdown('roles')"
+                                           t-on-blur="() => this.scheduleClose('roles')"/>
+                                </div>
+                                <div t-if="this.state.wOpenField === 'roles'" class="as_dropdown">
+                                    <t t-foreach="this.getFiltered('roles')" t-as="opt" t-key="opt.id">
+                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('roles', opt)">
+                                            <t t-esc="opt.name"/>
+                                        </div>
+                                    </t>
+                                    <div t-if="!this.getFiltered('roles').length" class="as_dropdown_empty">No results found.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Departments -->
+                        <div class="as_form_group">
+                            <label class="as_form_label">Apply to Departments</label>
+                            <div class="as_tokenizer_wrap">
+                                <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('depts')">
+                                    <t t-foreach="this.state.wDepts" t-as="item" t-key="item.id">
+                                        <span class="as_tag as_tag_dept">
+                                            <t t-esc="item.name"/>
+                                            <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('depts', item.id)">×</span>
+                                        </span>
+                                    </t>
+                                    <input type="text" class="as_tokenizer_input"
+                                           t-att-placeholder="this.state.wDepts.length ? '' : 'Search departments...'"
+                                           t-att-value="this.state.wSearches.depts"
+                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'depts')"
+                                           t-on-focus="() => this.openDropdown('depts')"
+                                           t-on-blur="() => this.scheduleClose('depts')"/>
+                                </div>
+                                <div t-if="this.state.wOpenField === 'depts'" class="as_dropdown">
+                                    <t t-foreach="this.getFiltered('depts')" t-as="opt" t-key="opt.id">
+                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('depts', opt)">
+                                            <t t-esc="opt.name"/>
+                                        </div>
+                                    </t>
+                                    <div t-if="!this.getFiltered('depts').length" class="as_dropdown_empty">No results found.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Specific Users -->
+                        <div class="as_form_group">
+                            <label class="as_form_label">Apply to Specific Users <span class="as_form_label_note">— for user-level restrictions</span></label>
+                            <div class="as_tokenizer_wrap">
+                                <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('users')">
+                                    <t t-foreach="this.state.wUsers" t-as="item" t-key="item.id">
+                                        <span class="as_tag as_tag_user">
+                                            <t t-esc="item.name"/>
+                                            <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('users', item.id)">×</span>
+                                        </span>
+                                    </t>
+                                    <input type="text" class="as_tokenizer_input"
+                                           t-att-placeholder="this.state.wUsers.length ? '' : 'Search users...'"
+                                           t-att-value="this.state.wSearches.users"
+                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'users')"
+                                           t-on-focus="() => this.openDropdown('users')"
+                                           t-on-blur="() => this.scheduleClose('users')"/>
+                                </div>
+                                <div t-if="this.state.wOpenField === 'users'" class="as_dropdown">
+                                    <t t-foreach="this.getFiltered('users')" t-as="opt" t-key="opt.id">
+                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('users', opt)">
+                                            <t t-esc="opt.name"/>
+                                        </div>
+                                    </t>
+                                    <div t-if="!this.getFiltered('users').length" class="as_dropdown_empty">No results found.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Companies -->
+                        <div class="as_form_group">
+                            <label class="as_form_label">Apply to Companies</label>
+                            <div class="as_tokenizer_wrap">
+                                <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('companies')">
+                                    <t t-foreach="this.state.wCompanies" t-as="item" t-key="item.id">
+                                        <span class="as_tag as_tag_company">
+                                            <t t-esc="item.name"/>
+                                            <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('companies', item.id)">×</span>
+                                        </span>
+                                    </t>
+                                    <input type="text" class="as_tokenizer_input"
+                                           t-att-placeholder="this.state.wCompanies.length ? '' : 'Search companies...'"
+                                           t-att-value="this.state.wSearches.companies"
+                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'companies')"
+                                           t-on-focus="() => this.openDropdown('companies')"
+                                           t-on-blur="() => this.scheduleClose('companies')"/>
+                                </div>
+                                <div t-if="this.state.wOpenField === 'companies'" class="as_dropdown">
+                                    <t t-foreach="this.getFiltered('companies')" t-as="opt" t-key="opt.id">
+                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('companies', opt)">
+                                            <t t-esc="opt.name"/>
+                                        </div>
+                                    </t>
+                                    <div t-if="!this.getFiltered('companies').length" class="as_dropdown_empty">No results found.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Exclude Users -->
+                        <div class="as_form_group">
+                            <label class="as_form_label">Exclude Users <span class="as_form_label_note">— these users won't be affected</span></label>
+                            <div class="as_tokenizer_wrap">
+                                <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('exclude')">
+                                    <t t-foreach="this.state.wExclude" t-as="item" t-key="item.id">
+                                        <span class="as_tag as_tag_exclude">
+                                            <t t-esc="item.name"/>
+                                            <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('exclude', item.id)">×</span>
+                                        </span>
+                                    </t>
+                                    <input type="text" class="as_tokenizer_input"
+                                           t-att-placeholder="this.state.wExclude.length ? '' : 'Search users to exclude...'"
+                                           t-att-value="this.state.wSearches.exclude"
+                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'exclude')"
+                                           t-on-focus="() => this.openDropdown('exclude')"
+                                           t-on-blur="() => this.scheduleClose('exclude')"/>
+                                </div>
+                                <div t-if="this.state.wOpenField === 'exclude'" class="as_dropdown">
+                                    <t t-foreach="this.getFiltered('exclude')" t-as="opt" t-key="opt.id">
+                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('exclude', opt)">
+                                            <t t-esc="opt.name"/>
+                                        </div>
+                                    </t>
+                                    <div t-if="!this.getFiltered('exclude').length" class="as_dropdown_empty">No results found.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Impact estimate -->
+                        <div class="as_impact_box">
+                            <strong>Estimated impact:</strong>
+                            <t t-if="this.state.wRoles.length + this.state.wUsers.length > 0">
+                                <t t-if="this.state.wRoles.length > 0">
+                                    Users via <t t-esc="this.state.wRoles.map(r => r.name).join(', ')"/> role(s)
+                                </t>
+                                <t t-if="this.state.wUsers.length > 0">
+                                    + <t t-esc="this.state.wUsers.length"/> direct user(s)
+                                </t>
+                            </t>
+                            <t t-else="">No audience selected yet.</t>
+                        </div>
+                    </t>
+
+                    <!-- Step 3: Restrictions -->
+                    <t t-elif="this.state.wizardStep === 3">
+                        <div class="as_info_box as_info_box_accent">
+                            Configure what this rule restricts. Use the tabs below — each controls a different category. Only configure the tabs you need.
+                        </div>
+                        <!-- Restriction tabs -->
+                        <div class="as_rtabs">
+                            <t t-foreach="[
+                                {id:'menu',    label:'Hide Menu'},
+                                {id:'model',   label:'Model Access'},
+                                {id:'field',   label:'Field Access'},
+                                {id:'domain',  label:'Domain Access'},
+                                {id:'button',  label:'Button/Tab'},
+                                {id:'filter',  label:'Filter/Group By'},
+                                {id:'chatter', label:'Chatter'},
+                                {id:'global',  label:'Global'}
+                            ]" t-as="tab" t-key="tab.id">
+                                <button t-att-class="'as_rtab' + (this.state.wRestrictTab === tab.id ? ' active' : '')"
+                                        t-on-click="() => this.setRestrictTab(tab.id)">
+                                    <t t-esc="tab.label"/>
+                                </button>
+                            </t>
+                        </div>
+
+                        <!-- Hide Menu -->
+                        <t t-if="this.state.wRestrictTab === 'menu'">
+                            <p class="as_rtab_desc">Search and select menus to hide from the selected audience.</p>
+                            <div class="as_form_group">
+                                <div class="as_tokenizer_wrap">
+                                    <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('menus')">
+                                        <t t-foreach="this.state.wHideMenus" t-as="item" t-key="item.id">
+                                            <span class="as_tag as_tag_danger">
+                                                <t t-esc="item.name"/>
+                                                <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('menus', item.id)">×</span>
+                                            </span>
+                                        </t>
+                                        <input type="text" class="as_tokenizer_input"
+                                               t-att-placeholder="this.state.wHideMenus.length ? '' : 'Search menus… e.g. Accounting, HR, Fleet'"
+                                               t-att-value="this.state.wSearches.menus"
+                                               t-on-input="(ev) => this.onTokenizerInput(ev, 'menus')"
+                                               t-on-focus="() => this.openDropdown('menus')"
+                                               t-on-blur="() => this.scheduleClose('menus')"/>
+                                    </div>
+                                    <div t-if="this.state.wOpenField === 'menus'" class="as_dropdown">
+                                        <t t-foreach="this.getFiltered('menus')" t-as="opt" t-key="opt.id">
+                                            <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('menus', opt)">
+                                                <t t-esc="opt.name"/>
+                                            </div>
+                                        </t>
+                                        <div t-if="!this.getFiltered('menus').length" class="as_dropdown_empty">No results found.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Model Access -->
+                        <t t-elif="this.state.wRestrictTab === 'model'">
+                            <p class="as_rtab_desc">Select models to restrict. Each selected model can be configured with operation-level access rules.</p>
+                            <div class="as_form_group">
+                                <div class="as_tokenizer_wrap">
+                                    <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('models')">
+                                        <t t-foreach="this.state.wModelItems" t-as="item" t-key="item.id">
+                                            <span class="as_tag as_tag_role">
+                                                <t t-esc="item.name"/>
+                                                <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('models', item.id)">×</span>
+                                            </span>
+                                        </t>
+                                        <input type="text" class="as_tokenizer_input"
+                                               t-att-placeholder="this.state.wModelItems.length ? '' : 'Search models… e.g. Sale Order, Invoice, Contact'"
+                                               t-att-value="this.state.wSearches.models"
+                                               t-on-input="(ev) => this.onTokenizerInput(ev, 'models')"
+                                               t-on-focus="() => this.openDropdown('models')"
+                                               t-on-blur="() => this.scheduleClose('models')"/>
+                                    </div>
+                                    <div t-if="this.state.wOpenField === 'models'" class="as_dropdown">
+                                        <t t-foreach="this.getFiltered('models')" t-as="opt" t-key="opt.id">
+                                            <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('models', opt)">
+                                                <t t-esc="opt.name"/>
+                                            </div>
+                                        </t>
+                                        <div t-if="!this.getFiltered('models').length" class="as_dropdown_empty">No results found.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <t t-if="!this.state.wModelItems.length">
+                                <div class="as_model_placeholder">
+                                    <i class="fa fa-cube"/> Select models above to configure access restrictions.
+                                </div>
+                            </t>
+                        </t>
+
+                        <!-- Field Access -->
+                        <t t-elif="this.state.wRestrictTab === 'field'">
+                            <p class="as_rtab_desc">Configure field-level restrictions per model.</p>
+                            <div class="as_model_placeholder">
+                                <i class="fa fa-list"/> Field access configuration coming soon.
+                            </div>
+                        </t>
+
+                        <!-- Domain Access -->
+                        <t t-elif="this.state.wRestrictTab === 'domain'">
+                            <p class="as_rtab_desc">Restrict which records users can see using Odoo domain filters.</p>
+                            <div class="as_model_placeholder">
+                                <i class="fa fa-filter"/> Domain rule builder coming soon.
+                            </div>
+                        </t>
+
+                        <!-- Button/Tab -->
+                        <t t-elif="this.state.wRestrictTab === 'button'">
+                            <p class="as_rtab_desc">Hide or disable specific buttons, tabs, or smart buttons.</p>
+                            <div class="as_model_placeholder">
+                                <i class="fa fa-toggle-off"/> Button/Tab configuration coming soon.
+                            </div>
+                        </t>
+
+                        <!-- Filter/Group By -->
+                        <t t-elif="this.state.wRestrictTab === 'filter'">
+                            <p class="as_rtab_desc">Hide search filters and group-by options. Add a section per model.</p>
+                            <div class="as_model_placeholder">
+                                <i class="fa fa-search-minus"/> Filter/Group By configuration coming soon.
+                            </div>
+                        </t>
+
+                        <!-- Chatter -->
+                        <t t-elif="this.state.wRestrictTab === 'chatter'">
+                            <p class="as_rtab_desc">Control chatter and messaging visibility across all models.</p>
+                            <div class="as_global_grid">
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Chatter</div><div class="as_toggle_sub">Compose Author</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideChatter ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideChatter')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Send Message</div><div class="as_toggle_sub">Compose Author</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideSendMessage ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideSendMessage')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Log Notes</div><div class="as_toggle_sub">Internal note button</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideLogNote ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideLogNote')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Schedule Activity</div><div class="as_toggle_sub">Activity scheduling</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideActivity ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideActivity')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Global -->
+                        <t t-elif="this.state.wRestrictTab === 'global'">
+                            <p class="as_rtab_desc">System-wide settings applied globally across all models.</p>
+                            <div class="as_global_section_label">IMPORT &amp; EXPORT</div>
+                            <div class="as_global_grid">
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Import</div><div class="as_toggle_sub">CSV/Excel import</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideImport ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideImport')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Export</div><div class="as_toggle_sub">Export to file</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideExport ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideExport')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Spreadsheet</div><div class="as_toggle_sub">Insert in spreadsheet</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideSpreadsheet ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideSpreadsheet')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Add Property</div><div class="as_toggle_sub">Custom properties</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideAddProperty ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideAddProperty')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="as_global_section_label">ACCESS CONTROL</div>
+                            <div class="as_global_grid">
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Force Read-Only</div><div class="as_toggle_sub">Entire system readonly</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalForceReadonly ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalForceReadonly')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Disable Developer Mode</div><div class="as_toggle_sub">Block ?debug=1</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalDisableDevMode ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalDisableDevMode')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                                <div class="as_toggle_row">
+                                    <div><div class="as_toggle_label">Hide Technical Settings</div><div class="as_toggle_sub">Settings/Technical menu</div></div>
+                                    <label class="as_toggle_switch">
+                                        <input type="checkbox" t-att-checked="this.state.wGlobalHideTechSettings ? 'checked' : undefined"
+                                               t-on-change="() => this.toggleGlobal('wGlobalHideTechSettings')"/>
+                                        <span class="as_toggle_track"/><span class="as_toggle_thumb"/>
+                                    </label>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+
+                    <!-- Step 4: Review -->
+                    <t t-elif="this.state.wizardStep === 4">
+                        <div class="as_review_summary">
+                            <h3 class="as_review_title">Summary</h3>
+                            <t t-if="this.state.wizardMode === 'edit' and this.state.activeRule">
+                                <div class="as_review_item">
+                                    <i class="fa fa-users as_review_icon"/>
+                                    <strong><t t-esc="this.state.activeRule.summary.users"/></strong>
+                                </div>
+                                <t t-if="this.state.activeRule.summary.menus">
+                                    <div class="as_review_item">
+                                        <i class="fa fa-th-large as_review_icon"/>
+                                        <strong><t t-esc="this.state.activeRule.summary.menus"/></strong>
+                                    </div>
+                                </t>
+                                <t t-if="this.state.activeRule.summary.model">
+                                    <div class="as_review_item">
+                                        <i class="fa fa-file as_review_icon"/>
+                                        <div>
+                                            <div><strong>Model Access:</strong> <t t-esc="this.state.activeRule.summary.model"/></div>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-if="this.state.activeRule.summary.fields">
+                                    <div class="as_review_item">
+                                        <i class="fa fa-table as_review_icon"/>
+                                        <span><strong>Fields:</strong> <t t-esc="this.state.activeRule.summary.fields"/></span>
+                                    </div>
+                                </t>
+                                <t t-if="this.state.activeRule.summary.buttons">
+                                    <div class="as_review_item">
+                                        <i class="fa fa-signal as_review_icon"/>
+                                        <span><t t-esc="this.state.activeRule.summary.buttons"/></span>
+                                    </div>
+                                </t>
+                                <t t-if="this.state.activeRule.summary.global">
+                                    <div class="as_review_item">
+                                        <i class="fa fa-clock-o as_review_icon"/>
+                                        <span><strong>Global:</strong> <t t-esc="this.state.activeRule.summary.global"/></span>
+                                    </div>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <div class="as_review_item">
+                                    <i class="fa fa-users as_review_icon"/>
+                                    <t t-if="this.state.wRoles.length + this.state.wUsers.length > 0">
+                                        Users via <strong><t t-esc="this.state.wRoles.concat(this.state.wUsers).map(x => x.name).join(', ')"/></strong>
+                                    </t>
+                                    <t t-else=""><em>No audience selected</em></t>
+                                </div>
+                                <t t-if="this.state.wHideMenus.length > 0">
+                                    <div class="as_review_item">
+                                        <i class="fa fa-th-large as_review_icon"/>
+                                        <span><strong>Hide <t t-esc="this.state.wHideMenus.length"/> menus:</strong> <t t-esc="this.state.wHideMenus.map(m => m.name).join(', ')"/></span>
+                                    </div>
+                                </t>
+                            </t>
+                        </div>
+
+                        <div class="as_review_warning">
+                            <i class="fa fa-exclamation-triangle"/>
+                            <p>This rule overrides role permissions across <strong><t t-esc="this.state.activeRule ? this.state.activeRule.restriction_count : 0"/> restriction categories</strong>. Changes take effect immediately on publish. Use "Save as Draft" to test first.</p>
+                        </div>
+
+                        <button class="as_btn as_btn_outline as_btn_full" t-on-click="saveAsDraft">
+                            Save as Draft
+                        </button>
+                    </t>
+
+                </div><!-- /modal body -->
+
+                <!-- Modal footer -->
+                <div class="as_modal_footer">
+                    <t t-if="this.state.wizardStep > 1">
+                        <button class="as_btn as_btn_outline" t-on-click="wizardBack">Back</button>
+                    </t>
+                    <button class="as_btn as_btn_outline" t-on-click="closeWizard">Cancel</button>
+                    <button class="as_btn as_btn_primary" t-on-click="wizardNext">
+                        <t t-if="this.state.wizardStep === 4">
+                            <t t-if="this.state.wizardMode === 'edit'">Save Changes</t>
+                            <t t-else="">Publish Rule</t>
+                        </t>
+                        <t t-else="">Continue</t>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </t>
+
+</div>
+</t>
+</templates>

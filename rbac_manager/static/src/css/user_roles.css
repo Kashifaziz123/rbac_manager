@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   RBAC Permission Editor — violet/slate design
+   RBAC Permission Editor — blue/slate design
    ═══════════════════════════════════════════════════════════ */
 
 .role_template *,
@@ -54,7 +54,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .rp_breadcrumb_link {
-    color: #6d28d9;
+    color: #3a5bd9;
     text-decoration: none;
     font-weight: 500;
     display: flex;
@@ -63,7 +63,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .rp_breadcrumb_link:hover {
-    color: #5b21b6;
+    color: #2a46b8;
     text-decoration: underline;
 }
 
@@ -110,7 +110,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .rp_role_name_input:focus {
-    border-bottom-color: #7c3aed;
+    border-bottom-color: #2f4fc8;
 }
 
 .role_template .rp_role_name_input.rp_input_error {
@@ -167,14 +167,14 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .rp_btn_primary {
-    background: #6d28d9;
+    background: #3a5bd9;
     color: #ffffff;
-    box-shadow: 0 3px 10px rgba(109, 40, 217, 0.3);
+    box-shadow: 0 3px 10px rgba(58, 91, 217, 0.3);
 }
 
 .role_template .rp_btn_primary:hover {
-    background: #5b21b6;
-    box-shadow: 0 6px 18px rgba(109, 40, 217, 0.4);
+    background: #2a46b8;
+    box-shadow: 0 6px 18px rgba(58, 91, 217, 0.4);
     transform: translateY(-1px);
 }
 
@@ -232,9 +232,9 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .rp_search_input:focus {
-    border-color: #7c3aed;
+    border-color: #2f4fc8;
     background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    box-shadow: 0 0 0 3px rgba(58, 91, 217, 0.1);
 }
 
 .role_template .rp_search_input::placeholder {
@@ -371,7 +371,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .category-icon.academics {
-    background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+    background: linear-gradient(135deg, #3a5bd9, #6681e8);
 }
 
 .role_template .rp_cat_name {
@@ -535,7 +535,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template input:checked + .slider {
-    background: #6d28d9;
+    background: #3a5bd9;
 }
 
 .role_template input:checked + .slider:before {
@@ -582,9 +582,9 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .page-btn:hover:not(:disabled) {
-    background: #f5f3ff;
-    border-color: #c4b5fd;
-    color: #6d28d9;
+    background: #eef2ff;
+    border-color: #b8c4f5;
+    color: #3a5bd9;
 }
 
 .role_template .page-btn:disabled {
@@ -593,10 +593,10 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 }
 
 .role_template .page-btn.active {
-    background: #6d28d9;
+    background: #3a5bd9;
     color: #ffffff;
-    border-color: #6d28d9;
-    box-shadow: 0 3px 8px rgba(109, 40, 217, 0.3);
+    border-color: #3a5bd9;
+    box-shadow: 0 3px 8px rgba(58, 91, 217, 0.3);
 }
 
 .role_template .rp_footer_btns {
@@ -676,8 +676,8 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    border: 1px solid rgba(109, 40, 217, 0.12);
-    box-shadow: 0 4px 20px rgba(109, 40, 217, 0.10),
+    border: 1px solid rgba(58, 91, 217, 0.12);
+    box-shadow: 0 4px 20px rgba(58, 91, 217, 0.10),
                 0 1px 4px  rgba(0, 0, 0, 0.06);
     transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.28s ease;
@@ -685,7 +685,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 
 .rbac_kanban_card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 20px 48px rgba(109, 40, 217, 0.22),
+    box-shadow: 0 20px 48px rgba(58, 91, 217, 0.22),
                 0 6px 16px  rgba(0, 0, 0, 0.08);
 }
 
@@ -708,7 +708,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 
 /* ─── Gradient header ────────────────────────────────────── */
 .rbac_card_header {
-    background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 55%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #2a46b8 0%, #2f4fc8 55%, #6681e8 100%);
     padding: 22px 22px 18px;
     position: relative;
     overflow: hidden;
@@ -813,13 +813,13 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #f5f3ff;
-    color: #6d28d9;
+    background: #eef2ff;
+    color: #3a5bd9;
     font-size: 12px;
     font-weight: 700;
     padding: 5px 11px;
     border-radius: 20px;
-    border: 1px solid #ddd6fe;
+    border: 1px solid #d8defb;
     letter-spacing: 0.2px;
 }
 
@@ -831,7 +831,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 .rbac_open_btn {
     position: relative;
     z-index: 4;
-    background: #6d28d9;
+    background: #3a5bd9;
     color: #ffffff;
     border: none;
     border-radius: 10px;
@@ -840,14 +840,14 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
     font-weight: 700;
     cursor: pointer;
     letter-spacing: 0.3px;
-    box-shadow: 0 3px 10px rgba(109, 40, 217, 0.35);
+    box-shadow: 0 3px 10px rgba(58, 91, 217, 0.35);
     transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     white-space: nowrap;
 }
 
 .rbac_open_btn:hover {
-    background: #5b21b6;
-    box-shadow: 0 6px 18px rgba(109, 40, 217, 0.45);
+    background: #2a46b8;
+    box-shadow: 0 6px 18px rgba(58, 91, 217, 0.45);
     transform: translateY(-1px);
 }
 
@@ -891,7 +891,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 
 /* ─── Gradient hero banner ───────────────────────────────── */
 .rbac_form_hero {
-    background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 55%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #2a46b8 0%, #2f4fc8 55%, #6681e8 100%);
     border-radius: 20px;
     padding: 30px 32px;
     margin-bottom: 22px;
@@ -997,9 +997,9 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 .rbac_role_form .rbac_form_card .o_field_widget.o_field_char input:focus,
 .rbac_role_form .rbac_form_card .o_field_widget input[type="text"]:focus,
 .rbac_role_form .rbac_form_card .o_field_widget textarea:focus {
-    border-color: #7c3aed !important;
+    border-color: #2f4fc8 !important;
     background: #ffffff !important;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+    box-shadow: 0 0 0 3px rgba(58, 91, 217, 0.12) !important;
     outline: none !important;
 }
 
@@ -1018,8 +1018,8 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
     padding: 14px 16px;
     font-size: 13px;
     line-height: 1.55;
-    background: #f5f3ff;
-    border: 1px solid #ddd6fe;
+    background: #eef2ff;
+    border: 1px solid #d8defb;
     color: #4c1d95;
 }
 
@@ -1027,7 +1027,7 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
     font-size: 15px;
     margin-top: 1px;
     flex-shrink: 0;
-    color: #7c3aed;
+    color: #2f4fc8;
 }
 
 .rbac_form_hint_success {
@@ -1043,19 +1043,19 @@ body.o_web_client div.o_action_manager div.role_template i[class*="fa-"] {
 /* ─── "Configure Permissions" header button ──────────────── */
 .rbac_role_form .o_statusbar_status .btn-primary,
 .rbac_role_form .o_statusbar_buttons .btn-primary {
-    background: #6d28d9 !important;
-    border-color: #6d28d9 !important;
+    background: #3a5bd9 !important;
+    border-color: #3a5bd9 !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
     padding: 7px 18px !important;
-    box-shadow: 0 3px 10px rgba(109, 40, 217, 0.3) !important;
+    box-shadow: 0 3px 10px rgba(58, 91, 217, 0.3) !important;
 }
 
 .rbac_role_form .o_statusbar_status .btn-primary:hover,
 .rbac_role_form .o_statusbar_buttons .btn-primary:hover {
-    background: #5b21b6 !important;
-    border-color: #5b21b6 !important;
-    box-shadow: 0 6px 18px rgba(109, 40, 217, 0.4) !important;
+    background: #2a46b8 !important;
+    border-color: #2a46b8 !important;
+    box-shadow: 0 6px 18px rgba(58, 91, 217, 0.4) !important;
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */

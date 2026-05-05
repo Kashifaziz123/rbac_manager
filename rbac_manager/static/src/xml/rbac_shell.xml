@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.Shell">
+        <!-- Hidden when leaving (prevents flash before doAction resolves) -->
+        <div t-att-class="'rsh_wrap' + (this.state.leaving ? ' rsh_leaving' : '')">
+
+            <!-- ── Icon Strip (primary sidebar) ──────────────────────────── -->
+            <div class="rsh_icon_strip">
+
+                <!-- Logo / home button -->
+                <div class="rsh_logo" t-on-click="goHome" title="Home">
+                    <i class="fa fa-shield"/>
+                </div>
+
+                <!-- Section icons -->
+                <t t-foreach="this.navSections" t-as="sec" t-key="sec.id">
+                    <div t-att-class="'rsh_strip_ico' + (this.isSectionActive(sec.id) ? ' active' : '')"
+                         t-on-click="() => this.selectSection(sec.id)">
+                        <i t-att-class="'fa ' + sec.icon"/>
+                        <span class="rsh_strip_tooltip"><t t-esc="sec.label"/></span>
+                    </div>
+                </t>
+
+                <!-- Bottom: user avatar -->
+                <div class="rsh_strip_bottom">
+                    <div class="rsh_user_avatar_strip" t-att-title="this.session.name">
+                        <t t-esc="this.userInitials"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Secondary Sidebar ────────────────────────────────────── -->
+            <div t-att-class="'rsh_sidebar' + (this.state.sidebarOpen ? '' : ' rsh_sidebar_closed')">
+
+                <!-- Sidebar header -->
+                <div class="rsh_sidebar_header">
+                    <h2>Access Studio</h2>
+                    <p>AlhadiTech RBAC</p>
+                </div>
+
+                <!-- All sections + their items -->
+                <div class="rsh_sidebar_body">
+                    <t t-foreach="this.navSections" t-as="sec" t-key="sec.id">
+                        <div class="rsh_sidebar_section">
+                            <div class="rsh_sidebar_section_label">
+                                <t t-esc="sec.sectionLabel"/>
+                            </div>
+                            <t t-foreach="sec.items" t-as="item" t-key="item.id">
+                                <div t-att-class="'rsh_sidebar_item' + (this.isPageActive(item.id) ? ' active' : '')"
+                                     t-on-click="() => this.selectPage(item)">
+                                    <i t-att-class="'fa ' + item.icon"/>
+                                    <span><t t-esc="item.label"/></span>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ── Main area ─────────────────────────────────────────────── -->
+            <div class="rsh_main">
+
+                <!-- Topbar -->
+                <div class="rsh_topbar">
+                    <div class="rsh_breadcrumb">
+                        <span class="rsh_bc_app">RBAC</span>
+                        <i class="fa fa-chevron-right rsh_bc_sep"/>
+                        <span class="rsh_bc_current"><t t-esc="this.currentPageLabel"/></span>
+                    </div>
+
+                    <div class="rsh_topbar_search">
+                        <i class="fa fa-search rsh_tsearch_icon"/>
+                        <input class="rsh_tsearch_input" type="text"
+                               placeholder="Search roles, users, permissions..."/>
+                    </div>
+
+                    <div class="rsh_topbar_right">
+                        <div class="rsh_topbar_user">
+                            <div class="rsh_user_avatar">
+                                <t t-esc="this.userInitials"/>
+                            </div>
+                            <span class="rsh_user_name"><t t-esc="this.session.name"/></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content area -->
+                <div class="rsh_content">
+                    <t t-if="this.state.activePage === 'roles'">
+                        <RBACRolesDirectory/>
+                    </t>
+                    <t t-elif="this.state.activePage === 'access_studio'">
+                        <RBACAccessStudio/>
+                    </t>
+                </div>
+
+            </div>
+        </div>
+    </t>
+</templates>

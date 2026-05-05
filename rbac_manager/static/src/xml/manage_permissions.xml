@@ -62,7 +62,7 @@
                         <t t-foreach="this.data?.available_roles" t-as="role" t-key="role.id + '_rbac_manage_per' ">
                             <div class="role-item available">
                                 <div class="role-info">
-                                    <div class="role-icon" style="background: #8b5cf6;">
+                                    <div class="role-icon" style="background: #6681e8;">
                                         <t t-esc="role?.name[0]"/>
                                     </div>
                                     <div class="role-details">

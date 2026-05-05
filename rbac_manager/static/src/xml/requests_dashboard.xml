@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rbac.RequestsDashboard">
+        <div class="rq_wrap">
+            <div class="rq_page_header">
+                <div>
+                    <h1 class="rq_page_title">Permission Requests</h1>
+                    <p class="rq_page_sub">All pending, approved, and denied requests.</p>
+                </div>
+                <button class="rq_btn rq_btn_primary" t-on-click="openModal">+ Request Permission</button>
+            </div>
+
+            <div class="rq_tabs">
+                <button t-att-class="'rq_tab' + (state.tab === 'pending' ? ' active' : '')" t-on-click="() => this.setTab('pending')">
+                    Pending <span><t t-esc="state.counts.pending"/></span>
+                </button>
+                <button t-att-class="'rq_tab' + (state.tab === 'approved' ? ' active' : '')" t-on-click="() => this.setTab('approved')">
+                    Approved <span><t t-esc="state.counts.approved"/></span>
+                </button>
+                <button t-att-class="'rq_tab' + (state.tab === 'denied' ? ' active' : '')" t-on-click="() => this.setTab('denied')">
+                    Denied <span><t t-esc="state.counts.denied"/></span>
+                </button>
+            </div>
+
+            <t t-if="state.loading">
+                <div class="rq_empty">Loading requests...</div>
+            </t>
+            <t t-elif="!this.filteredRequests.length">
+                <div class="rq_empty">No <t t-esc="state.tab"/> requests.</div>
+            </t>
+            <t t-else="">
+                <div class="rq_list">
+                    <t t-foreach="this.filteredRequests" t-as="request" t-key="request.id">
+                        <article class="rq_card">
+                            <div class="rq_card_top">
+                                <div class="rq_avatar" t-att-style="this.avatarStyle(request)">
+                                    <t t-esc="this.initials(request.user_name)"/>
+                                </div>
+                                <div class="rq_card_main">
+                                    <div class="rq_title_row">
+                                        <strong t-esc="request.user_name"/>
+                                        <span t-att-class="'rq_status ' + request.state" t-esc="request.state"/>
+                                        <span class="rq_id">#<t t-esc="request.id"/></span>
+                                    </div>
+                                    <div class="rq_requesting">
+                                        Requesting: <strong><t t-esc="request.group_label"/></strong>
+                                    </div>
+                                    <div class="rq_pills">
+                                        <span class="rq_pill base">Role: <t t-esc="request.role_name"/> (<t t-esc="request.base_count"/> base)</span>
+                                        <span t-att-class="'rq_pill ' + (request.type === 'deny' ? 'exclude' : 'extra')">
+                                            <t t-esc="this.requestTypeLabel(request.type)"/>
+                                        </span>
+                                        <span class="rq_text_muted"><t t-esc="request.category"/></span>
+                                    </div>
+                                    <div class="rq_reason">"<t t-esc="request.description || 'No reason provided.'"/>"</div>
+                                    <t t-if="request.state === 'approved'">
+                                        <div class="rq_decision approved">Approved by <t t-esc="request.approved_by || 'Administrator'"/> on <t t-esc="request.created_on"/></div>
+                                    </t>
+                                    <t t-if="request.state === 'denied'">
+                                        <div class="rq_decision denied">Denied by <t t-esc="request.approved_by || 'Administrator'"/></div>
+                                    </t>
+                                </div>
+                            </div>
+                            <div t-if="request.state === 'pending'" class="rq_actions">
+                                <button class="rq_btn rq_btn_success" t-on-click="() => this.approveRequest(request)">Approve as + Extra</button>
+                                <button class="rq_btn rq_btn_deny" t-on-click="() => this.denyRequest(request)">Deny</button>
+                                <button class="rq_btn rq_btn_secondary">View Permissions</button>
+                            </div>
+                            <div t-else="" class="rq_date"><t t-esc="request.created_on"/></div>
+                        </article>
+                    </t>
+                </div>
+            </t>
+
+            <div t-att-class="'rq_modal_overlay' + (state.modalOpen ? ' open' : '')" t-on-click.self="closeModal">
+                <div class="rq_modal">
+                    <div class="rq_modal_head">
+                        <div>
+                            <h2>Request Permission</h2>
+                            <p>Submit a permission request for admin approval. Approved permissions are added as "+ Extra".</p>
+                        </div>
+                        <button class="rq_modal_close" t-on-click="closeModal"><i class="fa fa-times"/></button>
+                    </div>
+                    <div class="rq_modal_body">
+                        <div class="rq_form_group">
+                            <label>Requesting For <span>*</span></label>
+                            <select class="rq_form_input" t-ref="requestUser">
+                                <t t-foreach="state.users" t-as="user" t-key="user.id">
+                                    <option t-att-value="user.id"><t t-esc="user.name"/></option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>What type of permission? <span>*</span></label>
+                            <div class="rq_radio_row">
+                                <button type="button" t-att-class="'rq_radio_card' + (state.requestType === 'grant' ? ' selected' : '')" t-on-click="() => this.setRequestType('grant')">
+                                    <strong>+ Extra Permission</strong>
+                                    <small>Request a new permission not in my current role</small>
+                                </button>
+                                <button type="button" t-att-class="'rq_radio_card' + (state.requestType === 'deny' ? ' selected' : '')" t-on-click="() => this.setRequestType('deny')">
+                                    <strong>Remove Exclusion</strong>
+                                    <small>Restore a permission that was excluded from my profile</small>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Application / Module <span>*</span></label>
+                            <select class="rq_form_input" t-ref="requestCategory" t-on-change="(ev) => this.onCategoryChange(ev)">
+                                <option value="">Select module...</option>
+                                <t t-foreach="this.categories" t-as="category" t-key="category">
+                                    <option t-att-value="category"><t t-esc="category"/></option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Specific Permission <span>*</span></label>
+                            <select class="rq_form_input" t-ref="requestGroup">
+                                <option value="">Select permission...</option>
+                                <t t-foreach="this.modalGroups" t-as="group" t-key="group.id">
+                                    <option t-att-value="group.id"><t t-esc="group.full_name"/></option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Duration <span>*</span></label>
+                            <div t-att-class="'rq_form_row' + (state.durationType === 'temporary' ? ' rq_form_row_three' : '')">
+                                <select class="rq_form_input" t-ref="requestDuration" t-on-change="(ev) => this.onDurationTypeChange(ev)">
+                                    <option value="permanent">Permanent</option>
+                                    <option value="temporary">Temporary</option>
+                                </select>
+                                <t t-if="state.durationType === 'temporary'">
+                                    <input class="rq_form_input" type="number" min="1" step="1" value="1" placeholder="1" t-ref="requestDurationValue"/>
+                                    <select class="rq_form_input" t-ref="requestDurationUnit">
+                                        <option value="minutes">Minutes</option>
+                                        <option value="hours">Hours</option>
+                                        <option value="days" selected="selected">Days</option>
+                                        <option value="months">Months</option>
+                                        <option value="years">Years</option>
+                                    </select>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Reason for requesting <span>*</span></label>
+                            <textarea class="rq_form_input rq_textarea" rows="3" placeholder="Explain why you need this permission. Include project names, deadlines, or manager approval." t-ref="requestReason"/>
+                        </div>
+
+                        <div class="rq_upload">Click to upload or drag and drop</div>
+                        <div class="rq_info">Your request will be sent to an administrator for approval. You will be notified when a decision is made.</div>
+                    </div>
+                    <div class="rq_modal_footer">
+                        <button class="rq_btn rq_btn_secondary" t-on-click="closeModal">Cancel</button>
+                        <button class="rq_btn rq_btn_success" t-on-click="submitRequest" t-att-disabled="state.saving ? 'disabled' : undefined">
+                            <t t-if="state.saving">Submitting...</t>
+                            <t t-else="">Submit Request</t>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

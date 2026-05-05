@@ -76,10 +76,23 @@ class ResUsers(models.Model):
         """Handle updates to users and roles"""
         # Track which roles are being modified if groups are changing
         self = self.with_context(active_test=False)
+        _AUDIT_FIELDS = {'role_user_ids', 'direct_group_additions', 'direct_group_exclusions', 'group_ids'}
+        if not self._context.get('rbac_audit') and any(field in vals for field in _AUDIT_FIELDS):
+            if not self:
+                return super(ResUsers, self).write(vals)
+            if len(self) > 1:
+                for record in self:
+                    record.write(vals)
+                return True
+            rbac_audit = self.env['rbac.audit'].create_log(
+                self,
+                self._get_rbac_auto_audit_method(vals),
+            )
+            return self.with_context(rbac_audit=rbac_audit.id).write(vals)
+
         model = self.env['ir.model'].sudo().search([('model', '=', 'res.users')])
         field_model = self.env["ir.model.fields"].sudo()
         # Only track many2many fields (roles, groups) — skip scalar fields like group_sources
-        _AUDIT_FIELDS = {'role_user_ids', 'direct_group_additions', 'direct_group_exclusions', 'group_ids'}
         audit_values = {}
         if self._context.get('rbac_audit', False):
             for val in vals:
@@ -136,6 +149,20 @@ class ResUsers(models.Model):
                     user._initialize_group_tracking()
 
         return result
+
+    def _get_rbac_auto_audit_method(self, vals):
+        self.ensure_one()
+        if 'role_user_ids' in vals:
+            return 'Update Roles -> %s' % self.name
+        if 'group_ids' in vals:
+            if self.is_user_role:
+                return 'Update Role Permissions -> %s' % self.name
+            return 'Update Permissions -> %s' % self.name
+        if 'direct_group_additions' in vals:
+            return 'Update Extra Permissions -> %s' % self.name
+        if 'direct_group_exclusions' in vals:
+            return 'Update Excluded Permissions -> %s' % self.name
+        return 'Update Access -> %s' % self.name
 
     def _initialize_group_tracking(self):
         """Initialize group sources with existing groups marked as 'initial'"""

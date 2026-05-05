@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="act_client_rbac_users_directory" model="ir.actions.client">
+        <field name="name">Users</field>
+        <field name="tag">rbac.users_directory</field>
+    </record>
+</odoo>

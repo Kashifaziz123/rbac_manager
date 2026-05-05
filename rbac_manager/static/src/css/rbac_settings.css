@@ -1,0 +1,140 @@
+.rs_wrap {
+    --rs-bg: #f3f4f8;
+    --rs-surface: #fff;
+    --rs-border: #e2e5ea;
+    --rs-border2: #d0d5de;
+    --rs-text: #1a1e2d;
+    --rs-text2: #5a6478;
+    --rs-text3: #9ba3b2;
+    --rs-accent: #3a5bd9;
+    height: 100%;
+    overflow: auto;
+    background: var(--rs-bg);
+    color: var(--rs-text);
+    padding: 24px;
+    font-size: 14px;
+}
+
+.rs_header {
+    margin-bottom: 20px;
+}
+
+.rs_header h1 {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.rs_header p {
+    margin: 4px 0 0;
+    color: var(--rs-text2);
+    font-size: 13px;
+}
+
+.rs_card {
+    background: var(--rs-surface);
+    border: 1px solid var(--rs-border);
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 190px;
+}
+
+.rs_form_group {
+    max-width: 200px;
+    margin-bottom: 24px;
+}
+
+.rs_form_group label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--rs-text2);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.rs_select {
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--rs-border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--rs-text);
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+    padding: 0 28px 0 12px;
+}
+
+.rs_select:focus {
+    border-color: var(--rs-accent);
+}
+
+.rs_toggle_row {
+    width: 100%;
+    min-height: 54px;
+    border: 1px solid var(--rs-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--rs-text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rs_toggle_row strong,
+.rs_toggle_row small {
+    display: block;
+}
+
+.rs_toggle_row strong {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.rs_toggle_row small {
+    margin-top: 2px;
+    color: var(--rs-text3);
+    font-size: 11px;
+}
+
+.rs_switch {
+    position: relative;
+    width: 38px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--rs-border2);
+    flex: 0 0 auto;
+    transition: background .18s ease;
+}
+
+.rs_switch span {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .20);
+    transition: transform .18s ease;
+}
+
+.rs_switch.on {
+    background: var(--rs-accent);
+}
+
+.rs_switch.on span {
+    transform: translateX(18px);
+}
+
+.rs_empty {
+    padding: 28px;
+    color: var(--rs-text3);
+    text-align: center;
+}

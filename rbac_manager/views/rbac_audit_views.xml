@@ -2,7 +2,7 @@
 <odoo>
     <data>
         <record id="view_audit_client_rbac_audit" model="ir.actions.client">
-            <field name="name">RBAC Audit</field>
+            <field name="name">Audit Log</field>
             <field name="tag">rbac.audit</field>
             <field name="path">rbac_audit</field>
         </record>

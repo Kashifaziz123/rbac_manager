@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rbac.Dashboard">
+        <div class="db_wrap">
+            <div class="db_header">
+                <div>
+                    <h1>Access Overview</h1>
+                    <p>Security posture and permission health across your organization.</p>
+                </div>
+                <div class="db_header_actions">
+                    <button class="db_btn db_btn_outline" t-on-click="openAudit">View Full Audit</button>
+                    <button class="db_btn db_btn_primary" t-on-click="openRequestModal">+ Request Permission</button>
+                </div>
+            </div>
+
+            <t t-if="state.loading">
+                <div class="db_empty">Loading dashboard...</div>
+            </t>
+            <t t-else="">
+                <div class="db_stats">
+                    <div class="db_stat_card">
+                        <div class="db_stat_label">Total Users</div>
+                        <div class="db_stat_value"><t t-esc="stats.total_users || 0"/></div>
+                        <div class="db_stat_sub"><span><t t-esc="stats.users_with_roles || 0"/></span> with roles</div>
+                    </div>
+                    <div class="db_stat_card">
+                        <div class="db_stat_label">Active Roles</div>
+                        <div class="db_stat_value"><t t-esc="stats.active_roles || 0"/></div>
+                        <div class="db_stat_sub"><t t-esc="stats.base_permissions || 0"/> total base permissions</div>
+                    </div>
+                    <div class="db_stat_card">
+                        <div class="db_stat_label">Pending Requests</div>
+                        <div class="db_stat_value warning"><t t-esc="stats.pending_requests || 0"/></div>
+                        <div class="db_stat_sub">Awaiting approval</div>
+                    </div>
+                    <div class="db_stat_card">
+                        <div class="db_stat_label">Extra / Excluded</div>
+                        <div class="db_stat_value split">
+                            <span class="success"><t t-esc="stats.extra_permissions || 0"/></span>
+                            <span class="slash">/</span>
+                            <span class="danger"><t t-esc="stats.excluded_permissions || 0"/></span>
+                        </div>
+                        <div class="db_stat_sub">individual permission overrides</div>
+                    </div>
+                </div>
+
+                <div class="db_grid_top">
+                    <section class="db_panel db_activity">
+                        <div class="db_panel_head">
+                            <div>
+                                <h2>Recent Activity</h2>
+                                <p>Permission changes, role updates, and request decisions</p>
+                            </div>
+                            <button class="db_btn db_btn_outline" t-on-click="openAudit">View All</button>
+                        </div>
+                        <div class="db_panel_body">
+                            <t t-if="!state.data.recent_activity.length">
+                                <div class="db_empty_inner">No recent activity.</div>
+                            </t>
+                            <t t-foreach="state.data.recent_activity" t-as="activity" t-key="activity.id">
+                                <div class="db_activity_row">
+                                    <div t-att-class="'db_activity_icon ' + activity.indicator">
+                                        <i t-att-class="'fa ' + this.activityIcon(activity)"/>
+                                    </div>
+                                    <div class="db_activity_text">
+                                        <div class="db_activity_title" t-esc="activity.title"/>
+                                        <div class="db_activity_sub" t-esc="activity.subtitle"/>
+                                    </div>
+                                    <div class="db_activity_time" t-esc="activity.ago"/>
+                                </div>
+                            </t>
+                        </div>
+                    </section>
+
+                    <div class="db_side_stack">
+                        <section class="db_panel">
+                            <div class="db_panel_head compact">
+                                <div>
+                                    <h2>Pending Requests</h2>
+                                    <p>Awaiting approval</p>
+                                </div>
+                                <span class="db_pending_badge"><t t-esc="stats.pending_requests || 0"/> pending</span>
+                            </div>
+                            <div class="db_panel_body">
+                                <t t-if="!state.data.pending_requests.length">
+                                    <div class="db_empty_inner">No pending requests.</div>
+                                </t>
+                                <t t-foreach="state.data.pending_requests" t-as="request" t-key="request.id">
+                                    <div class="db_request_row">
+                                        <div class="db_req_avatar" t-att-style="this.avatarStyle(request.user_name)">
+                                            <t t-esc="this.initials(request.user_name)"/>
+                                        </div>
+                                        <div>
+                                            <div class="db_req_name" t-esc="request.user_name"/>
+                                            <div class="db_req_sub"><t t-esc="request.permission"/> · <t t-esc="request.description"/></div>
+                                        </div>
+                                        <span t-esc="request.ago"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </section>
+
+                        <section class="db_panel">
+                            <div class="db_panel_head compact">
+                                <h2>Top Roles by Users</h2>
+                            </div>
+                            <div class="db_panel_body">
+                                <t t-if="!state.data.top_roles.length">
+                                    <div class="db_empty_inner">No roles assigned yet.</div>
+                                </t>
+                                <t t-foreach="state.data.top_roles" t-as="role" t-key="role.id">
+                                    <div class="db_role_row">
+                                        <div class="db_role_line">
+                                            <span class="db_role_dot" t-att-style="'background:' + this.roleColor(role_index)"/>
+                                            <strong t-esc="role.name"/>
+                                            <span><t t-esc="role.users"/> users</span>
+                                        </div>
+                                        <div class="db_role_bar"><span t-att-style="'width:' + role.width + '%; background:' + this.roleColor(role_index)"/></div>
+                                    </div>
+                                </t>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <div class="db_grid_bottom">
+                    <section class="db_panel">
+                        <div class="db_panel_head compact"><h2>Permission Sources</h2></div>
+                        <div class="db_panel_body">
+                            <div class="db_sources">
+                                <div class="db_source base"><strong><t t-esc="state.data.permission_sources.base || 0"/></strong><span>Base</span></div>
+                                <div class="db_source extra"><strong><t t-esc="state.data.permission_sources.extra || 0"/></strong><span>+ Extra</span></div>
+                                <div class="db_source excluded"><strong><t t-esc="state.data.permission_sources.excluded || 0"/></strong><span>- Excluded</span></div>
+                            </div>
+                            <p class="db_source_text">
+                                Effective: <strong><t t-esc="stats.total_active_permissions || 0"/></strong> total active permissions across <t t-esc="stats.total_users || 0"/> users.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="db_panel">
+                        <div class="db_panel_head compact">
+                            <h2>Active Rules</h2>
+                            <span><t t-esc="state.data.active_rules.length"/> active</span>
+                        </div>
+                        <div class="db_panel_body">
+                            <t t-if="!state.data.active_rules.length">
+                                <div class="db_empty_inner">No exclusion rules active.</div>
+                            </t>
+                            <t t-foreach="state.data.active_rules" t-as="rule" t-key="rule.name">
+                                <div class="db_rule_row">
+                                    <span t-att-class="'db_risk ' + rule.risk"><t t-esc="rule.risk ? rule.risk[0].toUpperCase() : 'L'"/></span>
+                                    <strong t-esc="rule.name"/>
+                                    <span><t t-esc="rule.users"/> users</span>
+                                </div>
+                            </t>
+                        </div>
+                    </section>
+
+                    <section class="db_panel">
+                        <div class="db_panel_head compact"><h2>Quick Actions</h2></div>
+                        <div class="db_panel_body db_quick_body">
+                            <button class="db_quick" t-on-click="openSuperAdmin"><span class="blue">+</span><strong>New Access Rule</strong><small>Create restriction policy</small></button>
+                            <button class="db_quick" t-on-click="openRoleModal"><span class="purple"><i class="fa fa-star-o"/></span><strong>Create New Role</strong><small>Bundle permissions</small></button>
+                            <button class="db_quick" t-on-click="openRequestModal"><span class="green"><i class="fa fa-plus-circle"/></span><strong>Request Permission</strong><small>Submit for approval</small></button>
+                            <button class="db_quick" t-on-click="openAudit"><span class="orange"><i class="fa fa-file-o"/></span><strong>View Audit Log</strong><small>Full change history</small></button>
+                        </div>
+                    </section>
+                </div>
+            </t>
+
+            <div t-att-class="'rq_modal_overlay' + (state.modalOpen ? ' open' : '')" t-on-click.self="closeRequestModal">
+                <div class="rq_modal">
+                    <div class="rq_modal_head">
+                        <div>
+                            <h2>Request Permission</h2>
+                            <p>Submit a permission request for admin approval. Approved permissions are added as "+ Extra".</p>
+                        </div>
+                        <button class="rq_modal_close" t-on-click="closeRequestModal"><i class="fa fa-times"/></button>
+                    </div>
+                    <div class="rq_modal_body">
+                        <div class="rq_form_group">
+                            <label>Requesting For <span>*</span></label>
+                            <select class="rq_form_input" t-ref="requestUser">
+                                <t t-foreach="this.requestUsers" t-as="user" t-key="user.id">
+                                    <option t-att-value="user.id"><t t-esc="user.name"/></option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>What type of permission? <span>*</span></label>
+                            <div class="rq_radio_row">
+                                <button type="button" t-att-class="'rq_radio_card' + (state.requestType === 'grant' ? ' selected' : '')" t-on-click="() => this.setRequestType('grant')">
+                                    <strong>+ Extra Permission</strong>
+                                    <small>Request a new permission not in my current role</small>
+                                </button>
+                                <button type="button" t-att-class="'rq_radio_card' + (state.requestType === 'deny' ? ' selected' : '')" t-on-click="() => this.setRequestType('deny')">
+                                    <strong>Remove Exclusion</strong>
+                                    <small>Restore a permission that was excluded from my profile</small>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Application / Module <span>*</span></label>
+                            <select class="rq_form_input" t-ref="requestCategory" t-on-change="(ev) => this.onCategoryChange(ev)">
+                                <option value="">Select module...</option>
+                                <t t-foreach="this.categories" t-as="category" t-key="category">
+                                    <option t-att-value="category"><t t-esc="category"/></option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Specific Permission <span>*</span></label>
+                            <select class="rq_form_input" t-ref="requestGroup">
+                                <option value="">Select permission...</option>
+                                <t t-foreach="this.modalGroups" t-as="group" t-key="group.id">
+                                    <option t-att-value="group.id"><t t-esc="group.full_name"/></option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Duration <span>*</span></label>
+                            <div t-att-class="'rq_form_row' + (state.durationType === 'temporary' ? ' rq_form_row_three' : '')">
+                                <select class="rq_form_input" t-ref="requestDuration" t-on-change="(ev) => this.onDurationTypeChange(ev)">
+                                    <option value="permanent">Permanent</option>
+                                    <option value="temporary">Temporary</option>
+                                </select>
+                                <t t-if="state.durationType === 'temporary'">
+                                    <input class="rq_form_input" type="number" min="1" step="1" value="1" placeholder="1" t-ref="requestDurationValue"/>
+                                    <select class="rq_form_input" t-ref="requestDurationUnit">
+                                        <option value="minutes">Minutes</option>
+                                        <option value="hours">Hours</option>
+                                        <option value="days" selected="selected">Days</option>
+                                        <option value="months">Months</option>
+                                        <option value="years">Years</option>
+                                    </select>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div class="rq_form_group">
+                            <label>Reason for requesting <span>*</span></label>
+                            <textarea class="rq_form_input rq_textarea" rows="3" placeholder="Explain why you need this permission. Include project names, deadlines, or manager approval." t-ref="requestReason"/>
+                        </div>
+
+                        <div class="rq_upload">Click to upload or drag and drop</div>
+                        <div class="rq_info">Your request will be sent to an administrator for approval. You will be notified when a decision is made.</div>
+                    </div>
+                    <div class="rq_modal_footer">
+                        <button class="rq_btn rq_btn_secondary" t-on-click="closeRequestModal">Cancel</button>
+                        <button class="rq_btn rq_btn_success" t-on-click="submitRequest" t-att-disabled="state.saving ? 'disabled' : undefined">
+                            <t t-if="state.saving">Submitting...</t>
+                            <t t-else="">Submit Request</t>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div t-att-class="'rq_modal_overlay' + (state.roleModalOpen ? ' open' : '')" t-on-click.self="closeRoleModal">
+                <div class="rq_modal db_role_create_modal">
+                    <div class="rq_modal_head">
+                        <div>
+                            <h2>New Role</h2>
+                            <p>Define role and assign permissions. Selected permissions become Base for assigned users.</p>
+                        </div>
+                        <button class="rq_modal_close" t-on-click="closeRoleModal"><i class="fa fa-times"/></button>
+                    </div>
+                    <div class="rq_modal_body">
+                        <div class="rq_form_group">
+                            <label>Role Name <span>*</span></label>
+                            <input class="rq_form_input" placeholder="e.g. Workshop Supervisor" t-ref="roleName"/>
+                        </div>
+                        <div class="rq_form_group">
+                            <label>Description</label>
+                            <textarea class="rq_form_input rq_textarea" rows="2" placeholder="What is this role for?" t-ref="roleDesc"/>
+                        </div>
+
+                        <div class="db_modal_section">SELECT PERMISSIONS (<t t-esc="state.roleSelectedGroupIds.length"/>)</div>
+                        <div class="db_modal_search">
+                            <i class="fa fa-search"/>
+                            <input type="text" placeholder="Search permissions..." t-on-input="(ev) => this.onRolePermSearch(ev)"/>
+                        </div>
+                        <div class="db_modal_grid">
+                            <t t-foreach="this.roleGroups" t-as="group" t-key="group.id">
+                                <button type="button"
+                                        t-att-class="'db_modal_check' + (this.isRoleGroupChecked(group.id) ? ' checked' : '')"
+                                        t-on-click="() => this.toggleRoleGroup(group.id)">
+                                    <input type="checkbox" t-att-checked="this.isRoleGroupChecked(group.id) ? 'checked' : undefined"/>
+                                    <span t-esc="group.full_name"/>
+                                </button>
+                            </t>
+                            <t t-if="this.roleGroups.length === 0">
+                                <div class="db_modal_empty">No permissions found.</div>
+                            </t>
+                        </div>
+
+                        <div class="db_modal_section">ASSIGN USERS (<t t-esc="state.roleSelectedUserIds.length"/>)</div>
+                        <div class="db_modal_search">
+                            <i class="fa fa-search"/>
+                            <input type="text" placeholder="Search users..." t-on-input="(ev) => this.onRoleUserSearch(ev)"/>
+                        </div>
+                        <div class="db_modal_grid users">
+                            <t t-foreach="this.roleUsers" t-as="user" t-key="user.id">
+                                <button type="button"
+                                        t-att-class="'db_modal_user' + (this.isRoleUserChecked(user.id) ? ' checked' : '')"
+                                        t-on-click="() => this.toggleRoleUser(user.id)">
+                                    <span class="db_modal_user_avatar" t-att-style="this.avatarStyle(user.name)">
+                                        <t t-esc="this.initials(user.name)"/>
+                                    </span>
+                                    <span class="db_modal_user_text">
+                                        <strong t-esc="user.name"/>
+                                        <small t-esc="user.email"/>
+                                    </span>
+                                    <input type="checkbox" t-att-checked="this.isRoleUserChecked(user.id) ? 'checked' : undefined"/>
+                                </button>
+                            </t>
+                            <t t-if="this.roleUsers.length === 0">
+                                <div class="db_modal_empty">No users found.</div>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="rq_modal_footer">
+                        <button class="rq_btn rq_btn_secondary" t-on-click="closeRoleModal">Cancel</button>
+                        <button class="rq_btn rq_btn_success" t-on-click="submitRole" t-att-disabled="state.saving ? 'disabled' : undefined">
+                            <t t-if="state.saving">Creating...</t>
+                            <t t-else="">Create Role</t>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

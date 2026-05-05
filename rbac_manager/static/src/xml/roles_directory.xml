@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="rbac.RolesDirectory">
+        <div class="rd_wrap">
+
+            <!-- ── Page Header ──────────────────────────────────────────── -->
+            <div class="rd_page_header">
+                <div>
+                    <h1 class="rd_page_title">Roles</h1>
+                    <p class="rd_page_sub">Each role bundles permissions. Assigning a role grants all its permissions as "Base".</p>
+                </div>
+                <button class="rd_btn rd_btn_primary" t-on-click="openModal">+ New Role</button>
+            </div>
+
+            <!-- ── Role List ────────────────────────────────────────────── -->
+            <div class="rd_table">
+                <div class="rd_table_title">Role Directory</div>
+
+                <t t-if="this.state.loading">
+                    <div class="rd_empty">Loading…</div>
+                </t>
+                <t t-elif="this.filteredRoles.length === 0">
+                    <div class="rd_empty">No roles found.</div>
+                </t>
+                <t t-else="">
+                    <t t-foreach="this.filteredRoles" t-as="role" t-key="role.id">
+                        <div class="rd_row" t-on-click="() => this.openPanel(role)">
+                            <!-- Avatar + name -->
+                            <div class="rd_row_name">
+                                <div class="rd_avatar"
+                                     t-att-style="'background:' + this.avatarColor(role.name) + '22; color:' + this.avatarColor(role.name)">
+                                    <t t-esc="this.initials(role.name)"/>
+                                </div>
+                                <div>
+                                    <div class="rd_role_name"><t t-esc="role.name"/></div>
+                                    <div class="rd_role_desc">
+                                        <t t-esc="role.users_count"/> users · <t t-esc="role.selected_perms_count"/> permissions
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Perm tags -->
+                            <div class="rd_tags_cell">
+                                <t t-foreach="role.perm_tags" t-as="tag" t-key="tag">
+                                    <span class="rd_tag"><t t-esc="tag"/></span>
+                                </t>
+                                <t t-if="role.selected_perms_count > role.perm_tags.length">
+                                    <span class="rd_tag_more">+<t t-esc="role.selected_perms_count - role.perm_tags.length"/></span>
+                                </t>
+                            </div>
+                            <!-- Chevron -->
+                            <div class="rd_chevron_cell">
+                                <i class="fa fa-chevron-right rd_chevron"/>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+
+            <!-- ── Panel Overlay ────────────────────────────────────────── -->
+            <div t-att-class="'rd_overlay' + (this.state.panelOpen ? ' open' : '')"
+                 t-on-click="closePanel"/>
+
+            <!-- ── Side Panel ────────────────────────────────────────────── -->
+            <div t-att-class="'rd_panel' + (this.state.panelOpen ? ' open' : '')">
+                <t t-if="this.state.activeRole">
+                    <!-- Panel header -->
+                    <div class="rd_panel_head">
+                        <div class="rd_panel_head_icon"
+                             t-att-style="'background: var(--rd-accent-soft); color: var(--rd-accent)'">
+                            <i class="fa fa-star-o"/>
+                        </div>
+                        <div class="rd_panel_head_info">
+                            <div class="rd_panel_head_name"><t t-esc="this.state.activeRole.name"/></div>
+                            <div class="rd_panel_head_sub">
+                                <t t-esc="this.state.activeRole.users_count"/> users · Edit permissions
+                            </div>
+                        </div>
+                        <button class="rd_panel_close" t-on-click="closePanel">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </div>
+
+                    <!-- Panel body -->
+                    <div class="rd_panel_body">
+                        <!-- Role banner -->
+                        <div class="rd_role_banner"
+                             t-att-style="'background: var(--rd-accent-soft); border-color: #d8defb'">
+                            <div class="rd_banner_avatar"
+                                 t-att-style="'background: #ffffff; color: var(--rd-accent)'">
+                                <t t-esc="this.initials(this.state.activeRole.name)"/>
+                            </div>
+                            <div>
+                                <div class="rd_banner_name"><t t-esc="this.state.activeRole.name"/></div>
+                                <div class="rd_banner_sub">
+                                    <t t-esc="this.state.activeRole.users_count"/> users inherit these as Base
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Name + Description -->
+                        <div class="rd_form_row">
+                            <div class="rd_form_group">
+                                <label class="rd_form_label">Role Name</label>
+                                <input class="rd_form_input"
+                                       t-ref="panelName"
+                                       t-att-value="this.state.activeRole.name"/>
+                            </div>
+                            <div class="rd_form_group">
+                                <label class="rd_form_label">Description</label>
+                                <input class="rd_form_input"
+                                       t-ref="panelDesc"
+                                       t-att-value="this.state.activeRole.description || ''"/>
+                            </div>
+                        </div>
+
+                        <div class="rd_manage_card">
+                            <div>
+                                <div class="rd_section_label">PERMISSIONS</div>
+                                <h3><t t-esc="this.panelPermissionSummary.assigned"/> assigned</h3>
+                                <p><t t-esc="this.panelPermissionSummary.unassigned"/> available to add</p>
+                            </div>
+                            <button class="rd_btn rd_btn_secondary" t-on-click="openPanelPermManager">
+                                <i class="fa fa-key"/> Manage Permissions
+                            </button>
+                        </div>
+                        <div class="rd_summary_tags">
+                            <t t-if="!this.panelAssignedGroups.length"><span class="rd_empty_pill">No permissions assigned.</span></t>
+                            <t t-foreach="this.panelAssignedGroups.slice(0, 8)" t-as="grp" t-key="grp.id">
+                                <span class="rd_tag"><t t-esc="grp.name || grp.full_name"/></span>
+                            </t>
+                            <t t-if="this.panelAssignedGroups.length > 8">
+                                <span class="rd_tag_more">+<t t-esc="this.panelAssignedGroups.length - 8"/></span>
+                            </t>
+                        </div>
+
+                        <div class="rd_divider"/>
+
+                        <div class="rd_manage_card">
+                            <div>
+                                <div class="rd_section_label">ASSIGNED USERS</div>
+                                <h3><t t-esc="this.panelUserSummary.assigned"/> assigned</h3>
+                                <p><t t-esc="this.panelUserSummary.unassigned"/> users not assigned</p>
+                            </div>
+                            <button class="rd_btn rd_btn_secondary" t-on-click="openPanelUserManager">
+                                <i class="fa fa-users"/> Manage Users
+                            </button>
+                        </div>
+                        <div class="rd_summary_users">
+                            <t t-if="!this.panelAssignedUsers.length"><span class="rd_empty_pill">No users assigned.</span></t>
+                            <t t-foreach="this.panelAssignedUsers.slice(0, 6)" t-as="user" t-key="user.id">
+                                <span class="rd_user_chip"><span class="rd_user_avatar"><t t-esc="this.initials(user.name)"/></span><t t-esc="user.name"/></span>
+                            </t>
+                            <t t-if="this.panelAssignedUsers.length > 6">
+                                <span class="rd_tag_more">+<t t-esc="this.panelAssignedUsers.length - 6"/></span>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Panel footer -->
+                    <div class="rd_panel_footer">
+                        <button class="rd_btn rd_btn_secondary" t-on-click="closePanel">Cancel</button>
+                        <button class="rd_btn rd_btn_danger_outline" t-on-click="deleteRole"
+                                t-att-disabled="this.state.deleting ? 'disabled' : undefined">
+                            <i class="fa fa-trash"/> Delete Role
+                        </button>
+                        <button class="rd_btn rd_btn_primary" t-on-click="savePanel"
+                                t-att-disabled="this.state.saving ? 'disabled' : undefined">
+                            <t t-if="this.state.saving">Saving…</t>
+                            <t t-else="">Save Role</t>
+                        </button>
+                    </div>
+                </t>
+            </div>
+
+            <div t-att-class="'rd_modal_overlay' + (this.state.panelPermManagerOpen ? ' open' : '')"
+                 t-on-click.self="closePanelPermManager">
+                <div class="rd_modal rd_modal_wide">
+                    <div class="rd_modal_head">
+                        <div>
+                            <div class="rd_modal_title">Manage Role Permissions</div>
+                            <div class="rd_modal_sub"><t t-esc="this.panelPermissionSummary.assigned"/> assigned of <t t-esc="this.panelPermissionSummary.total"/> available permissions.</div>
+                        </div>
+                        <button class="rd_modal_close" t-on-click="closePanelPermManager"><i class="fa fa-times"/></button>
+                    </div>
+                    <div class="rd_modal_body">
+                        <div class="rd_manager_toolbar">
+                            <div class="rd_perm_search_wrap">
+                                <i class="fa fa-search rd_perm_search_icon"/>
+                                <input class="rd_perm_search_input" type="text" placeholder="Search permissions…" t-on-input="onPanelPermSearch"/>
+                            </div>
+                            <div class="rd_segmented">
+                                <button t-att-class="this.state.panelPermFilter === 'all' ? 'active' : ''" t-on-click="() => this.setPanelPermFilter('all')">All <span t-esc="this.panelPermissionSummary.total"/></button>
+                                <button t-att-class="this.state.panelPermFilter === 'assigned' ? 'active' : ''" t-on-click="() => this.setPanelPermFilter('assigned')">Assigned <span t-esc="this.panelPermissionSummary.assigned"/></button>
+                                <button t-att-class="this.state.panelPermFilter === 'unassigned' ? 'active' : ''" t-on-click="() => this.setPanelPermFilter('unassigned')">Unassigned <span t-esc="this.panelPermissionSummary.unassigned"/></button>
+                            </div>
+                        </div>
+                        <div class="rd_manager_list">
+                            <t t-if="!this.panelGroups.length"><div class="rd_user_empty">No permissions found.</div></t>
+                            <t t-foreach="this.panelGroups" t-as="grp" t-key="grp.id">
+                                <button t-att-class="'rd_manager_row' + (this.isPanelGroupChecked(grp.id) ? ' checked' : '')" t-on-click="() => this.togglePanelGroup(grp.id)">
+                                    <span><strong t-esc="grp.full_name"/><small t-esc="grp.category"/></span>
+                                    <b><t t-if="this.isPanelGroupChecked(grp.id)">Assigned</t><t t-else="">Unassigned</t></b>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="rd_modal_footer">
+                        <button class="rd_btn rd_btn_primary" t-on-click="closePanelPermManager">Done</button>
+                    </div>
+                </div>
+            </div>
+
+            <div t-att-class="'rd_modal_overlay' + (this.state.panelUserManagerOpen ? ' open' : '')"
+                 t-on-click.self="closePanelUserManager">
+                <div class="rd_modal rd_modal_wide">
+                    <div class="rd_modal_head">
+                        <div>
+                            <div class="rd_modal_title">Manage Role Users</div>
+                            <div class="rd_modal_sub"><t t-esc="this.panelUserSummary.assigned"/> assigned of <t t-esc="this.panelUserSummary.total"/> available users.</div>
+                        </div>
+                        <button class="rd_modal_close" t-on-click="closePanelUserManager"><i class="fa fa-times"/></button>
+                    </div>
+                    <div class="rd_modal_body">
+                        <div class="rd_manager_toolbar">
+                            <div class="rd_perm_search_wrap">
+                                <i class="fa fa-search rd_perm_search_icon"/>
+                                <input class="rd_perm_search_input" type="text" placeholder="Search users…" t-on-input="onPanelUserSearch"/>
+                            </div>
+                            <div class="rd_segmented">
+                                <button t-att-class="this.state.panelUserFilter === 'all' ? 'active' : ''" t-on-click="() => this.setPanelUserFilter('all')">All <span t-esc="this.panelUserSummary.total"/></button>
+                                <button t-att-class="this.state.panelUserFilter === 'assigned' ? 'active' : ''" t-on-click="() => this.setPanelUserFilter('assigned')">Assigned <span t-esc="this.panelUserSummary.assigned"/></button>
+                                <button t-att-class="this.state.panelUserFilter === 'unassigned' ? 'active' : ''" t-on-click="() => this.setPanelUserFilter('unassigned')">Unassigned <span t-esc="this.panelUserSummary.unassigned"/></button>
+                            </div>
+                        </div>
+                        <div class="rd_user_grid">
+                            <t t-foreach="this.panelUsers" t-as="user" t-key="user.id">
+                                <div t-att-class="'rd_user_pick' + (this.isPanelUserChecked(user.id) ? ' checked' : '')" t-on-click="() => this.togglePanelUser(user.id)">
+                                    <div class="rd_user_avatar"><t t-esc="this.initials(user.name)"/></div>
+                                    <div class="rd_user_meta"><div class="rd_user_name"><t t-esc="user.name"/></div><div class="rd_user_email"><t t-esc="user.email"/></div></div>
+                                    <input type="checkbox" t-att-checked="this.isPanelUserChecked(user.id) ? 'checked' : undefined" t-on-click.stop="() => this.togglePanelUser(user.id)"/>
+                                </div>
+                            </t>
+                            <t t-if="this.panelUsers.length === 0"><div class="rd_user_empty">No users found.</div></t>
+                        </div>
+                    </div>
+                    <div class="rd_modal_footer">
+                        <button class="rd_btn rd_btn_primary" t-on-click="closePanelUserManager">Done</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── New Role Modal Overlay ────────────────────────────────── -->
+            <div t-att-class="'rd_modal_overlay' + (this.state.modalOpen ? ' open' : '')"
+                 t-on-click.self="closeModal">
+                <div class="rd_modal">
+                    <!-- Modal header -->
+                    <div class="rd_modal_head">
+                        <div>
+                            <div class="rd_modal_title">New Role</div>
+                            <div class="rd_modal_sub">Bundle permissions into a reusable role template.</div>
+                        </div>
+                        <button class="rd_modal_close" t-on-click="closeModal">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="rd_modal_body">
+                        <div class="rd_form_group">
+                            <label class="rd_form_label">Role Name <span class="rd_req">*</span></label>
+                            <input class="rd_form_input" placeholder="e.g. Workshop Supervisor"
+                                   t-ref="modalName"/>
+                        </div>
+                        <div class="rd_form_group">
+                            <label class="rd_form_label">Description</label>
+                            <textarea class="rd_form_input rd_textarea" rows="2"
+                                      placeholder="What is this role for?"
+                                      t-ref="modalDesc"/>
+                        </div>
+                        <div class="rd_divider"/>
+
+                        <div class="rd_section_label">SELECT PERMISSIONS</div>
+
+                        <!-- Modal permission search -->
+                        <div class="rd_perm_search_wrap">
+                            <i class="fa fa-search rd_perm_search_icon"/>
+                            <input class="rd_perm_search_input" type="text"
+                                   placeholder="Search permissions…"
+                                   t-ref="modalPermSearch"
+                                   t-on-input="onModalPermSearch"/>
+                        </div>
+
+                        <!-- Modal permission grid -->
+                        <div class="rd_perm_grid">
+                            <t t-foreach="this.modalGroups" t-as="grp" t-key="grp.id">
+                                <div t-att-class="'rd_perm_check' + (this.isModalGroupChecked(grp.id) ? ' checked' : '')"
+                                     t-on-click="() => this.toggleModalGroup(grp.id)">
+                                    <input type="checkbox"
+                                           t-att-checked="this.isModalGroupChecked(grp.id) ? 'checked' : undefined"
+                                           t-on-click.stop="() => this.toggleModalGroup(grp.id)"/>
+                                    <span><t t-esc="grp.full_name"/></span>
+                                </div>
+                            </t>
+                        </div>
+
+                        <div class="rd_divider"/>
+
+                        <div class="rd_section_label">
+                            ASSIGN USERS (<t t-esc="this.state.modalSelectedUserIds.length"/>)
+                        </div>
+                        <div class="rd_user_search_wrap">
+                            <i class="fa fa-search rd_perm_search_icon"/>
+                            <input class="rd_perm_search_input" type="text"
+                                   placeholder="Search users…"
+                                   t-ref="modalUserSearch"
+                                   t-on-input="onModalUserSearch"/>
+                        </div>
+                        <div class="rd_user_grid">
+                            <t t-foreach="this.modalUsers" t-as="user" t-key="user.id">
+                                <div t-att-class="'rd_user_pick' + (this.isModalUserChecked(user.id) ? ' checked' : '')"
+                                     t-on-click="() => this.toggleModalUser(user.id)">
+                                    <div class="rd_user_avatar">
+                                        <t t-esc="this.initials(user.name)"/>
+                                    </div>
+                                    <div class="rd_user_meta">
+                                        <div class="rd_user_name"><t t-esc="user.name"/></div>
+                                        <div class="rd_user_email"><t t-esc="user.email"/></div>
+                                    </div>
+                                    <input type="checkbox"
+                                           t-att-checked="this.isModalUserChecked(user.id) ? 'checked' : undefined"
+                                           t-on-click.stop="() => this.toggleModalUser(user.id)"/>
+                                </div>
+                            </t>
+                            <t t-if="this.modalUsers.length === 0">
+                                <div class="rd_user_empty">No users found.</div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Modal footer -->
+                    <div class="rd_modal_footer">
+                        <button class="rd_btn rd_btn_secondary" t-on-click="closeModal">Cancel</button>
+                        <button class="rd_btn rd_btn_primary" t-on-click="createRole"
+                                t-att-disabled="this.state.saving ? 'disabled' : undefined">
+                            <t t-if="this.state.saving">Creating…</t>
+                            <t t-else="">Create Role</t>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </t>
+</templates>
