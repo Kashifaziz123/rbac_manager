@@ -1,5 +1,10 @@
 /* Global Access Studio shell for the whole backend */
 
+.rbac_global_restricted_ui,
+body.rbac-global-hide-add-property .o_field_property_add {
+    display: none !important;
+}
+
 body.rbac-global-shell-active .o_web_client {
     flex-flow: column nowrap;
     background: #f3f4f8;
@@ -251,6 +256,38 @@ body.rbac-panel-open .rsh_global_main {
 .rsh_global_topbar {
     position: relative;
     z-index: 15;
+}
+
+.rsh_topbar_user_menu .o_user_menu {
+    display: block !important;
+}
+
+.rsh_topbar_user_menu .o_user_menu .dropdown-toggle {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    padding: 0 !important;
+    background: transparent;
+    border: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rsh_topbar_user_menu .o_user_menu .dropdown-toggle:hover {
+    background: #f3f4f8;
+}
+
+.rsh_topbar_user_menu .o_user_avatar {
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px #e6e8ef;
+}
+
+.rsh_topbar_user_menu .o_user_menu .oe_topbar_name {
+    display: none !important;
 }
 
 .rsh_bc_btn {

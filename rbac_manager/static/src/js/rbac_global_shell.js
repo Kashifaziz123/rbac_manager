@@ -6,6 +6,7 @@ import {router} from "@web/core/browser/router";
 import {user} from "@web/core/user";
 import {useService} from "@web/core/utils/hooks";
 import {WebClient} from "@web/webclient/webclient";
+import {UserMenu} from "@web/webclient/user_menu/user_menu";
 
 function getInitials(name) {
     const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
@@ -261,10 +262,15 @@ export class RBACGlobalSidebar extends Component {
             {label: "System", keys: ["settings"], items: []},
         ];
         const byLabel = Object.fromEntries(groups.map((group) => [group.label, group]));
+        const hiddenNames = new Set(["user permissions", "super admin view"]);
+        const hiddenXmlids = ["menu_user_permissions", "menu_super_admin"];
 
         for (const item of items) {
             const name = String(item.name || "").trim().toLowerCase();
             const xmlid = String(item.xmlid || "").trim().toLowerCase();
+            if (hiddenNames.has(name) || hiddenXmlids.some((x) => xmlid.includes(x))) {
+                continue;
+            }
             if (name === "dashboard" || xmlid.includes("menu_dashboard")) {
                 byLabel.Overview.items.push(item);
             } else if (name === "users" || xmlid.includes("menu_users_directory")) {
@@ -379,6 +385,7 @@ export class RBACGlobalSidebar extends Component {
 
 export class RBACGlobalTopbar extends Component {
     static template = "rbac.GlobalTopbar";
+    static components = {UserMenu};
 
     setup() {
         this.menuService = useService("menu");

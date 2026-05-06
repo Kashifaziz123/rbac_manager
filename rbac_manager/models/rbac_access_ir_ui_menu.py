@@ -16,4 +16,11 @@ class IrUiMenu(models.Model):
                 menu = self.env.ref(xmlid, raise_if_not_found=False)
                 if menu:
                     hidden_ids.add(menu.id)
+        if restrictions.get('hide_spreadsheet'):
+            spreadsheet_menus = self.sudo().search([
+                '|',
+                ('name', 'ilike', 'spreadsheet'),
+                ('action', 'ilike', 'spreadsheet'),
+            ])
+            hidden_ids.update(spreadsheet_menus.ids)
         return list(hidden_ids)

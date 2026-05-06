@@ -5,4 +5,5 @@ from . import res_users_01
 from . import rbac_audit
 from . import rbac_access_rule
 from . import rbac_access_ir_ui_menu
+from . import rbac_access_ir_model_access
 from . import rbac_access_base

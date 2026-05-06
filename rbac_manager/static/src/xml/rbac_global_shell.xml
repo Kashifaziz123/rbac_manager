@@ -39,11 +39,6 @@
                     </t>
                 </div>
 
-                <div class="rsh_strip_bottom">
-                    <div class="rsh_user_avatar_strip" t-att-title="this.userName">
-                        <t t-esc="this.userInitials"/>
-                    </div>
-                </div>
             </aside>
 
             <aside t-att-class="'rsh_sidebar rsh_global_sidebar' + (this.state.panelOpen ? '' : ' rsh_sidebar_closed')">
@@ -191,11 +186,8 @@
             </div>
 
             <div class="rsh_topbar_right">
-                <div class="rsh_topbar_user">
-                    <div class="rsh_user_avatar">
-                        <t t-esc="this.userInitials"/>
-                    </div>
-                    <span class="rsh_user_name"><t t-esc="this.userName"/></span>
+                <div class="rsh_topbar_user_menu">
+                    <UserMenu/>
                 </div>
             </div>
         </div>

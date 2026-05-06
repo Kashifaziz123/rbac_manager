@@ -4,6 +4,7 @@ from odoo import api, fields, models, exceptions, _
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 import json
+import time
 
 max_depth = 10
 
@@ -983,6 +984,24 @@ class RbacModel(models.Model):
             'rules':     [self._access_studio_rule_payload(rule) for rule in rules],
         }
 
+    @api.model
+    def get_access_studio_model_fields(self, model_id):
+        """Return field choices for a selected Access Studio model."""
+        model = self.env['ir.model'].sudo().browse(model_id).exists()
+        if not model:
+            return []
+        fields = self.env['ir.model.fields'].sudo().search(
+            [('model_id', '=', model.id), ('name', '!=', 'id')],
+            order='field_description, name',
+            limit=500,
+        )
+        return [{
+            'id': field.id,
+            'name': field.field_description or field.name,
+            'field_name': field.name,
+            'ttype': field.ttype,
+        } for field in fields]
+
     def _access_studio_rule_payload(self, rule):
         audience_detail = rule.audience_json or {}
         impact = rule.impact_json or []
@@ -1047,7 +1066,27 @@ class RbacModel(models.Model):
                 rule = self.env['rbac.access.rule'].sudo().create(vals)
         else:
             rule = self.env['rbac.access.rule'].sudo().create(vals)
-        return self._access_studio_rule_payload(rule)
+        payload = self._access_studio_rule_payload(rule)
+        payload['cache_token'] = str(time.time_ns())
+        return payload
+
+    @api.model
+    def toggle_access_rule_status(self, rule_id):
+        """Toggle active/inactive on an Access Studio rule and clear the menu cache."""
+        rule = self.env['rbac.access.rule'].with_context(active_test=False).sudo().browse(rule_id)
+        if not rule.exists():
+            return None
+        rule.write({'active': not rule.active})
+        return {'active': rule.active, 'cache_token': str(time.time_ns())}
+
+    @api.model
+    def delete_access_rule(self, rule_id):
+        """Delete an Access Studio rule."""
+        rule = self.env['rbac.access.rule'].with_context(active_test=False).sudo().browse(rule_id)
+        if not rule.exists():
+            return False
+        rule.unlink()
+        return {'deleted': True, 'cache_token': str(time.time_ns())}
 
     @api.model
     def clone_groups_from_user(self, user_id, clone_user_id):

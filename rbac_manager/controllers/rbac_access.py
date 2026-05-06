@@ -23,3 +23,25 @@ class RbacHome(Home):
             if restrictions.get('disable_dev_mode'):
                 return request.redirect('/web?debug=0', 303)
         return super().web_client(s_action=s_action, **kw)
+
+
+class RbacAccessController(http.Controller):
+
+    @http.route('/rbac/access/global_flags', type='json', auth='user')
+    def global_flags(self):
+        restrictions = request.env['rbac.access.rule'].sudo().get_access_restrictions(
+            user=request.env.user,
+            company=request.env.company,
+        )
+        return {
+            key: bool(restrictions.get(key))
+            for key in (
+                'force_readonly',
+                'hide_import',
+                'hide_export',
+                'hide_spreadsheet',
+                'hide_add_property',
+                'disable_dev_mode',
+                'hide_technical_settings',
+            )
+        }
