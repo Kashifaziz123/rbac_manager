@@ -258,6 +258,111 @@ body.rbac-panel-open .rsh_global_main {
     z-index: 15;
 }
 
+.rsh_db_badge {
+    height: 32px;
+    max-width: 190px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 10px;
+    border: 1px solid #e2e5ea;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #5a6478;
+    font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    white-space: nowrap;
+}
+
+.rsh_db_badge span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rsh_company_selector {
+    position: relative;
+}
+
+.rsh_company_button {
+    height: 34px;
+    max-width: 220px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border: 1px solid #e2e5ea !important;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1e2d;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.rsh_company_button span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rsh_company_button:hover,
+.rsh_company_button.open {
+    background: #f3f4f8;
+    border-color: #d4d9e3 !important;
+}
+
+.rsh_company_button:disabled {
+    cursor: default;
+    color: #5a6478;
+}
+
+.rsh_company_caret {
+    color: #9ba3b2;
+    font-size: 12px;
+}
+
+.rsh_company_dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 240px;
+    max-height: min(360px, calc(100vh - 78px));
+    overflow: auto;
+    padding: 6px;
+    border: 1px solid #e2e5ea;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 30px rgba(15, 20, 40, .14);
+}
+
+.rsh_company_option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: transparent;
+    color: #1a1e2d;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rsh_company_option:hover,
+.rsh_company_option.active {
+    background: #eef2ff;
+    color: #3a5bd9;
+}
+
+.rsh_company_option_name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .rsh_topbar_user_menu .o_user_menu {
     display: block !important;
 }

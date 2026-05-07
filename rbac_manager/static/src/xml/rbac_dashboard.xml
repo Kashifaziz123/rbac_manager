@@ -151,7 +151,7 @@
                                 <div class="db_rule_row">
                                     <span t-att-class="'db_risk ' + rule.risk"><t t-esc="rule.risk ? rule.risk[0].toUpperCase() : 'L'"/></span>
                                     <strong t-esc="rule.name"/>
-                                    <span><t t-esc="rule.users"/> users</span>
+                                    <span t-esc="rule.users"/>
                                 </div>
                             </t>
                         </div>

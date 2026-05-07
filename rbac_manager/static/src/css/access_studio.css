@@ -1027,6 +1027,216 @@
     accent-color: var(--as-accent);
 }
 
+.as_domain_builder {
+    display: grid;
+    gap: 12px;
+}
+
+.as_domain_rules {
+    display: grid;
+    gap: 10px;
+}
+
+.as_domain_rule_card {
+    border: 1px solid var(--as-border);
+    border-radius: 8px;
+    background: #fff;
+    padding: 12px;
+}
+
+.as_domain_apply {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0 8px;
+    color: var(--as-text2);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.as_domain_apply input {
+    margin: 0;
+    accent-color: var(--as-accent);
+}
+
+.as_domain_textarea {
+    width: 100%;
+    min-height: 78px;
+    resize: vertical;
+    border: 1px solid var(--as-border);
+    border-radius: 8px;
+    background: var(--as-bg);
+    color: var(--as-text);
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    padding: 10px;
+    outline: none;
+}
+
+.as_domain_textarea:focus {
+    border-color: var(--as-accent);
+    background: #fff;
+}
+
+.as_domain_textarea:disabled {
+    color: var(--as-text3);
+    background: #f1f3f8;
+}
+
+.as_domain_hint {
+    margin-top: 6px;
+    color: var(--as-text3);
+    font-size: 11px;
+}
+
+.as_button_builder {
+    display: grid;
+    gap: 12px;
+}
+
+.as_button_rules {
+    display: grid;
+    gap: 10px;
+}
+
+.as_button_rule_card {
+    border: 1px solid var(--as-border);
+    border-radius: 8px;
+    background: #fff;
+    padding: 12px;
+}
+
+.as_button_node_grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.as_button_node_chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    border: 1px solid var(--as-border);
+    border-radius: 8px;
+    background: var(--as-bg);
+    color: var(--as-text2);
+    padding: 7px 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.as_button_node_chip.button { background: var(--as-purple-soft); color: var(--as-purple); }
+.as_button_node_chip.page { background: var(--as-accent-soft); color: var(--as-accent); }
+.as_button_node_chip.link { background: var(--as-teal-soft); color: var(--as-teal); }
+
+.as_button_node_chip > i {
+    width: 14px;
+    text-align: center;
+}
+
+.as_button_node_chip span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+}
+
+.as_button_node_chip small {
+    color: currentColor;
+    opacity: .65;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.as_button_node_chip button {
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.75);
+    color: currentColor;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
+.as_filter_builder {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.as_filter_rules {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.as_filter_rule_card {
+    border: 1px solid var(--as-border);
+    border-radius: var(--as-radius-lg);
+    background: var(--as-surface);
+    padding: 14px;
+}
+
+.as_filter_node_grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.as_filter_node_chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    border: 1px solid var(--as-border);
+    border-radius: 8px;
+    background: var(--as-bg);
+    color: var(--as-text2);
+    padding: 7px 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.as_filter_node_chip.filter { background: var(--as-accent-soft); color: var(--as-accent); }
+.as_filter_node_chip.group { background: var(--as-teal-soft); color: var(--as-teal); }
+
+.as_filter_node_chip > i {
+    width: 14px;
+    text-align: center;
+}
+
+.as_filter_node_chip span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+}
+
+.as_filter_node_chip small {
+    color: currentColor;
+    opacity: .65;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.as_filter_node_chip button {
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.75);
+    color: currentColor;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
 @media (max-width: 900px) {
     .as_model_rule_head { flex-direction: column; }
     .as_model_rule_grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

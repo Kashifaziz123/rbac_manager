@@ -12,17 +12,30 @@
                     <i class="fa fa-search"/>
                     <input type="text" placeholder="Search users..." t-on-input="(ev) => this.onSearch(ev)"/>
                 </div>
-                <select class="ud_select" t-on-change="(ev) => this.onDepartment(ev)">
-                    <option value="">All Departments</option>
-                    <t t-foreach="state.departments" t-as="department" t-key="department">
-                        <option t-att-value="department"><t t-esc="department"/></option>
+                <select class="ud_select" t-on-change="(ev) => this.onUserRoleFilter(ev)">
+                    <option value="">All Roles</option>
+                    <t t-foreach="state.roles" t-as="role" t-key="role.id">
+                        <option t-att-value="role.id"><t t-esc="role.name"/></option>
                     </t>
                 </select>
+                <div t-if="state.selectedUserIds.length" class="ud_list_actions_wrap">
+                    <button class="ud_bulk_btn" type="button" t-on-click="toggleListActions">
+                        <i class="fa fa-cog"/> Actions <span><t t-esc="state.selectedUserIds.length"/></span>
+                    </button>
+                    <div t-att-class="'ud_actions_menu ud_bulk_menu' + (state.listActionOpen ? ' open' : '')">
+                        <div class="ud_menu_label">Permission Actions</div>
+                        <button t-on-click="openBulkRoleModal"><i class="fa fa-star-o"/> Assign Roles</button>
+                        <button t-on-click="openBulkPermissionModal"><i class="fa fa-key"/> Manage Direct Permissions</button>
+                        <div class="ud_menu_label border">Default</div>
+                        <button t-on-click="bulkResetPassword"><i class="fa fa-envelope-o"/> Send Password Reset</button>
+                        <button class="danger" t-on-click="bulkArchiveUsers"><i class="fa fa-archive"/> Archive Selected</button>
+                    </div>
+                </div>
             </div>
 
             <div class="ud_table">
                 <div class="ud_thead">
-                    <div><input type="checkbox"/></div>
+                    <div><input type="checkbox" t-att-checked="this.allFilteredSelected ? 'checked' : undefined" t-on-change="toggleAllUsers"/></div>
                     <div>User</div>
                     <div>Roles</div>
                     <div>Base</div>
@@ -39,7 +52,7 @@
                 <t t-else="">
                     <t t-foreach="this.filteredUsers" t-as="user" t-key="user.id">
                         <button class="ud_row" type="button" t-on-click="() => this.openPanel(user)">
-                            <div><input type="checkbox" t-on-click.stop="() => {}"/></div>
+                            <div><input type="checkbox" t-att-checked="state.selectedUserIds.includes(user.id) ? 'checked' : undefined" t-on-click.stop="() => this.toggleUserSelection(user.id)"/></div>
                             <div class="ud_user_cell">
                                 <span class="ud_avatar" t-att-style="this.avatarStyle(user.name)"><t t-esc="this.initials(user.name)"/></span>
                                 <span class="ud_user_text">
@@ -89,7 +102,7 @@
                                 <h3 t-esc="state.activeUser.name"/>
                                 <p><t t-esc="state.activeUser.email"/> · <t t-esc="state.activeUser.department"/></p>
                                 <span t-att-class="'ud_status big ' + this.statusKey(state.activeUser)">
-                                    <i class="fa fa-circle"/><t t-esc="this.statusLabel(state.activeUser)"/> Access
+                                    <i class="fa fa-circle"/><t t-esc="this.statusLabel(state.activeUser)"/>
                                 </span>
                                 <p class="ud_status_help" t-esc="this.statusHelp(state.activeUser)"/>
                             </div>
@@ -173,6 +186,67 @@
                                 </t>
                             </div>
                         </t>
+
+                        <div class="ud_activity">
+                            <div class="ud_activity_head">
+                                <div>
+                                    <div class="ud_section_label">Recent Changes</div>
+                                    <p>Permissions, roles, and matching Access Studio rule updates.</p>
+                                </div>
+                                <span><t t-esc="state.activityLoaded"/>/<t t-esc="state.activityTotal"/></span>
+                            </div>
+                            <t t-if="state.activityLoading and !state.activityRecords.length">
+                                <div class="ud_empty_inner">Loading recent changes...</div>
+                            </t>
+                            <t t-elif="!state.activityRecords.length">
+                                <div class="ud_empty_inner">No recent permission activity for this user.</div>
+                            </t>
+                            <t t-else="">
+                                <div class="ud_timeline">
+                                    <t t-foreach="state.activityRecords" t-as="item" t-key="item.id">
+                                        <div t-att-class="'ud_timeline_item ' + item.indicator">
+                                            <span class="ud_timeline_icon"><i t-att-class="this.activityIconClass(item)"/></span>
+                                            <div class="ud_timeline_body">
+                                                <div class="ud_timeline_top">
+                                                    <span t-att-class="'ud_activity_type ' + item.indicator" t-esc="item.category"/>
+                                                    <strong t-esc="item.action"/>
+                                                    <span t-if="item.subject" class="ud_activity_subject" t-esc="item.subject"/>
+                                                </div>
+                                                <p class="ud_activity_summary" t-esc="item.details"/>
+                                                <t t-if="(item.changes || []).length">
+                                                    <div class="ud_change_grid">
+                                                        <t t-foreach="item.changes" t-as="change" t-key="change.field">
+                                                            <div>
+                                                                <t t-if="change.message">
+                                                                    <span class="ud_change_message" t-esc="change.message"/>
+                                                                </t>
+                                                                <t t-else="">
+                                                                    <b t-esc="change.field"/>
+                                                                    <span><em>Before</em><t t-esc="change.old"/></span>
+                                                                    <span><em>After</em><t t-esc="change.new"/></span>
+                                                                </t>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                </t>
+                                                <div class="ud_timeline_meta">
+                                                    <span><i class="fa fa-clock-o"/> <t t-esc="item.timestamp"/></span>
+                                                    <span t-esc="item.ago"/>
+                                                    <span>by <t t-esc="item.performed_by || 'System'"/></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="ud_activity_actions">
+                                    <button t-if="state.activityLoaded &lt; state.activityTotal" type="button" class="ud_inline_btn" t-on-click="showMoreActivity" t-att-disabled="state.activityLoading ? 'disabled' : undefined">
+                                        <t t-if="state.activityLoading">Loading...</t>
+                                        <t t-else="">Load more</t>
+                                    </button>
+                                    <button t-if="state.activityRecords.length &gt; 15" type="button" class="ud_inline_btn ghost" t-on-click="showLessActivity" t-att-disabled="state.activityLoading ? 'disabled' : undefined">Show less</button>
+                                </div>
+                            </t>
+                        </div>
                     </div>
 
                     <div class="ud_panel_footer">
@@ -231,8 +305,9 @@
                 <div class="ud_modal wide">
                     <div class="ud_modal_head">
                         <div>
-                            <h2>Manage Roles</h2>
-                            <p><t t-esc="this.roleSummary.assigned"/> assigned of <t t-esc="this.roleSummary.total"/> available roles.</p>
+                            <h2><t t-if="state.roleModalMode === 'bulk'">Assign Roles</t><t t-else="">Manage Roles</t></h2>
+                            <p t-if="state.roleModalMode === 'bulk'">Assign selected roles to <t t-esc="state.selectedUserIds.length"/> selected users.</p>
+                            <p t-else=""><t t-esc="this.roleSummary.assigned"/> assigned of <t t-esc="this.roleSummary.total"/> available roles.</p>
                         </div>
                         <button t-on-click="closeRoleModal"><i class="fa fa-times"/></button>
                     </div>
@@ -262,7 +337,7 @@
                             </t>
                         </div>
                     </div>
-                    <div class="ud_modal_footer"><button t-on-click="closeRoleModal">Cancel</button><button class="primary" t-on-click="applyRoles">Apply Roles</button></div>
+                    <div class="ud_modal_footer"><button t-on-click="closeRoleModal">Cancel</button><button class="primary" t-on-click="applyRoles"><t t-if="state.roleModalMode === 'bulk'">Assign Roles</t><t t-else="">Apply Roles</t></button></div>
                 </div>
             </div>
 

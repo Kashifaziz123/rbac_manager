@@ -3,6 +3,8 @@ import copy
 
 from odoo import api, models
 from odoo.exceptions import AccessError
+from odoo.fields import Domain
+from odoo.tools.safe_eval import safe_eval
 
 
 class Base(models.AbstractModel):
@@ -24,11 +26,13 @@ class Base(models.AbstractModel):
         )
         model_rule = restrictions.get('model_rule') or {}
         field_rule = restrictions.get('field_rule') or {}
+        button_rule = restrictions.get('button_rule') or []
+        filter_rule = restrictions.get('filter_rule') or []
         relevant = (
             restrictions.get('model_selected') or restrictions.get('force_readonly') or
             restrictions.get('hide_import') or restrictions.get('hide_export') or
             restrictions.get('hide_spreadsheet') or restrictions.get('hide_add_property') or
-            restrictions.get('hide_chatter') or bool(field_rule)
+            restrictions.get('hide_chatter') or bool(field_rule) or bool(button_rule) or bool(filter_rule)
         )
         if not relevant:
             return False
@@ -45,6 +49,27 @@ class Base(models.AbstractModel):
             )
         )
         model_signature = tuple(sorted((key, bool(value)) for key, value in model_rule.items()))
+        button_signature = tuple(
+            sorted(
+                (
+                    rule.get('node_type') or '',
+                    rule.get('attribute_name') or '',
+                    rule.get('attribute_string') or '',
+                    rule.get('button_type') or '',
+                )
+                for rule in button_rule
+            )
+        )
+        filter_signature = tuple(
+            sorted(
+                (
+                    rule.get('node_type') or '',
+                    rule.get('attribute_name') or '',
+                    rule.get('attribute_string') or '',
+                )
+                for rule in filter_rule
+            )
+        )
         return (
             self.env.user.id,
             self.env.company.id,
@@ -56,6 +81,8 @@ class Base(models.AbstractModel):
             bool(restrictions.get('hide_chatter')),
             model_signature,
             field_signature,
+            button_signature,
+            filter_signature,
         )
 
     @api.model
@@ -69,12 +96,14 @@ class Base(models.AbstractModel):
         model_selected = restrictions.get('model_selected')
         model_rule = restrictions.get('model_rule') or {}
         field_rule = restrictions.get('field_rule') or {}
+        button_rule = restrictions.get('button_rule') or []
+        filter_rule = restrictions.get('filter_rule') or []
         readonly = restrictions.get('force_readonly') or model_rule.get('readonly')
         needs_change = (
             readonly or model_selected or restrictions.get('hide_import') or
             restrictions.get('hide_export') or restrictions.get('hide_add_property') or
             restrictions.get('hide_chatter') or
-            bool(field_rule)
+            bool(field_rule) or bool(button_rule) or bool(filter_rule)
         )
         if needs_change:
             arch = copy.deepcopy(arch)
@@ -110,6 +139,12 @@ class Base(models.AbstractModel):
         if field_rule:
             self._rbac_apply_field_rules(arch, field_rule)
 
+        if button_rule:
+            self._rbac_apply_button_rules(arch, button_rule)
+
+        if filter_rule and view_type == 'search':
+            self._rbac_apply_filter_rules(arch, filter_rule)
+
         return arch, view
 
     @api.model
@@ -142,6 +177,8 @@ class Base(models.AbstractModel):
     def create(self, vals_list):
         if self.env['rbac.access.rule'].is_operation_blocked(self._name, 'create'):
             self.env['rbac.access.rule'].raise_operation_blocked(self._name, 'create')
+        for vals in vals_list:
+            self._rbac_check_protected_field_write(vals)
         if any(self._rbac_has_property_definition_change(vals) for vals in vals_list):
             raise AccessError("Adding or changing property fields is restricted by RBAC Access Studio.")
         return super().create(vals_list)
@@ -149,12 +186,17 @@ class Base(models.AbstractModel):
     def write(self, vals):
         if self._rbac_has_property_definition_change(vals):
             raise AccessError("Adding or changing property fields is restricted by RBAC Access Studio.")
+        if self._rbac_domain_operation_blocked('write'):
+            self._rbac_raise_domain_access_error('write')
+        self._rbac_check_protected_field_write(vals)
         operation = 'archive' if self._rbac_is_archive_write(vals) else 'write'
         if self.env['rbac.access.rule'].is_operation_blocked(self._name, operation):
             self.env['rbac.access.rule'].raise_operation_blocked(self._name, operation)
         return super().write(vals)
 
     def unlink(self):
+        if self._rbac_domain_operation_blocked('unlink'):
+            self._rbac_raise_domain_access_error('unlink')
         if self.env['rbac.access.rule'].is_operation_blocked(self._name, 'unlink'):
             self.env['rbac.access.rule'].raise_operation_blocked(self._name, 'unlink')
         return super().unlink()
@@ -169,6 +211,11 @@ class Base(models.AbstractModel):
         if self.env['rbac.access.rule'].is_operation_blocked(self._name, 'import'):
             self.env['rbac.access.rule'].raise_operation_blocked(self._name, 'import')
         return super().load(fields, data)
+
+    def export_data(self, fields_to_export):
+        if self.env['rbac.access.rule'].is_operation_blocked(self._name, 'export'):
+            self.env['rbac.access.rule'].raise_operation_blocked(self._name, 'export')
+        return super().export_data(fields_to_export)
 
     def action_archive(self):
         if self.env['rbac.access.rule'].is_operation_blocked(self._name, 'archive'):
@@ -187,6 +234,30 @@ class Base(models.AbstractModel):
             'active' in vals and
             'active' in self._fields
         )
+
+    @api.model
+    def _rbac_check_protected_field_write(self, vals):
+        if self.env.su or self.env.context.get('rbac_access_bypass') or not vals:
+            return
+        restrictions = self.env['rbac.access.rule'].sudo().get_access_restrictions(
+            model_name=self._name,
+            user=self.env.user,
+            company=self.env.company,
+        )
+        field_rule = restrictions.get('field_rule') or {}
+        blocked = []
+        for field_name in vals:
+            rule = field_rule.get(field_name)
+            if rule and (rule.get('readonly') or rule.get('invisible')):
+                blocked.append(field_name)
+        if blocked:
+            labels = []
+            fields_meta = self.fields_get(blocked, attributes=['string'])
+            for field_name in blocked:
+                labels.append(fields_meta.get(field_name, {}).get('string') or field_name)
+            raise AccessError(
+                "Access Studio field rule blocks changing: %s." % ', '.join(sorted(labels))
+            )
 
     @api.model
     def _rbac_hide_chatter_nodes(self, arch):
@@ -220,6 +291,87 @@ class Base(models.AbstractModel):
             if rule.get('invisible'):
                 for node in arch.xpath(".//label[@for=$name]", name=field_name):
                     node.set('invisible', 'True')
+
+    @api.model
+    def _rbac_apply_button_rules(self, arch, button_rules):
+        for rule in button_rules:
+            node_type = rule.get('node_type')
+            attr_name = rule.get('attribute_name') or ''
+            attr_string = rule.get('attribute_string') or ''
+            button_type = rule.get('button_type') or ''
+            if node_type == 'button':
+                xpath = ".//button"
+                if attr_name:
+                    xpath += "[@name=$name]"
+                    nodes = arch.xpath(xpath, name=attr_name)
+                else:
+                    nodes = []
+                if button_type:
+                    nodes = [node for node in nodes if node.get('type') == button_type]
+                if attr_string:
+                    nodes = [
+                        node for node in nodes
+                        if (node.get('string') or self._rbac_node_text(node)) == attr_string or node.get('name') == attr_name
+                    ]
+                self._rbac_hide_nodes(nodes)
+            elif node_type == 'page':
+                nodes = []
+                if attr_name:
+                    nodes.extend(arch.xpath(".//page[@name=$name] | .//app[@name=$name or @data-key=$name]", name=attr_name))
+                if attr_string:
+                    nodes.extend(arch.xpath(".//page[@string=$string] | .//app[@string=$string]", string=attr_string))
+                self._rbac_hide_nodes(nodes)
+            elif node_type == 'link':
+                nodes = arch.xpath(".//a[@name=$name]", name=attr_name) if attr_name else []
+                if button_type:
+                    nodes = [node for node in nodes if node.get('type') == button_type]
+                self._rbac_hide_nodes(nodes)
+
+    @api.model
+    def _rbac_apply_filter_rules(self, arch, filter_rules):
+        for rule in filter_rules:
+            attr_name = rule.get('attribute_name') or ''
+            attr_string = rule.get('attribute_string') or ''
+            node_type = rule.get('node_type')
+            nodes = arch.xpath(".//filter[@name=$name]", name=attr_name) if attr_name else []
+            if attr_string:
+                nodes = [
+                    node for node in nodes
+                    if (node.get('string') or '') == attr_string or node.get('name') == attr_name
+                ]
+            if node_type == 'group':
+                nodes = [node for node in nodes if 'group_by' in (node.get('context') or '')]
+            elif node_type == 'filter':
+                nodes = [node for node in nodes if 'group_by' not in (node.get('context') or '')]
+            self._rbac_remove_nodes(nodes)
+
+    @api.model
+    def _rbac_hide_nodes(self, nodes):
+        seen = set()
+        for node in nodes:
+            node_id = id(node)
+            if node_id in seen:
+                continue
+            seen.add(node_id)
+            node.set('invisible', 'True')
+            node.attrib.pop('attrs', None)
+
+    @api.model
+    def _rbac_remove_nodes(self, nodes):
+        seen = set()
+        for node in nodes:
+            node_id = id(node)
+            if node_id in seen:
+                continue
+            seen.add(node_id)
+            parent = node.getparent()
+            if parent is not None:
+                parent.remove(node)
+
+    @api.model
+    def _rbac_node_text(self, node):
+        text = ' '.join(''.join(node.itertext()).split())
+        return text
 
     @api.model
     def _rbac_merge_field_options(self, options):
@@ -262,3 +414,39 @@ class Base(models.AbstractModel):
             ):
                 return True
         return False
+
+    def _rbac_domain_operation_blocked(self, operation):
+        if self.env.su or self.env.context.get('rbac_access_bypass') or not self:
+            return False
+        right_key = {'write': 'write_right', 'unlink': 'delete_right'}.get(operation)
+        if not right_key:
+            return False
+        restrictions = self.env['rbac.access.rule'].sudo().get_access_restrictions(
+            model_name=self._name,
+            user=self.env.user,
+            company=self.env.company,
+        )
+        domain_rules = restrictions.get('domain_rule') or []
+        if not domain_rules:
+            return False
+
+        allowed_domains = []
+        eval_context = self.env['ir.rule']._rbac_domain_eval_context()
+        for rule in domain_rules:
+            if not rule.get(right_key):
+                continue
+            if not rule.get('apply_domain'):
+                return False
+            try:
+                allowed_domains.append(Domain(safe_eval(rule.get('domain') or '[]', eval_context)))
+            except Exception:
+                allowed_domains.append(Domain.FALSE)
+        if not allowed_domains:
+            return True
+        allowed_domain = Domain.OR(allowed_domains) & Domain('id', 'in', self.ids)
+        allowed_count = self.sudo().with_context(active_test=False).search_count(allowed_domain)
+        return allowed_count != len(self)
+
+    def _rbac_raise_domain_access_error(self, operation):
+        label = 'edit' if operation == 'write' else 'delete'
+        raise AccessError("Access Studio domain rule blocks %s on this record." % label)

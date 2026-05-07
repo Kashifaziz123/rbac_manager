@@ -46,16 +46,19 @@ export class RBACUsersDirectory extends Component {
             roles: [],
             groups: [],
             search: "",
-            department: "",
+            userRoleFilter: "",
             panelOpen: false,
             actionOpen: false,
+            listActionOpen: false,
             activeUser: null,
+            selectedUserIds: [],
             permTab: "all",
             requestOpen: false,
             requestType: "grant",
             requestCategory: "",
             durationType: "permanent",
             roleModalOpen: false,
+            roleModalMode: "single",
             selectedRoleIds: [],
             roleSearch: "",
             roleFilter: "all",
@@ -66,6 +69,10 @@ export class RBACUsersDirectory extends Component {
             permissionCategory: "",
             permissionStateFilter: "all",
             cloneModalOpen: false,
+            activityLoading: false,
+            activityRecords: [],
+            activityLoaded: 0,
+            activityTotal: 0,
         });
 
         onWillStart(async () => this.loadData());
@@ -74,10 +81,16 @@ export class RBACUsersDirectory extends Component {
                 if (this.state.actionOpen && !ev.target.closest(".ud_actions_wrap")) {
                     this.state.actionOpen = false;
                 }
+                if (this.state.listActionOpen && !ev.target.closest(".ud_list_actions_wrap")) {
+                    this.state.listActionOpen = false;
+                }
             };
             this._onDocumentKeydown = (ev) => {
                 if (ev.key === "Escape" && this.state.actionOpen) {
                     this.state.actionOpen = false;
+                }
+                if (ev.key === "Escape" && this.state.listActionOpen) {
+                    this.state.listActionOpen = false;
                 }
             };
             document.addEventListener("click", this._onDocumentClick);
@@ -110,9 +123,18 @@ export class RBACUsersDirectory extends Component {
         const query = this.state.search.trim().toLowerCase();
         return this.state.users.filter((user) => {
             const matchesQuery = !query || `${user.name} ${user.email} ${user.department} ${(user.roles || []).map((role) => role.name).join(" ")}`.toLowerCase().includes(query);
-            const matchesDepartment = !this.state.department || user.department === this.state.department;
-            return matchesQuery && matchesDepartment;
+            const matchesRole = !this.state.userRoleFilter || (user.roles || []).some((role) => String(role.id) === String(this.state.userRoleFilter));
+            return matchesQuery && matchesRole;
         });
+    }
+
+    get selectedUsers() {
+        const selected = new Set(this.state.selectedUserIds);
+        return (this.state.users || []).filter((user) => selected.has(user.id));
+    }
+
+    get allFilteredSelected() {
+        return this.filteredUsers.length > 0 && this.filteredUsers.every((user) => this.state.selectedUserIds.includes(user.id));
     }
 
     get requestCategories() {
@@ -195,11 +217,11 @@ export class RBACUsersDirectory extends Component {
     }
 
     statusLabel(user) {
-        return user.status?.label || "Full";
+        return user.status?.label || "Standard Access";
     }
 
     statusKey(user) {
-        return user.status?.key || "full";
+        return user.status?.key || "standard";
     }
 
     statusHelp(user) {
@@ -214,8 +236,37 @@ export class RBACUsersDirectory extends Component {
         this.state.search = ev.target.value || "";
     }
 
-    onDepartment(ev) {
-        this.state.department = ev.target.value || "";
+    onUserRoleFilter(ev) {
+        this.state.userRoleFilter = ev.target.value || "";
+    }
+
+    toggleUserSelection(userId) {
+        const idx = this.state.selectedUserIds.indexOf(userId);
+        if (idx >= 0) {
+            this.state.selectedUserIds.splice(idx, 1);
+        } else {
+            this.state.selectedUserIds.push(userId);
+        }
+        if (!this.state.selectedUserIds.length) {
+            this.state.listActionOpen = false;
+        }
+    }
+
+    toggleAllUsers() {
+        const filteredIds = this.filteredUsers.map((user) => user.id);
+        if (this.allFilteredSelected) {
+            this.state.selectedUserIds = this.state.selectedUserIds.filter((id) => !filteredIds.includes(id));
+        } else {
+            this.state.selectedUserIds = [...new Set([...this.state.selectedUserIds, ...filteredIds])];
+        }
+        if (!this.state.selectedUserIds.length) {
+            this.state.listActionOpen = false;
+        }
+    }
+
+    toggleListActions() {
+        if (!this.state.selectedUserIds.length) return;
+        this.state.listActionOpen = !this.state.listActionOpen;
     }
 
     openPanel(user) {
@@ -223,6 +274,9 @@ export class RBACUsersDirectory extends Component {
         this.state.panelOpen = true;
         this.state.permTab = "all";
         this.state.actionOpen = false;
+        this.state.listActionOpen = false;
+        this.resetActivity();
+        this.loadUserActivity(false);
     }
 
     closePanel() {
@@ -308,6 +362,57 @@ export class RBACUsersDirectory extends Component {
         } else {
             await this.loadData();
         }
+        this.resetActivity();
+        await this.loadUserActivity(false);
+    }
+
+    resetActivity() {
+        this.state.activityRecords = [];
+        this.state.activityLoaded = 0;
+        this.state.activityTotal = 0;
+    }
+
+    async loadUserActivity(append = false) {
+        const user = this.state.activeUser;
+        if (!user || this.state.activityLoading) return;
+        this.state.activityLoading = true;
+        try {
+            const limit = 15;
+            const offset = append ? this.state.activityLoaded : 0;
+            const result = await this.orm.call("rbac.model", "get_rbac_user_recent_activity", [], {
+                user_id: user.id,
+                limit,
+                offset,
+            });
+            if (result?.error) {
+                this.notification.add(result.message || _t("Unable to load recent changes."), {type: "danger"});
+                return;
+            }
+            const records = result.records || [];
+            this.state.activityTotal = result.total_count || 0;
+            if (append) {
+                this.state.activityRecords.push(...records);
+                this.state.activityLoaded += records.length;
+            } else {
+                this.state.activityRecords = records;
+                this.state.activityLoaded = records.length;
+            }
+        } finally {
+            this.state.activityLoading = false;
+        }
+    }
+
+    showMoreActivity() {
+        return this.loadUserActivity(true);
+    }
+
+    showLessActivity() {
+        this.resetActivity();
+        return this.loadUserActivity(false);
+    }
+
+    activityIconClass(item) {
+        return `fa ${item.icon || "fa-circle-o"}`;
     }
 
     confirmAction(title, body, confirmLabel, callback, danger = false) {
@@ -367,10 +472,25 @@ export class RBACUsersDirectory extends Component {
 
     openRoleModal() {
         this.state.selectedRoleIds = (this.state.activeUser?.roles || []).map((role) => role.id);
+        this.state.roleModalMode = "single";
         this.state.roleSearch = "";
         this.state.roleFilter = "all";
         this.state.roleModalOpen = true;
         this.state.actionOpen = false;
+    }
+
+    openBulkRoleModal() {
+        this.state.roleModalMode = "bulk";
+        this.state.selectedRoleIds = [];
+        this.state.roleSearch = "";
+        this.state.roleFilter = "all";
+        this.state.roleModalOpen = true;
+        this.state.listActionOpen = false;
+    }
+
+    openBulkPermissionModal() {
+        this.state.listActionOpen = false;
+        this.notification.add(_t("Open one user to manage direct permission grants/exclusions. Bulk permission edits need stricter review."), {type: "info"});
     }
 
     closeRoleModal() {
@@ -399,6 +519,20 @@ export class RBACUsersDirectory extends Component {
     }
 
     async applyRoles() {
+        if (this.state.roleModalMode === "bulk") {
+            const userIds = [...this.state.selectedUserIds];
+            const roleIds = [...this.state.selectedRoleIds];
+            for (const userId of userIds) {
+                for (const roleId of roleIds) {
+                    await this.orm.call("res.users", "assign_role", [userId], {role_id: roleId});
+                }
+            }
+            this.notification.add(_t("Roles assigned to selected users."), {type: "success"});
+            this.closeRoleModal();
+            this.state.selectedUserIds = [];
+            await this.loadData();
+            return;
+        }
         const user = this.state.activeUser;
         const current = new Set((user.roles || []).map((role) => role.id));
         const target = new Set(this.state.selectedRoleIds);
@@ -415,6 +549,29 @@ export class RBACUsersDirectory extends Component {
         this.notification.add(_t("Roles updated."), {type: "success"});
         this.closeRoleModal();
         await this.refreshActiveUser();
+    }
+
+    bulkResetPassword() {
+        const users = [...this.selectedUsers];
+        this.state.listActionOpen = false;
+        this.confirmAction(_t("Send Password Reset"), _t("Send password reset instructions to %s selected users?", users.length), _t("Send"), async () => {
+            for (const user of users) {
+                await this.orm.call("res.users", "action_reset_password", [[user.id]]);
+            }
+            this.notification.add(_t("Password reset instructions sent."), {type: "success"});
+            this.state.selectedUserIds = [];
+        });
+    }
+
+    bulkArchiveUsers() {
+        const users = [...this.selectedUsers];
+        this.state.listActionOpen = false;
+        this.confirmAction(_t("Archive Users"), _t("Archive %s selected users?", users.length), _t("Archive"), async () => {
+            await this.orm.write("res.users", users.map((user) => user.id), {active: false});
+            this.notification.add(_t("Selected users archived."), {type: "warning"});
+            this.state.selectedUserIds = [];
+            await this.loadData();
+        }, true);
     }
 
     openPermissionModal() {

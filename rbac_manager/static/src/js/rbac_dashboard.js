@@ -285,7 +285,8 @@ export class RBACDashboard extends Component {
     }
 
     async openSuperAdmin() {
-        await this.action.doAction("rbac_manager.act_window_res_users_list_super_admin");
+        sessionStorage.setItem("rbac_open_new_access_rule", "1");
+        await this.action.doAction("rbac_manager.act_client_rbac_access_studio");
     }
 }
 

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_TIME_FORMAT
 from odoo import api, fields, models, exceptions, _
+from odoo.tools.safe_eval import safe_eval
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
+from lxml import etree
 import json
 import time
 
@@ -406,6 +408,400 @@ class RbacModel(models.Model):
             return {'error': True, 'message': str(e), 'records': []}
 
     @api.model
+    def get_rbac_user_recent_activity(self, user_id, limit=15, offset=0):
+        """Return recent permission, role, and rule activity related to a user."""
+        try:
+            import ast
+            import pytz
+
+            user = self.env['res.users'].with_context(active_test=False).sudo().browse(user_id).exists()
+            if not user:
+                return {'error': False, 'records': [], 'limit': limit, 'offset': offset, 'total_count': 0}
+
+            limit = min(max(int(limit or 15), 1), 30)
+            offset = max(int(offset or 0), 0)
+            role_ids = user.role_user_ids.ids
+            domain = ['|', ('user_uid', '=', user.id), ('method', 'ilike', 'Access Rule')]
+            if role_ids:
+                domain = ['|'] + domain + [('user_uid', 'in', role_ids)]
+            logs = self.env['rbac.audit'].sudo().search(domain, order='create_date desc, id desc', limit=500)
+            related_logs = logs.filtered(lambda log: self._rbac_audit_log_related_to_user(log, user))
+            total_count = len(related_logs)
+            page = related_logs[offset:offset + limit]
+
+            user_tz = self.env.user.tz or 'UTC'
+            tz = pytz.timezone(user_tz)
+            now_utc = datetime.utcnow()
+
+            def parse_value(value):
+                if not value:
+                    return None
+                if not isinstance(value, str):
+                    return value
+                try:
+                    return json.loads(value)
+                except Exception:
+                    try:
+                        return ast.literal_eval(value)
+                    except Exception:
+                        return value
+
+            records = []
+            for log in page:
+                local_dt_str = ''
+                ago = ''
+                if log.create_date:
+                    utc_dt = log.create_date.replace(tzinfo=pytz.utc)
+                    local_dt_str = utc_dt.astimezone(tz).strftime("%b %d, %Y at %I:%M %p")
+                    ago = self._get_time_passed(log.create_date, now_utc)
+
+                method = log.method or _('Unknown activity')
+                action = method.split('->')[0].strip() or method
+                lower_action = action.lower()
+                if 'access rule' in lower_action:
+                    category = 'Rule'
+                    icon = 'fa-shield'
+                elif 'role' in lower_action:
+                    category = 'Role'
+                    icon = 'fa-star-o'
+                else:
+                    category = 'Permission'
+                    icon = 'fa-key'
+                if any(term in lower_action for term in ('add', 'assign', 'grant', 'create')):
+                    indicator = 'added'
+                elif any(term in lower_action for term in ('remove', 'revoke', 'delete')):
+                    indicator = 'removed'
+                elif any(term in lower_action for term in ('update', 'modify', 'status', 'change')):
+                    indicator = 'modified'
+                else:
+                    indicator = 'neutral'
+                message = self._rbac_activity_message(method, category, log.user_uid.name or user.name or '')
+
+                changes = []
+                for line in log.line_ids:
+                    old_value = parse_value(line.old_value)
+                    new_value = parse_value(line.new_value)
+                    if old_value == new_value:
+                        continue
+                    changes.extend(self._rbac_activity_change_messages(
+                        line.field_name,
+                        line.field_description,
+                        old_value,
+                        new_value,
+                    ))
+                    if len(changes) >= 6:
+                        break
+
+                records.append({
+                    'id': log.id,
+                    'action': message['title'],
+                    'details': message['summary'],
+                    'subject': message['subject'],
+                    'category': category,
+                    'icon': icon,
+                    'indicator': indicator,
+                    'timestamp': local_dt_str,
+                    'ago': ago,
+                    'performed_by': log.create_uid.name or '',
+                    'target': log.user_uid.name or '',
+                    'changes': changes[:6],
+                })
+
+            return {
+                'error': False,
+                'records': records,
+                'limit': limit,
+                'offset': offset,
+                'total_count': total_count,
+            }
+        except Exception as e:
+            return {'error': True, 'message': str(e), 'records': []}
+
+    def _rbac_activity_message(self, method, category, target_name):
+        action, subject = [part.strip() for part in (method or '').split('->', 1)] if '->' in (method or '') else ((method or '').strip(), '')
+        subject = subject or target_name or _('this user')
+        action_key = action.lower()
+
+        messages = [
+            ('add role', 'Role assigned', '%s was assigned to this user.'),
+            ('remove role', 'Role removed', '%s was removed from this user.'),
+            ('create role', 'Role created', '%s was created.'),
+            ('delete role', 'Role deleted', '%s was deleted.'),
+            ('update role permissions', 'Role permissions updated', 'Permissions inside %s were changed. This user is affected because they have that role.'),
+            ('add extra', 'Direct permission granted', '%s was granted directly to this user.'),
+            ('remove extra', 'Direct permission removed', '%s was removed from this user’s direct permissions.'),
+            ('add exclude', 'Permission blocked', '%s was blocked for this user.'),
+            ('remove exclude', 'Permission unblocked', '%s is no longer blocked for this user.'),
+            ('grant all', 'All permissions granted', 'All available permissions were granted directly to this user.'),
+            ('revoke all', 'Permissions revoked', 'Roles, direct permissions, and exclusions were revoked for this user.'),
+            ('remove initial', 'Base permission removed', '%s was removed from the user’s initial permissions.'),
+            ('access rule created', 'Access rule created', 'The rule %s was created and currently affects this user.'),
+            ('access rule updated', 'Access rule updated', 'The rule %s was updated and currently affects this user.'),
+            ('access rule status changed', 'Access rule status changed', 'The rule %s was enabled or paused.'),
+            ('access rule deleted', 'Access rule deleted', 'The rule %s was deleted.'),
+            ('initialize', 'Permissions initialized', 'Initial RBAC permissions were prepared for this user.'),
+        ]
+        for key, title, template in messages:
+            if action_key.startswith(key):
+                return {
+                    'title': title,
+                    'summary': self._rbac_format_activity_sentence(template, subject),
+                    'subject': subject,
+                }
+        if category == 'Rule':
+            return {
+                'title': action or _('Access rule changed'),
+                'summary': _('Access Studio rule settings changed for this user.'),
+                'subject': subject,
+            }
+        return {
+            'title': action or _('Permission activity'),
+            'summary': self._rbac_format_activity_sentence(_('RBAC access was changed for %s.'), subject),
+            'subject': subject,
+        }
+
+    def _rbac_format_activity_sentence(self, template, subject):
+        text = str(template or '')
+        subject = str(subject or '')
+        if '%s' in text:
+            try:
+                return text % subject
+            except Exception:
+                return text.replace('%s', subject)
+        return '%s %s' % (text.rstrip('.'), subject) if subject else text
+
+    def _rbac_activity_field_label(self, field_name, field_description):
+        labels = {
+            'group_ids': 'Permissions',
+            'role_user_ids': 'Roles',
+            'direct_group_additions': 'Direct grants',
+            'direct_group_exclusions': 'Blocked permissions',
+            'audience_json': 'Audience',
+            'config_json': 'Restrictions',
+            'impact_json': 'Impact summary',
+            'active': 'Status',
+            'risk': 'Risk',
+            'priority': 'Priority',
+            'sequence': 'Priority order',
+            'name': 'Name',
+            'description': 'Description',
+        }
+        return labels.get(field_name) or field_description or field_name or _('Change')
+
+    def _rbac_activity_change_messages(self, field_name, field_description, old_value, new_value):
+        if field_name == 'config_json':
+            return [{'message': message} for message in self._rbac_config_impact_messages(new_value)]
+        if field_name == 'audience_json':
+            return [{'message': 'Rule audience changed to %s.' % self._rbac_activity_value_label(new_value, field_name)}]
+        if field_name == 'active':
+            return [{'message': 'Rule was %s.' % ('activated' if new_value else 'paused')}]
+        if field_name in ('risk', 'priority'):
+            return [{'message': '%s changed to %s.' % (self._rbac_activity_field_label(field_name, field_description), self._rbac_activity_value_label(new_value, field_name))}]
+        if field_name in ('group_ids', 'role_user_ids', 'direct_group_additions', 'direct_group_exclusions'):
+            old_names = set(self._rbac_activity_names(old_value))
+            new_names = set(self._rbac_activity_names(new_value))
+            added = sorted(new_names - old_names)
+            removed = sorted(old_names - new_names)
+            label = self._rbac_activity_field_label(field_name, field_description).lower()
+            messages = []
+            messages += ['%s added: %s.' % (label.capitalize(), name) for name in added[:3]]
+            messages += ['%s removed: %s.' % (label.capitalize(), name) for name in removed[:3]]
+            return [{'message': message} for message in messages]
+        return []
+
+    def _rbac_activity_names(self, value):
+        if not isinstance(value, list):
+            return []
+        names = []
+        for item in value:
+            if isinstance(item, dict):
+                names.append(item.get('name') or item.get('label') or item.get('full_name') or str(item.get('id') or ''))
+            elif item:
+                names.append(str(item))
+        return [name for name in names if name]
+
+    def _rbac_config_impact_messages(self, config):
+        if not isinstance(config, dict):
+            return []
+        messages = []
+        for menu in config.get('hide_menus') or []:
+            name = menu.get('name') if isinstance(menu, dict) else ''
+            if name:
+                messages.append('Menu hidden: %s.' % name)
+
+        model_flag_labels = {
+            'readonly': 'made read-only',
+            'restrict_create': 'create hidden',
+            'restrict_edit': 'edit hidden',
+            'restrict_delete': 'delete hidden',
+            'restrict_archive': 'archive hidden',
+            'restrict_duplicate': 'duplicate hidden',
+            'restrict_import': 'import hidden',
+            'restrict_export': 'export hidden',
+        }
+        for model in config.get('models') or []:
+            if not isinstance(model, dict):
+                continue
+            flags = [label for key, label in model_flag_labels.items() if model.get(key)]
+            if flags:
+                messages.append('Model %s: %s.' % (model.get('name') or model.get('model') or 'selected model', ', '.join(flags)))
+
+        field_flag_labels = {
+            'invisible': 'hidden',
+            'readonly': 'read-only',
+            'required': 'required',
+            'external_link': 'external link removed',
+        }
+        for rule in config.get('fields') or []:
+            if not isinstance(rule, dict):
+                continue
+            flags = [label for key, label in field_flag_labels.items() if rule.get(key)]
+            fields = ', '.join(self._rbac_activity_names(rule.get('fields') or []))
+            if flags and fields:
+                messages.append('Field access on %s: %s set to %s.' % (rule.get('model_name') or rule.get('model') or 'model', fields, ', '.join(flags)))
+
+        for rule in config.get('domain_access') or []:
+            if isinstance(rule, dict):
+                messages.append('Domain access applied on %s.' % (rule.get('name') or rule.get('model') or 'model'))
+        for rule in config.get('button_tab_access') or []:
+            if isinstance(rule, dict):
+                node_names = ', '.join(self._rbac_activity_names(rule.get('nodes') or []))
+                if node_names:
+                    messages.append('Buttons/tabs hidden on %s: %s.' % (rule.get('model_name') or rule.get('model') or 'model', node_names))
+        for rule in config.get('filter_group_access') or []:
+            if isinstance(rule, dict):
+                node_names = ', '.join(self._rbac_activity_names(rule.get('nodes') or []))
+                if node_names:
+                    messages.append('Filters/group-by hidden on %s: %s.' % (rule.get('model_name') or rule.get('model') or 'model', node_names))
+
+        global_labels = {
+            'force_readonly': 'System forced read-only',
+            'hide_import': 'Import hidden',
+            'hide_export': 'Export hidden',
+            'hide_spreadsheet': 'Spreadsheet hidden',
+            'hide_add_property': 'Add property hidden',
+            'disable_dev_mode': 'Developer mode disabled',
+            'hide_technical_settings': 'Technical settings hidden',
+            'hide_chatter': 'Chatter hidden',
+            'hide_send_message': 'Send message hidden',
+            'hide_log_note': 'Log note hidden',
+            'hide_activity': 'Activities hidden',
+        }
+        messages += ['%s.' % label for key, label in global_labels.items() if config.get(key)]
+        return messages[:8] or ['Access Studio restrictions were updated.']
+
+    def _rbac_activity_value_label(self, value, field_name=None):
+        if field_name == 'audience_json' and isinstance(value, dict):
+            parts = []
+            for key, label in (('roles', 'roles'), ('users', 'users'), ('depts', 'departments'), ('companies', 'companies'), ('exclude', 'excluded users')):
+                count = len(value.get(key) or [])
+                if count:
+                    parts.append('%s %s' % (count, label))
+            return ', '.join(parts) if parts else 'All users'
+        if field_name == 'config_json' and isinstance(value, dict):
+            labels = []
+            checks = (
+                ('hide_menus', 'menus'),
+                ('models', 'model access'),
+                ('fields', 'field access'),
+                ('domain_access', 'domain access'),
+                ('button_tab_access', 'buttons/tabs'),
+                ('filter_group_access', 'filters/group by'),
+            )
+            for key, label in checks:
+                if value.get(key):
+                    labels.append(label)
+            for key, label in (
+                ('force_readonly', 'force read-only'),
+                ('hide_chatter', 'hide chatter'),
+                ('hide_import', 'hide import'),
+                ('hide_export', 'hide export'),
+            ):
+                if value.get(key):
+                    labels.append(label)
+            return ', '.join(labels[:5]) + ('...' if len(labels) > 5 else '') if labels else 'No restrictions'
+        if field_name == 'impact_json' and isinstance(value, list):
+            labels = [item.get('label') for item in value if isinstance(item, dict) and item.get('label')]
+            return ', '.join(labels[:4]) + ('...' if len(labels) > 4 else '') if labels else 'No impact'
+        if isinstance(value, dict):
+            if value.get('name'):
+                return value['name']
+            return ', '.join('%s: %s' % (key, self._rbac_activity_value_label(val)) for key, val in value.items())[:180]
+        if isinstance(value, list):
+            labels = []
+            for item in value:
+                if isinstance(item, dict):
+                    labels.append(item.get('name') or item.get('label') or item.get('model') or str(item.get('id') or item))
+                else:
+                    labels.append(str(item))
+            return ', '.join(labels[:4]) + ('...' if len(labels) > 4 else '')
+        if value in (False, None, ''):
+            return 'Empty'
+        return str(value)[:180]
+
+    def _rbac_audit_log_related_to_user(self, log, user):
+        method = log.method or ''
+        is_access_rule_log = 'Access Rule' in method
+        if log.user_uid.id == user.id and not is_access_rule_log:
+            return True
+        if log.user_uid and log.user_uid in user.role_user_ids:
+            return True
+        if not is_access_rule_log:
+            return False
+        rule_name = method.split('->', 1)[1].strip() if '->' in method else ''
+        if rule_name:
+            rules = self.env['rbac.access.rule'].with_context(active_test=False).sudo().search([
+                ('name', '=', rule_name),
+            ])
+            if any(self._rbac_rule_audience_matches_user(rule.audience_json or {}, user) for rule in rules):
+                return True
+        for line in log.line_ids:
+            if line.field_name != 'audience_json':
+                continue
+            for raw_value in (line.old_value, line.new_value):
+                audience = self._rbac_parse_audit_json(raw_value)
+                if self._rbac_rule_audience_matches_user(audience, user):
+                    return True
+        return False
+
+    def _rbac_parse_audit_json(self, value):
+        if not value:
+            return {}
+        if isinstance(value, dict):
+            return value
+        try:
+            return json.loads(value)
+        except Exception:
+            return {}
+
+    def _rbac_rule_audience_matches_user(self, audience, user):
+        if not isinstance(audience, dict):
+            return False
+
+        def ids_from(items):
+            return {item.get('id') for item in items if isinstance(item, dict) and item.get('id')}
+
+        def names_from(items):
+            return {item.get('name') for item in items if isinstance(item, dict) and item.get('name')}
+
+        if user.id in ids_from(audience.get('exclude') or []):
+            return False
+        role_ids = ids_from(audience.get('roles') or [])
+        user_ids = ids_from(audience.get('users') or [])
+        company_ids = ids_from(audience.get('companies') or [])
+        dept_names = names_from(audience.get('depts') or [])
+        if not any([role_ids, user_ids, company_ids, dept_names]):
+            return True
+        if user.id in user_ids:
+            return True
+        if role_ids & set(user.role_user_ids.ids):
+            return True
+        if company_ids & set(user.company_ids.ids):
+            return True
+        department = self._get_user_department_name(user)
+        return bool(department and department in dept_names)
+
+    @api.model
     def get_rbac_dashboard(self):
         """Return dynamic data for the RBAC access overview dashboard."""
         users = self.env['res.users'].sudo().search([
@@ -443,14 +839,29 @@ class RbacModel(models.Model):
         for role in top_roles:
             role['width'] = round((role['users'] / max_role_users) * 100) if max_role_users else 0
 
+        active_rule_records = self.env['rbac.access.rule'].sudo().search([
+            ('active', '=', True),
+        ], order='sequence, id desc', limit=5)
         active_rules = []
-        excluded_groups = {}
-        for user in users:
-            for group in user.direct_group_exclusions:
-                excluded_groups.setdefault(group.id, {'name': group.name or '', 'users': 0, 'risk': group.risk_level or 'low'})
-                excluded_groups[group.id]['users'] += 1
-        for item in sorted(excluded_groups.values(), key=lambda data: data['users'], reverse=True)[:5]:
-            active_rules.append(item)
+        for rule in active_rule_records:
+            audience = rule.audience_json or {}
+            audience_parts = []
+            for key, label in (
+                ('roles', 'role'),
+                ('depts', 'department'),
+                ('companies', 'company'),
+                ('users', 'user'),
+                ('exclude', 'excluded user'),
+            ):
+                count = len(audience.get(key) or [])
+                if count:
+                    audience_parts.append('%s %s%s' % (count, label, '' if count == 1 else 's'))
+            active_rules.append({
+                'id': rule.id,
+                'name': rule.name or _('Untitled access rule'),
+                'users': ', '.join(audience_parts) or _('All users'),
+                'risk': rule.risk or 'low',
+            })
 
         recent_activity = []
         logs = self.env['rbac.audit'].sudo().search([], limit=8, order='create_date desc')
@@ -639,7 +1050,7 @@ class RbacModel(models.Model):
             ('active', '=', True),
         ], order='sequence, id desc')
         user_role_ids = set(user.role_user_ids.ids)
-        user_company_ids = set(user.company_ids.ids)
+        current_company_id = self.env.company.id
         department = self._get_user_department_name(user)
         matching_rules = []
 
@@ -659,16 +1070,18 @@ class RbacModel(models.Model):
             user_ids = ids_from(audience.get('users') or [])
             company_ids = ids_from(audience.get('companies') or [])
             dept_names = names_from(audience.get('depts') or [])
+            if company_ids and current_company_id not in company_ids:
+                continue
 
             matched_by = []
             if user.id in user_ids:
                 matched_by.append('Specific user')
             if role_ids & user_role_ids:
                 matched_by.append('Assigned role')
-            if company_ids & user_company_ids:
-                matched_by.append('Company')
             if department and department in dept_names:
                 matched_by.append('Department')
+            if company_ids and (matched_by or not any([role_ids, user_ids, dept_names])):
+                matched_by.append('Company')
             if not any([role_ids, user_ids, company_ids, dept_names]):
                 matched_by.append('All users')
 
@@ -685,20 +1098,61 @@ class RbacModel(models.Model):
             })
         return matching_rules
 
+    def _get_user_access_status(self, user, breakdown, access_rules):
+        group_system = self.env.ref('base.group_system', raise_if_not_found=False)
+        if group_system and group_system in user.group_ids:
+            return {
+                'label': 'Full Access',
+                'key': 'full',
+                'help': 'Super admin user with unrestricted system administration access.',
+            }
+
+        restrictions = self.env['rbac.access.rule'].sudo().get_access_restrictions(
+            user=user,
+            company=self.env.company,
+        )
+        model_rules = restrictions.get('model_rules') or {}
+        has_model_readonly = any(rule.get('readonly') for rule in model_rules.values())
+        if restrictions.get('force_readonly') or has_model_readonly:
+            return {
+                'label': 'Read-Only Access',
+                'key': 'read_only',
+                'help': 'This user is covered by read-only RBAC restrictions.',
+            }
+
+        global_restriction_keys = (
+            'hide_import', 'hide_export', 'hide_spreadsheet', 'hide_add_property',
+            'disable_dev_mode', 'hide_technical_settings', 'hide_chatter',
+            'hide_send_message', 'hide_log_note', 'hide_activity',
+        )
+        has_access_studio_restrictions = bool(
+            access_rules
+            or restrictions.get('hide_menu_ids')
+            or restrictions.get('model_names')
+            or restrictions.get('field_rules')
+            or restrictions.get('domain_rules')
+            or restrictions.get('button_rules')
+            or restrictions.get('filter_rules')
+            or any(restrictions.get(key) for key in global_restriction_keys)
+        )
+        has_direct_constraints = bool(breakdown.get('excluded') or breakdown.get('extra'))
+        if has_access_studio_restrictions or has_direct_constraints:
+            return {
+                'label': 'Restricted Access',
+                'key': 'restricted',
+                'help': 'This user has custom RBAC rules or direct permission adjustments.',
+            }
+
+        return {
+            'label': 'Standard Access',
+            'key': 'standard',
+            'help': 'Normal operational user with role and base permissions only.',
+        }
+
     def _rbac_user_card(self, user):
         breakdown = self._get_user_permission_breakdown(user)
-        pending_count = self.env['request.rbac.permission'].sudo().search_count([
-            ('user_id', '=', user.id),
-            ('state', '=', 'pending'),
-        ])
-        if pending_count:
-            status = {'label': 'Pending', 'key': 'pending'}
-        elif breakdown['excluded'] > 0:
-            status = {'label': 'Restricted', 'key': 'restricted'}
-        elif breakdown['extra'] > 0:
-            status = {'label': 'Customized', 'key': 'limited'}
-        else:
-            status = {'label': 'Full', 'key': 'full'}
+        access_rules = self._get_access_studio_rules_for_user(user)
+        status = self._get_user_access_status(user, breakdown, access_rules)
         department = self._get_user_department_name(user)
         return {
             'id': user.id,
@@ -719,16 +1173,14 @@ class RbacModel(models.Model):
             'excluded_group_ids': breakdown['excluded_group_ids'],
             'effective_group_ids': breakdown['effective_group_ids'],
             'total': breakdown['total'],
-            'status': status,
-            'status_help': {
-                'full': 'Only role/base permissions are applied. No individual overrides.',
-                'limited': 'This user has individual extra permissions in addition to role permissions.',
-                'restricted': 'This user has one or more explicit exclusions overriding role permissions.',
-                'pending': 'This user has pending permission requests awaiting review.',
-            }.get(status['key'], ''),
+            'status': {
+                'label': status['label'],
+                'key': status['key'],
+            },
+            'status_help': status['help'],
             'permissions': breakdown['permissions'],
             'categories': breakdown['categories'],
-            'rules': self._get_access_studio_rules_for_user(user),
+            'rules': access_rules,
         }
 
     @api.model
@@ -812,7 +1264,7 @@ class RbacModel(models.Model):
         result_roles = []
         for role in roles:
             visible = role.group_ids.filtered(
-                lambda g: g.privilege_id and g.risk_level != 'critical'
+                lambda g: g.risk_level != 'critical'
             )
             try:
                 catalog_count = self.get_role_templates(
@@ -845,6 +1297,7 @@ class RbacModel(models.Model):
                     'name': user.name or '',
                     'email': user.email or user.login or '',
                 } for user in assigned_users[:8]],
+                'rules': self._get_access_studio_rules_for_role(role),
             })
 
         all_groups = []
@@ -853,12 +1306,13 @@ class RbacModel(models.Model):
             for g in groups:
                 if g.id in seen_group_ids or g.risk_level == 'critical':
                     continue
+                has_real_category = bool(g.privilege_id and g.privilege_id.category_id)
                 seen_group_ids.add(g.id)
                 all_groups.append({
                     'id': g.id,
                     'name': g.name or '',
                     'full_name': g.full_name or g.name or '',
-                    'category': app.name or '',
+                    'category': g.privilege_id.category_id.name if has_real_category else 'Other',
                     'risk_level': g.risk_level or 'low',
                 })
 
@@ -873,6 +1327,151 @@ class RbacModel(models.Model):
             })
 
         return {'roles': result_roles, 'all_groups': all_groups, 'all_users': all_users}
+
+    @api.model
+    def get_rbac_role_recent_activity(self, role_id, limit=15, offset=0):
+        """Return recent role permission changes and user assignment activity."""
+        try:
+            import pytz
+
+            role = self.env['res.users'].with_context(active_test=False).sudo().browse(role_id).exists()
+            if not role or not role.is_user_role:
+                return {'error': False, 'records': [], 'limit': limit, 'offset': offset, 'total_count': 0}
+
+            limit = min(max(int(limit or 15), 1), 30)
+            offset = max(int(offset or 0), 0)
+            logs = self.env['rbac.audit'].sudo().search([
+                '|', '|',
+                ('user_uid', '=', role.id),
+                ('method', 'ilike', '-> %s' % role.name),
+                ('method', 'ilike', 'Access Rule'),
+            ], order='create_date desc, id desc', limit=500)
+            logs = logs.filtered(lambda log: self._rbac_audit_log_related_to_role(log, role))
+            total_count = len(logs)
+            page = logs[offset:offset + limit]
+
+            tz = pytz.timezone(self.env.user.tz or 'UTC')
+            now_utc = datetime.utcnow()
+            records = []
+            for log in page:
+                method = log.method or _('Role activity')
+                action = method.split('->')[0].strip() or method
+                lower_action = action.lower()
+                if any(term in lower_action for term in ('add', 'assign', 'grant', 'create')):
+                    indicator = 'added'
+                elif any(term in lower_action for term in ('remove', 'revoke', 'delete')):
+                    indicator = 'removed'
+                else:
+                    indicator = 'modified'
+                if 'access rule' in lower_action:
+                    category = 'Rule'
+                    icon = 'fa-shield'
+                elif 'role' in lower_action:
+                    category = 'Role'
+                    icon = 'fa-star-o'
+                else:
+                    category = 'Permission'
+                    icon = 'fa-key'
+
+                message = self._rbac_activity_message(method, category, role.name or '')
+                if lower_action.startswith('update role permissions'):
+                    message['summary'] = 'Permissions inside this role were changed.'
+                changes = []
+                for line in log.line_ids:
+                    old_value = self._rbac_parse_audit_json(line.old_value) or line.old_value
+                    new_value = self._rbac_parse_audit_json(line.new_value) or line.new_value
+                    changes.extend(self._rbac_activity_change_messages(
+                        line.field_name,
+                        line.field_description,
+                        old_value,
+                        new_value,
+                    ))
+                    if len(changes) >= 6:
+                        break
+
+                local_dt_str = ''
+                ago = ''
+                if log.create_date:
+                    local_dt = log.create_date.replace(tzinfo=pytz.utc).astimezone(tz)
+                    local_dt_str = local_dt.strftime("%b %d, %Y at %I:%M %p")
+                    ago = self._get_time_passed(log.create_date, now_utc)
+
+                records.append({
+                    'id': log.id,
+                    'action': message['title'],
+                    'details': message['summary'],
+                    'subject': message['subject'],
+                    'category': category,
+                    'icon': icon,
+                    'indicator': indicator,
+                    'timestamp': local_dt_str,
+                    'ago': ago,
+                    'performed_by': log.create_uid.name or '',
+                    'target': log.user_uid.name or '',
+                    'changes': changes[:6],
+                })
+
+            return {
+                'error': False,
+                'records': records,
+                'limit': limit,
+                'offset': offset,
+                'total_count': total_count,
+            }
+        except Exception as e:
+            return {'error': True, 'message': str(e), 'records': []}
+
+    def _get_access_studio_rules_for_role(self, role):
+        rules = self.env['rbac.access.rule'].with_context(active_test=False).sudo().search([
+            ('active', '=', True),
+        ], order='sequence, id desc')
+        matching_rules = []
+        for rule in rules:
+            audience = rule.audience_json or {}
+            if self._rbac_rule_audience_matches_role(audience, role):
+                impact = rule.impact_json or []
+                matching_rules.append({
+                    'id': rule.id,
+                    'name': rule.name or '',
+                    'risk': rule.risk or 'low',
+                    'applied_via': 'Assigned role',
+                    'tags': [item.get('label') for item in impact if item.get('label')],
+                })
+        return matching_rules
+
+    def _rbac_audit_log_related_to_role(self, log, role):
+        method = log.method or ''
+        if log.user_uid.id == role.id:
+            return True
+        if ('-> %s' % role.name) in method:
+            return True
+        if 'Access Rule' not in method:
+            return False
+        rule_name = method.split('->', 1)[1].strip() if '->' in method else ''
+        if rule_name:
+            rules = self.env['rbac.access.rule'].with_context(active_test=False).sudo().search([
+                ('name', '=', rule_name),
+            ])
+            if any(self._rbac_rule_audience_matches_role(rule.audience_json or {}, role) for rule in rules):
+                return True
+        for line in log.line_ids:
+            if line.field_name != 'audience_json':
+                continue
+            for raw_value in (line.old_value, line.new_value):
+                audience = self._rbac_parse_audit_json(raw_value)
+                if self._rbac_rule_audience_matches_role(audience, role):
+                    return True
+        return False
+
+    def _rbac_rule_audience_matches_role(self, audience, role):
+        if not isinstance(audience, dict):
+            return False
+
+        def ids_from(items):
+            return {item.get('id') for item in items if isinstance(item, dict) and item.get('id')}
+
+        role_ids = ids_from(audience.get('roles') or [])
+        return bool(role.id in role_ids)
 
     @api.model
     def update_role_from_directory(self, role_id, name, description, group_ids, user_ids=None):
@@ -928,6 +1527,18 @@ class RbacModel(models.Model):
             'description': description or '',
             'group_ids': [[6, 0, group_ids or []]],
         }])
+        audit = self.env['rbac.audit'].create_log(new_role, 'Create Role -> %s' % new_role.name)
+        group_field = self.env['ir.model.fields'].sudo().search([
+            ('model', '=', 'res.users'),
+            ('name', '=', 'group_ids'),
+        ], limit=1)
+        if group_field:
+            self.env['rbac.audit.line'].sudo().create({
+                'rbac_audit_id': audit.id,
+                'field_id': group_field.id,
+                'old_value': '[]',
+                'new_value': json.dumps([{'id': group.id, 'name': group.name or group.full_name or ''} for group in new_role.group_ids]),
+            })
         users = self.env['res.users'].sudo().browse(user_ids or []).exists().filtered(
             lambda u: not u.is_user_role and u.active
         )
@@ -941,6 +1552,7 @@ class RbacModel(models.Model):
         role = self.env['res.users'].with_context(active_test=False).sudo().browse(role_id)
         if not (role.exists() and role.is_user_role and not role.active):
             return False
+        self.env['rbac.audit'].create_log(role, 'Delete Role -> %s' % role.name)
         partner = role.partner_id
         role.sudo().unlink()
         if partner.exists() and not partner.user_ids:
@@ -1002,6 +1614,173 @@ class RbacModel(models.Model):
             'ttype': field.ttype,
         } for field in fields]
 
+    @api.model
+    def get_access_studio_view_nodes(self, model_id):
+        """Return button/tab/link choices discovered from model views."""
+        model = self.env['ir.model'].sudo().browse(model_id).exists()
+        if not model or model.model not in self.env:
+            return []
+        Model = self.env[model.model].sudo().with_context(rbac_access_bypass=True)
+        choices = {}
+        views = self.env['ir.ui.view'].sudo().search([
+            ('model', '=', model.model),
+            ('type', 'in', ['form', 'tree', 'list', 'kanban']),
+        ])
+        for view in views:
+            view_type = 'list' if view.type == 'tree' else view.type
+            try:
+                arch, _view = Model._get_view(view_id=view.id, view_type=view_type)
+            except Exception:
+                continue
+            doc = etree.fromstring(etree.tostring(arch)) if not isinstance(arch, etree._Element) else arch
+            for button in doc.xpath(".//button[@type='object' or @type='action']"):
+                label = self._access_studio_node_label(button)
+                name = button.get('name')
+                button_type = button.get('type')
+                if not name or not label:
+                    continue
+                key = ('button', name, button_type, label)
+                choices[key] = {
+                    'id': '|'.join(str(part or '') for part in key),
+                    'node_type': 'button',
+                    'name': label,
+                    'attribute_name': name,
+                    'attribute_string': label,
+                    'button_type': button_type,
+                    'is_smart_button': self._access_studio_is_smart_button(button),
+                }
+            if view_type == 'form':
+                for page in doc.xpath(".//page[@string]"):
+                    label = page.get('string')
+                    key = ('page', page.get('name') or '', '', label)
+                    choices[key] = {
+                        'id': '|'.join(str(part or '') for part in key),
+                        'node_type': 'page',
+                        'name': label,
+                        'attribute_name': page.get('name') or '',
+                        'attribute_string': label,
+                        'button_type': '',
+                        'is_smart_button': False,
+                    }
+                for app in doc.xpath(".//app[@string]"):
+                    label = app.get('string')
+                    key = ('page', app.get('name') or app.get('data-key') or '', '', label)
+                    choices[key] = {
+                        'id': '|'.join(str(part or '') for part in key),
+                        'node_type': 'page',
+                        'name': label,
+                        'attribute_name': app.get('name') or app.get('data-key') or '',
+                        'attribute_string': label,
+                        'button_type': '',
+                        'is_smart_button': False,
+                    }
+            for link in doc.xpath(".//a[@type and @name]"):
+                label = self._access_studio_node_label(link)
+                if not label:
+                    continue
+                key = ('link', link.get('name'), link.get('type'), label)
+                choices[key] = {
+                    'id': '|'.join(str(part or '') for part in key),
+                    'node_type': 'link',
+                    'name': label,
+                    'attribute_name': link.get('name'),
+                    'attribute_string': label,
+                    'button_type': link.get('type'),
+                    'is_smart_button': False,
+                }
+        return sorted(choices.values(), key=lambda item: (item['node_type'], item['name'] or ''))
+
+    @api.model
+    def get_access_studio_search_nodes(self, model_id):
+        """Return filter and group-by choices discovered from model search views."""
+        model = self.env['ir.model'].sudo().browse(model_id).exists()
+        if not model or model.model not in self.env:
+            return []
+        Model = self.env[model.model].sudo().with_context(rbac_access_bypass=True)
+        choices = {}
+        views = self.env['ir.ui.view'].sudo().search([
+            ('model', '=', model.model),
+            ('type', '=', 'search'),
+        ])
+        for view in views:
+            try:
+                arch, _view = Model._get_view(view_id=view.id, view_type='search')
+            except Exception:
+                continue
+            doc = etree.fromstring(etree.tostring(arch)) if not isinstance(arch, etree._Element) else arch
+            for node in doc.xpath(".//filter[@name and @string]"):
+                if node.get('invisible') in ('1', 'True', 'true'):
+                    continue
+                node_type = 'group' if self._access_studio_filter_is_groupby(node) else 'filter'
+                label = node.get('string') or node.get('name')
+                key = (node_type, node.get('name'), label)
+                choices[key] = {
+                    'id': '|'.join(str(part or '') for part in key),
+                    'node_type': node_type,
+                    'name': label,
+                    'attribute_name': node.get('name'),
+                    'attribute_string': label,
+                    'field_name': self._access_studio_search_node_field_name(node),
+                }
+        return sorted(choices.values(), key=lambda item: (item['node_type'], item['name'] or ''))
+
+    @api.model
+    def _access_studio_filter_is_groupby(self, node):
+        context = node.get('context') or ''
+        return 'group_by' in context
+
+    @api.model
+    def _access_studio_search_node_field_name(self, node):
+        if node.get('date'):
+            return (node.get('date') or '').split(':', 1)[0]
+        context = node.get('context') or ''
+        if context and 'group_by' in context:
+            try:
+                group_by = safe_eval(context, {}).get('group_by')
+                if isinstance(group_by, (list, tuple)):
+                    group_by = group_by[0] if group_by else ''
+                if group_by:
+                    return str(group_by).split(':', 1)[0]
+            except Exception:
+                marker = 'group_by'
+                after = context[context.find(marker) + len(marker):]
+                for quote in ("'", '"'):
+                    if quote in after:
+                        parts = after.split(quote)
+                        if len(parts) > 1:
+                            return parts[1].split(':', 1)[0]
+        domain = node.get('domain') or ''
+        if domain:
+            import re
+            match = re.search(r"['\"]([a-zA-Z_][\w.]*)['\"]\s*,", domain)
+            if match:
+                return match.group(1).split('.', 1)[0]
+        return node.get('name') or ''
+
+    @api.model
+    def _access_studio_node_label(self, node):
+        label = node.get('string')
+        if label:
+            return label.strip()
+        texts = []
+        for child in node.xpath(".//*[contains(concat(' ', normalize-space(@class), ' '), ' o_stat_text ')] | .//span | .//field[@string]"):
+            text = child.get('string') or (child.text or '')
+            if text and text.strip():
+                texts.append(text.strip())
+        if texts:
+            return ' '.join(texts)
+        text = ''.join(node.itertext()).strip()
+        return ' '.join(text.split()) if text else ''
+
+    @api.model
+    def _access_studio_is_smart_button(self, node):
+        current = node.getparent()
+        while current is not None:
+            if 'oe_button_box' in (current.get('class') or ''):
+                return True
+            current = current.getparent()
+        return False
+
     def _access_studio_rule_payload(self, rule):
         audience_detail = rule.audience_json or {}
         impact = rule.impact_json or []
@@ -1052,6 +1831,7 @@ class RbacModel(models.Model):
             'description': values.get('description') or '',
             'rule_type': values.get('rule_type') or 'Restriction',
             'priority': values.get('priority') or 'Normal (50)',
+            'sequence': self._access_studio_priority_sequence(values.get('priority') or 'Normal (50)'),
             'active': bool(values.get('active')),
             'risk': values.get('risk') or 'low',
             'audience_json': audience,
@@ -1059,13 +1839,20 @@ class RbacModel(models.Model):
             'config_json': config,
         }
         if rule_id:
-            rule = self.env['rbac.access.rule'].with_context(active_test=False).sudo().browse(rule_id)
+            rule = self.env['rbac.access.rule'].with_context(
+                active_test=False,
+                rbac_access_rule_audit_skip=True,
+            ).sudo().browse(rule_id)
             if rule.exists():
+                old_values = self._access_studio_rule_audit_snapshot(rule)
                 rule.write(vals)
+                self._access_studio_audit_rule_change(rule, 'Access Rule Updated', old_values, vals)
             else:
-                rule = self.env['rbac.access.rule'].sudo().create(vals)
+                rule = self.env['rbac.access.rule'].with_context(rbac_access_rule_audit_skip=True).sudo().create(vals)
+                self._access_studio_audit_rule_change(rule, 'Access Rule Created', {}, vals)
         else:
-            rule = self.env['rbac.access.rule'].sudo().create(vals)
+            rule = self.env['rbac.access.rule'].with_context(rbac_access_rule_audit_skip=True).sudo().create(vals)
+            self._access_studio_audit_rule_change(rule, 'Access Rule Created', {}, vals)
         payload = self._access_studio_rule_payload(rule)
         payload['cache_token'] = str(time.time_ns())
         return payload
@@ -1073,20 +1860,86 @@ class RbacModel(models.Model):
     @api.model
     def toggle_access_rule_status(self, rule_id):
         """Toggle active/inactive on an Access Studio rule and clear the menu cache."""
-        rule = self.env['rbac.access.rule'].with_context(active_test=False).sudo().browse(rule_id)
+        rule = self.env['rbac.access.rule'].with_context(
+            active_test=False,
+            rbac_access_rule_audit_skip=True,
+        ).sudo().browse(rule_id)
         if not rule.exists():
             return None
+        old_values = self._access_studio_rule_audit_snapshot(rule)
         rule.write({'active': not rule.active})
+        self._access_studio_audit_rule_change(rule, 'Access Rule Status Changed', old_values, {'active': rule.active})
         return {'active': rule.active, 'cache_token': str(time.time_ns())}
 
     @api.model
     def delete_access_rule(self, rule_id):
         """Delete an Access Studio rule."""
-        rule = self.env['rbac.access.rule'].with_context(active_test=False).sudo().browse(rule_id)
+        rule = self.env['rbac.access.rule'].with_context(
+            active_test=False,
+            rbac_access_rule_audit_skip=True,
+        ).sudo().browse(rule_id)
         if not rule.exists():
             return False
+        old_values = self._access_studio_rule_audit_snapshot(rule)
+        self._access_studio_audit_rule_change(rule, 'Access Rule Deleted', old_values, {})
         rule.unlink()
         return {'deleted': True, 'cache_token': str(time.time_ns())}
+
+    @api.model
+    def _access_studio_priority_sequence(self, priority):
+        if '100' in str(priority):
+            return 100
+        if '10' in str(priority):
+            return 10
+        return 50
+
+    @api.model
+    def _access_studio_rule_audit_snapshot(self, rule):
+        return {
+            'name': rule.name,
+            'description': rule.description,
+            'rule_type': rule.rule_type,
+            'priority': rule.priority,
+            'active': rule.active,
+            'risk': rule.risk,
+            'audience_json': rule.audience_json or {},
+            'impact_json': rule.impact_json or [],
+            'config_json': rule.config_json or {},
+        }
+
+    @api.model
+    def _access_studio_audit_rule_change(self, rule, method, old_values, new_values):
+        audit = self.env['rbac.audit'].sudo().create_log(self.env.user, '%s -> %s' % (method, rule.name or new_values.get('name') or 'Access Rule'))
+        field_model = self.env['ir.model']._get('rbac.access.rule')
+        field_names = set(old_values) | set(new_values)
+        fields_by_name = {
+            field.name: field
+            for field in self.env['ir.model.fields'].sudo().search([
+                ('model_id', '=', field_model.id),
+                ('name', 'in', list(field_names)),
+            ])
+        }
+        for field_name in sorted(field_names):
+            field = fields_by_name.get(field_name)
+            if not field:
+                continue
+            old_value = old_values.get(field_name)
+            new_value = new_values.get(field_name)
+            if old_value == new_value:
+                continue
+            self.env['rbac.audit.line'].sudo().create({
+                'rbac_audit_id': audit.id,
+                'field_id': field.id,
+                'old_value': self._access_studio_audit_json(old_value),
+                'new_value': self._access_studio_audit_json(new_value),
+            })
+
+    @api.model
+    def _access_studio_audit_json(self, value):
+        try:
+            return json.dumps(value, sort_keys=True, ensure_ascii=False, default=str)
+        except TypeError:
+            return str(value)
 
     @api.model
     def clone_groups_from_user(self, user_id, clone_user_id):
@@ -1104,6 +1957,14 @@ class RbacModel(models.Model):
         try:
             logs = []
             actions = set()
+            def parse_audit_value(raw_value):
+                if raw_value in ('', None):
+                    return None
+                try:
+                    return json.loads(raw_value)
+                except Exception:
+                    return raw_value
+
             for x in self.env['rbac.audit'].sudo().search([], order='create_date desc, id desc'):
                 group_ids_line = x.line_ids.filtered(lambda z: z.field_name == 'group_ids')
                 if x.method:
@@ -1125,12 +1986,23 @@ class RbacModel(models.Model):
                     'action': action_type,
                     'ip_address': x.ip_address,
                 }
+                display_lines = []
+                for y in x.line_ids:
+                    old_value = parse_audit_value(y.old_value)
+                    new_value = parse_audit_value(y.new_value)
+                    display_lines.extend(self._rbac_activity_change_messages(
+                        y.field_name,
+                        y.field_description,
+                        old_value,
+                        new_value,
+                    ))
                 log['data_json'] = json.dumps({
                     **log,
                     'ip_address': x.ip_address,
                     'user_agent': x.user_agent,
                     'location': x.location,
                     'len_groups_id': len(json.loads(group_ids_line[-1].new_value.replace("'", '"'))) if group_ids_line else 'N/A',
+                    'display_lines': display_lines[:8],
                     'line_ids': [
                         {
                             'field_name': y.field_name,

@@ -38,6 +38,57 @@
     display: flex;
     gap: 14px;
     margin: 42px 0 22px;
+    overflow: visible;
+    position: relative;
+    z-index: 25;
+}
+
+.ud_list_actions_wrap {
+    position: relative;
+    z-index: 20;
+}
+
+.ud_bulk_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 54px;
+    border: 1px solid var(--ud-accent);
+    border-radius: 8px;
+    background: var(--ud-accent);
+    color: #fff;
+    padding: 0 16px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ud_bulk_btn span {
+    min-width: 22px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .2);
+    padding: 2px 7px;
+    text-align: center;
+}
+
+.ud_actions_menu.ud_bulk_menu {
+    position: absolute;
+    display: none;
+    top: calc(100% + 8px);
+    bottom: auto;
+    right: 0;
+    left: auto;
+    z-index: 120;
+    width: 380px;
+    padding: 12px 0;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 16px 36px rgba(15, 20, 40, .16);
+}
+
+.ud_actions_menu.ud_bulk_menu.open {
+    display: block;
 }
 
 .ud_search {
@@ -201,8 +252,10 @@
 
 .ud_status i { font-size: 8px; }
 .ud_status.full { background: var(--ud-green-soft); color: #087a41; }
-.ud_status.limited { background: var(--ud-yellow-soft); color: #8a5a00; }
+.ud_status.standard { background: var(--ud-accent-soft); color: var(--ud-accent); }
+.ud_status.read_only { background: var(--ud-yellow-soft); color: #8a5a00; }
 .ud_status.restricted { background: var(--ud-red-soft); color: #b91c1c; }
+.ud_status.limited { background: var(--ud-yellow-soft); color: #8a5a00; }
 .ud_status.pending { background: var(--ud-accent-soft); color: var(--ud-accent); }
 .ud_status.big { font-size: 15px; }
 
@@ -530,16 +583,212 @@
 }
 .ud_perm b { color: var(--ud-text); font-size: 13px; }
 
+.ud_activity {
+    margin-top: 28px;
+    border: 1px solid var(--ud-border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff 0%, #f8faff 100%);
+    padding: 18px;
+}
+
+.ud_activity_head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.ud_activity_head .ud_section_label {
+    margin: 0 0 5px;
+}
+
+.ud_activity_head p {
+    margin: 0;
+    color: var(--ud-text3);
+    font-size: 13px;
+}
+
+.ud_activity_head > span {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--ud-accent-soft);
+    color: var(--ud-accent);
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ud_timeline {
+    position: relative;
+    display: grid;
+    gap: 12px;
+}
+
+.ud_timeline::before {
+    content: "";
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    left: 17px;
+    width: 1px;
+    background: #dfe5f7;
+}
+
+.ud_timeline_item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+}
+
+.ud_timeline_icon {
+    z-index: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2ff;
+    color: var(--ud-accent);
+    box-shadow: 0 0 0 4px #fff;
+}
+
+.ud_timeline_item.added .ud_timeline_icon { background: var(--ud-green-soft); color: var(--ud-green); }
+.ud_timeline_item.removed .ud_timeline_icon { background: var(--ud-red-soft); color: var(--ud-red); }
+.ud_timeline_item.modified .ud_timeline_icon { background: var(--ud-yellow-soft); color: #8a5a00; }
+
+.ud_timeline_body {
+    border: 1px solid #edf0f7;
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px 14px;
+}
+
+.ud_timeline_top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.ud_timeline_top strong {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+.ud_activity_type {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: var(--ud-accent);
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.ud_activity_type.added { background: var(--ud-green-soft); color: var(--ud-green); }
+.ud_activity_type.removed { background: var(--ud-red-soft); color: var(--ud-red); }
+.ud_activity_type.modified { background: var(--ud-yellow-soft); color: #8a5a00; }
+
+.ud_activity_subject {
+    max-width: 100%;
+    border-radius: 999px;
+    background: #f7f8fc;
+    color: var(--ud-text2);
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ud_timeline_body .ud_activity_summary {
+    margin: 7px 0 0;
+    color: var(--ud-text2);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.ud_change_grid {
+    display: grid;
+    gap: 7px;
+    margin-top: 10px;
+}
+
+.ud_change_grid div {
+    border-radius: 8px;
+    background: #f7f8fc;
+    padding: 8px 10px;
+}
+
+.ud_change_grid b {
+    display: block;
+    color: var(--ud-text);
+    font-size: 12px;
+}
+
+.ud_change_grid span {
+    display: block;
+    margin-top: 3px;
+    color: var(--ud-text3);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.ud_change_grid .ud_change_message {
+    margin: 0;
+    color: var(--ud-text2);
+    font-size: 13px;
+}
+
+.ud_change_grid em {
+    display: inline-block;
+    min-width: 42px;
+    margin-right: 6px;
+    color: var(--ud-text2);
+    font-style: normal;
+    font-weight: 800;
+}
+
+.ud_timeline_meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    color: var(--ud-text3);
+    font-size: 12px;
+}
+
+.ud_activity_actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.ud_inline_btn.ghost {
+    color: var(--ud-text2);
+}
+
 .ud_panel_footer {
     border-top: 1px solid var(--ud-border);
     border-bottom: 0;
     justify-content: flex-end;
     position: relative;
+    z-index: 30;
+    background: #fff;
 }
 
 .ud_actions_wrap {
     margin-right: auto;
     position: relative;
+    z-index: 40;
 }
 
 .ud_footer_btn,
@@ -565,6 +814,7 @@
     position: absolute;
     left: 0;
     bottom: calc(100% + 10px);
+    z-index: 60;
     width: 380px;
     display: none;
     background: #fff;

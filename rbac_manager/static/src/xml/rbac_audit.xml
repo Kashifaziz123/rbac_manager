@@ -92,21 +92,14 @@
                         </div>
 
                         <div class="ra_detail_section">
-                            <h3>Field Changes</h3>
-                            <t t-if="!this.getLines(state.activeLog).length">
-                                <div class="ra_empty_inner">No field-level changes recorded.</div>
+                            <h3>What Changed</h3>
+                            <t t-if="!this.changeSummary(state.activeLog).length">
+                                <div class="ra_empty_inner">No detailed change summary recorded.</div>
                             </t>
-                            <t t-foreach="this.getLines(state.activeLog)" t-as="line" t-key="line_index">
-                                <div class="ra_change">
-                                    <strong t-esc="this.fieldLabel(line.field_name)"/>
-                                    <div>
-                                        <span>Before</span>
-                                        <code t-esc="line.old_value"/>
-                                    </div>
-                                    <div>
-                                        <span>After</span>
-                                        <code t-esc="line.new_value"/>
-                                    </div>
+                            <t t-foreach="this.changeSummary(state.activeLog)" t-as="line" t-key="line_index">
+                                <div class="ra_change simple">
+                                    <i class="fa fa-check-circle-o"/>
+                                    <span t-esc="line.message"/>
                                 </div>
                             </t>
                         </div>

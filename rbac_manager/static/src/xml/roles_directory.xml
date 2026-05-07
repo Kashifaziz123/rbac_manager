@@ -154,6 +154,78 @@
                                 <span class="rd_tag_more">+<t t-esc="this.panelAssignedUsers.length - 6"/></span>
                             </t>
                         </div>
+
+                        <div class="rd_rules_head">
+                            <div class="rd_section_label">ACCESS STUDIO RULES AFFECTING THIS ROLE</div>
+                            <span><t t-esc="(this.state.activeRole.rules || []).length"/> active</span>
+                        </div>
+                        <div class="rd_rules">
+                            <t t-if="!(this.state.activeRole.rules || []).length">
+                                <div class="rd_user_empty">No active Access Studio rules target this role.</div>
+                            </t>
+                            <t t-foreach="this.state.activeRole.rules || []" t-as="rule" t-key="rule.id">
+                                <div class="rd_rule">
+                                    <i class="fa fa-shield"/>
+                                    <div>
+                                        <strong t-esc="rule.name"/>
+                                        <p>Applied via: <b t-esc="rule.applied_via"/></p>
+                                        <t t-foreach="rule.tags || []" t-as="tag" t-key="tag">
+                                            <span class="rd_rule_tag" t-esc="tag"/>
+                                        </t>
+                                    </div>
+                                    <span t-att-class="'rd_risk ' + rule.risk" t-esc="rule.risk"/>
+                                </div>
+                            </t>
+                        </div>
+
+                        <div class="rd_activity">
+                            <div class="rd_activity_head">
+                                <div>
+                                    <div class="rd_section_label">RECENT CHANGES</div>
+                                    <p>Role permissions and user assignment updates.</p>
+                                </div>
+                                <span><t t-esc="this.state.activityLoaded"/>/<t t-esc="this.state.activityTotal"/></span>
+                            </div>
+                            <t t-if="this.state.activityLoading and !this.state.activityRecords.length">
+                                <div class="rd_user_empty">Loading recent changes...</div>
+                            </t>
+                            <t t-elif="!this.state.activityRecords.length">
+                                <div class="rd_user_empty">No recent changes for this role.</div>
+                            </t>
+                            <t t-else="">
+                                <div class="rd_timeline">
+                                    <t t-foreach="this.state.activityRecords" t-as="item" t-key="item.id">
+                                        <div t-att-class="'rd_timeline_item ' + item.indicator">
+                                            <span class="rd_timeline_icon"><i t-att-class="this.activityIconClass(item)"/></span>
+                                            <div class="rd_timeline_body">
+                                                <div class="rd_timeline_top">
+                                                    <span t-att-class="'rd_activity_type ' + item.indicator" t-esc="item.category"/>
+                                                    <strong t-esc="item.action"/>
+                                                    <span t-if="item.subject" class="rd_activity_subject" t-esc="item.subject"/>
+                                                </div>
+                                                <p t-esc="item.details"/>
+                                                <t t-if="(item.changes || []).length">
+                                                    <div class="rd_change_grid">
+                                                        <t t-foreach="item.changes" t-as="change" t-key="change_index">
+                                                            <div><span t-esc="change.message || change.field"/></div>
+                                                        </t>
+                                                    </div>
+                                                </t>
+                                                <div class="rd_timeline_meta">
+                                                    <span><i class="fa fa-clock-o"/> <t t-esc="item.timestamp"/></span>
+                                                    <span t-esc="item.ago"/>
+                                                    <span>by <t t-esc="item.performed_by || 'System'"/></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="rd_activity_actions">
+                                    <button t-if="this.state.activityLoaded &lt; this.state.activityTotal" class="rd_btn rd_btn_secondary" t-on-click="showMoreActivity" t-att-disabled="this.state.activityLoading ? 'disabled' : undefined">Load more</button>
+                                    <button t-if="this.state.activityRecords.length &gt; 15" class="rd_btn rd_btn_secondary" t-on-click="showLessActivity" t-att-disabled="this.state.activityLoading ? 'disabled' : undefined">Show less</button>
+                                </div>
+                            </t>
+                        </div>
                     </div>
 
                     <!-- Panel footer -->
@@ -194,13 +266,26 @@
                                 <button t-att-class="this.state.panelPermFilter === 'unassigned' ? 'active' : ''" t-on-click="() => this.setPanelPermFilter('unassigned')">Unassigned <span t-esc="this.panelPermissionSummary.unassigned"/></button>
                             </div>
                         </div>
-                        <div class="rd_manager_list">
+                        <div class="rd_permission_accordion">
                             <t t-if="!this.panelGroups.length"><div class="rd_user_empty">No permissions found.</div></t>
-                            <t t-foreach="this.panelGroups" t-as="grp" t-key="grp.id">
-                                <button t-att-class="'rd_manager_row' + (this.isPanelGroupChecked(grp.id) ? ' checked' : '')" t-on-click="() => this.togglePanelGroup(grp.id)">
-                                    <span><strong t-esc="grp.full_name"/><small t-esc="grp.category"/></span>
-                                    <b><t t-if="this.isPanelGroupChecked(grp.id)">Assigned</t><t t-else="">Unassigned</t></b>
-                                </button>
+                            <t t-foreach="this.panelPermissionGroups" t-as="cat" t-key="cat.category">
+                                <details class="rd_perm_acc_item">
+                                    <summary>
+                                        <span t-esc="cat.category"/>
+                                        <b><t t-esc="cat.items.length"/> permissions</b>
+                                        <i class="fa fa-chevron-down"/>
+                                    </summary>
+                                    <div class="rd_perm_acc_body">
+                                        <div class="rd_manager_list">
+                                            <t t-foreach="cat.items" t-as="grp" t-key="grp.id">
+                                                <button t-att-class="'rd_manager_row toggle' + (this.isPanelGroupChecked(grp.id) ? ' checked' : '')" t-on-click="() => this.togglePanelGroup(grp.id)">
+                                                    <span><strong t-esc="grp.full_name"/><small t-esc="grp.name"/></span>
+                                                    <span class="rd_switch" aria-hidden="true"/>
+                                                </button>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </details>
                             </t>
                         </div>
                     </div>
@@ -209,7 +294,6 @@
                     </div>
                 </div>
             </div>
-
             <div t-att-class="'rd_modal_overlay' + (this.state.panelUserManagerOpen ? ' open' : '')"
                  t-on-click.self="closePanelUserManager">
                 <div class="rd_modal rd_modal_wide">
@@ -291,15 +375,27 @@
                         </div>
 
                         <!-- Modal permission grid -->
-                        <div class="rd_perm_grid">
-                            <t t-foreach="this.modalGroups" t-as="grp" t-key="grp.id">
-                                <div t-att-class="'rd_perm_check' + (this.isModalGroupChecked(grp.id) ? ' checked' : '')"
-                                     t-on-click="() => this.toggleModalGroup(grp.id)">
-                                    <input type="checkbox"
-                                           t-att-checked="this.isModalGroupChecked(grp.id) ? 'checked' : undefined"
-                                           t-on-click.stop="() => this.toggleModalGroup(grp.id)"/>
-                                    <span><t t-esc="grp.full_name"/></span>
-                                </div>
+                        <div class="rd_permission_accordion compact">
+                            <t t-if="!this.modalGroups.length"><div class="rd_user_empty">No permissions found.</div></t>
+                            <t t-foreach="this.modalPermissionGroups" t-as="cat" t-key="cat.category">
+                                <details class="rd_perm_acc_item">
+                                    <summary>
+                                        <span t-esc="cat.category"/>
+                                        <b><t t-esc="cat.items.length"/> permissions</b>
+                                        <i class="fa fa-chevron-down"/>
+                                    </summary>
+                                    <div class="rd_perm_acc_body">
+                                        <div class="rd_perm_grid">
+                                            <t t-foreach="cat.items" t-as="grp" t-key="grp.id">
+                                                <button type="button" t-att-class="'rd_perm_check toggle' + (this.isModalGroupChecked(grp.id) ? ' checked' : '')"
+                                                     t-on-click="() => this.toggleModalGroup(grp.id)">
+                                                    <span><t t-esc="grp.full_name"/></span>
+                                                    <span class="rd_switch" aria-hidden="true"/>
+                                                </button>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </details>
                             </t>
                         </div>
 

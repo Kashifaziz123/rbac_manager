@@ -56,15 +56,21 @@ export class RBACRolesDirectory extends Component {
             panelPermSearch: '',
             panelUserSearch: '',
             panelPermFilter: 'assigned',
+            panelPermCategory: '',
             panelUserFilter: 'assigned',
             panelPermManagerOpen: false,
             panelUserManagerOpen: false,
             modalPermSearch: '',
+            modalPermCategory: '',
             modalSelectedGroupIds: [],
             modalUserSearch: '',
             modalSelectedUserIds: [],
             saving: false,
             deleting: false,
+            activityLoading: false,
+            activityRecords: [],
+            activityLoaded: 0,
+            activityTotal: 0,
         });
 
         onWillStart(async () => { await this.loadData(); });
@@ -122,19 +128,83 @@ export class RBACRolesDirectory extends Component {
                 (this.state.panelPermFilter === 'assigned' && assigned) ||
                 (this.state.panelPermFilter === 'unassigned' && !assigned);
             const matchesQuery = !q ||
-                g.full_name.toLowerCase().includes(q) ||
-                g.category.toLowerCase().includes(q);
+                String(g.full_name || "").toLowerCase().includes(q) ||
+                String(g.category || "Other").toLowerCase().includes(q);
             return matchesFilter && matchesQuery;
         });
+    }
+
+    groupPermissions(groups) {
+        const buckets = new Map();
+        for (const group of groups || []) {
+            const category = String(group.category || 'Other');
+            if (!buckets.has(category)) {
+                buckets.set(category, []);
+            }
+            buckets.get(category).push(group);
+        }
+        return [...buckets.entries()]
+            .sort(([a], [b]) => String(a).localeCompare(String(b)))
+            .map(([category, items]) => ({
+                category,
+                items: items.sort((a, b) => String(a.full_name || a.name || '').localeCompare(String(b.full_name || b.name || ''))),
+            }));
+    }
+
+    get panelPermissionGroups() {
+        return this.groupPermissions(this.panelGroups);
+    }
+
+    get panelPermissionCategories() {
+        return this.permissionCategories(this.state.allGroups);
+    }
+
+    get filteredPanelCategoryGroups() {
+        const categories = this.panelPermissionGroups;
+        const selected = this.state.panelPermCategory || categories[0]?.category || '';
+        return categories.find((cat) => cat.category === selected)?.items || [];
     }
 
     get modalGroups() {
         const q = this.state.modalPermSearch.trim().toLowerCase();
         if (!q) return this.state.allGroups;
         return this.state.allGroups.filter(g =>
-            g.full_name.toLowerCase().includes(q) ||
-            g.category.toLowerCase().includes(q)
+            String(g.full_name || "").toLowerCase().includes(q) ||
+            String(g.category || "Other").toLowerCase().includes(q)
         );
+    }
+
+    get modalPermissionGroups() {
+        return this.groupPermissions(this.modalGroups);
+    }
+
+    get modalPermissionCategories() {
+        return this.permissionCategories(this.state.allGroups);
+    }
+
+    get filteredModalCategoryGroups() {
+        const categories = this.modalPermissionGroups;
+        const selected = this.state.modalPermCategory || categories[0]?.category || '';
+        return categories.find((cat) => cat.category === selected)?.items || [];
+    }
+
+    permissionCategories(groups) {
+        const counts = new Map();
+        for (const group of groups || []) {
+            const category = String(group.category || 'Other');
+            counts.set(category, (counts.get(category) || 0) + 1);
+        }
+        return [...counts.entries()]
+            .sort(([a], [b]) => String(a).localeCompare(String(b)))
+            .map(([category, count]) => ({category, count}));
+    }
+
+    panelCategoryCount(category) {
+        return this.panelPermissionGroups.find((cat) => cat.category === category)?.items.length || 0;
+    }
+
+    modalCategoryCount(category) {
+        return this.modalPermissionGroups.find((cat) => cat.category === category)?.items.length || 0;
     }
 
     get modalUsers() {
@@ -207,6 +277,7 @@ export class RBACRolesDirectory extends Component {
 
     onPanelPermSearch(ev) {
         this.state.panelPermSearch = ev.target.value;
+        this.state.panelPermCategory = '';
     }
 
     onPanelUserSearch(ev) {
@@ -215,6 +286,11 @@ export class RBACRolesDirectory extends Component {
 
     setPanelPermFilter(filter) {
         this.state.panelPermFilter = filter;
+        this.state.panelPermCategory = '';
+    }
+
+    setPanelPermCategory(category) {
+        this.state.panelPermCategory = category;
     }
 
     setPanelUserFilter(filter) {
@@ -223,6 +299,11 @@ export class RBACRolesDirectory extends Component {
 
     onModalPermSearch(ev) {
         this.state.modalPermSearch = ev.target.value;
+        this.state.modalPermCategory = '';
+    }
+
+    setModalPermCategory(category) {
+        this.state.modalPermCategory = category;
     }
 
     onModalUserSearch(ev) {
@@ -238,10 +319,13 @@ export class RBACRolesDirectory extends Component {
         this.state.panelPermSearch   = '';
         this.state.panelUserSearch   = '';
         this.state.panelPermFilter   = 'assigned';
+        this.state.panelPermCategory = '';
         this.state.panelUserFilter   = 'assigned';
         this.state.panelPermManagerOpen = false;
         this.state.panelUserManagerOpen = false;
         this.state.panelOpen         = true;
+        this.resetActivity();
+        this.loadRoleActivity(false);
     }
 
     closePanel() {
@@ -249,11 +333,62 @@ export class RBACRolesDirectory extends Component {
         this.state.activeRole = null;
         this.state.panelPermManagerOpen = false;
         this.state.panelUserManagerOpen = false;
+        this.resetActivity();
+    }
+
+    resetActivity() {
+        this.state.activityRecords = [];
+        this.state.activityLoaded = 0;
+        this.state.activityTotal = 0;
+    }
+
+    async loadRoleActivity(append = false) {
+        const role = this.state.activeRole;
+        if (!role || this.state.activityLoading) return;
+        this.state.activityLoading = true;
+        try {
+            const limit = 15;
+            const offset = append ? this.state.activityLoaded : 0;
+            const result = await this.orm.call("rbac.model", "get_rbac_role_recent_activity", [], {
+                role_id: role.id,
+                limit,
+                offset,
+            });
+            if (result?.error) {
+                this.notification.add(result.message || _t("Unable to load role changes."), {type: "danger"});
+                return;
+            }
+            const records = result.records || [];
+            this.state.activityTotal = result.total_count || 0;
+            if (append) {
+                this.state.activityRecords.push(...records);
+                this.state.activityLoaded += records.length;
+            } else {
+                this.state.activityRecords = records;
+                this.state.activityLoaded = records.length;
+            }
+        } finally {
+            this.state.activityLoading = false;
+        }
+    }
+
+    showMoreActivity() {
+        return this.loadRoleActivity(true);
+    }
+
+    showLessActivity() {
+        this.resetActivity();
+        return this.loadRoleActivity(false);
+    }
+
+    activityIconClass(item) {
+        return `fa ${item.icon || "fa-circle-o"}`;
     }
 
     openPanelPermManager() {
         this.state.panelPermSearch = '';
         this.state.panelPermFilter = 'assigned';
+        this.state.panelPermCategory = this.panelPermissionGroups[0]?.category || '';
         this.state.panelPermManagerOpen = true;
     }
 
@@ -368,6 +503,7 @@ export class RBACRolesDirectory extends Component {
         this.state.modalSelectedGroupIds = [];
         this.state.modalSelectedUserIds  = [];
         this.state.modalPermSearch       = '';
+        this.state.modalPermCategory     = this.modalPermissionGroups[0]?.category || '';
         this.state.modalUserSearch       = '';
         this.state.modalOpen             = true;
     }

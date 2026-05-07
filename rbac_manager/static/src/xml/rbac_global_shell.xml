@@ -186,6 +186,32 @@
             </div>
 
             <div class="rsh_topbar_right">
+                <span t-if="this.isDebugMode &amp;&amp; this.dbName" class="rsh_db_badge" t-att-title="'Database: ' + this.dbName">
+                    <i class="fa fa-database"/>
+                    <span t-esc="this.dbName"/>
+                </span>
+                <div t-if="this.allowedCompanies.length" class="rsh_company_selector" t-on-click.stop="">
+                    <button type="button"
+                            t-att-class="'rsh_company_button' + (this.state.companyOpen ? ' open' : '')"
+                            t-att-disabled="!this.hasMultipleCompanies"
+                            t-att-title="this.activeCompanyName"
+                            t-on-click="() => this.toggleCompanySelector()">
+                        <i class="fa fa-building-o"/>
+                        <span t-esc="this.activeCompanyName"/>
+                        <i t-if="this.hasMultipleCompanies" class="fa fa-angle-down rsh_company_caret"/>
+                    </button>
+                    <div t-if="this.state.companyOpen &amp;&amp; this.hasMultipleCompanies" class="rsh_company_dropdown">
+                        <button t-foreach="this.allowedCompanies"
+                                t-as="company"
+                                t-key="company.id"
+                                type="button"
+                                t-att-class="'rsh_company_option' + (this.isActiveCompany(company) ? ' active' : '')"
+                                t-on-click="() => this.switchCompany(company)">
+                            <span class="rsh_company_option_name" t-esc="company.name"/>
+                            <i t-if="this.isActiveCompany(company)" class="fa fa-check"/>
+                        </button>
+                    </div>
+                </div>
                 <div class="rsh_topbar_user_menu">
                     <UserMenu/>
                 </div>

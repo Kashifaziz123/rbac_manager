@@ -2,6 +2,7 @@
 
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { user, userBus } from "@web/core/user";
 
 const FLAG_CLASSES = {
     force_readonly: "rbac-global-force-readonly",
@@ -11,6 +12,10 @@ const FLAG_CLASSES = {
     hide_add_property: "rbac-global-hide-add-property",
     disable_dev_mode: "rbac-global-disable-dev-mode",
     hide_technical_settings: "rbac-global-hide-technical-settings",
+    hide_chatter: "rbac-global-hide-chatter",
+    hide_send_message: "rbac-global-hide-send-message",
+    hide_log_note: "rbac-global-hide-log-note",
+    hide_activity: "rbac-global-hide-activity",
 };
 
 const TEXT_RESTRICTIONS = [
@@ -38,9 +43,27 @@ const TEXT_RESTRICTIONS = [
     },
 ];
 
+const CHATTER_SELECTORS = {
+    hide_chatter: [".o-mail-Chatter", ".oe_chatter"],
+    hide_send_message: [".o-mail-Chatter-sendMessage"],
+    hide_log_note: [".o-mail-Chatter-logNote"],
+    hide_activity: [".o-mail-Chatter-activity"],
+};
+
+function companyKey() {
+    return (user.activeCompanies || []).map((company) => company.id).join("-") || String(user.activeCompany?.id || "");
+}
+
 function applyBodyClasses(flags) {
     for (const [flag, className] of Object.entries(FLAG_CLASSES)) {
         document.body.classList.toggle(className, Boolean(flags[flag]));
+    }
+}
+
+function clearRestrictedNodes() {
+    for (const node of document.querySelectorAll(".rbac_global_restricted_ui")) {
+        node.classList.remove("rbac_global_restricted_ui");
+        node.removeAttribute("aria-hidden");
     }
 }
 
@@ -62,6 +85,15 @@ function hideRestrictedNodes(flags) {
             }
         }
     }
+    for (const [flag, selectors] of Object.entries(CHATTER_SELECTORS)) {
+        if (!flags[flag]) {
+            continue;
+        }
+        for (const node of document.querySelectorAll(selectors.join(","))) {
+            node.classList.add("rbac_global_restricted_ui");
+            node.setAttribute("aria-hidden", "true");
+        }
+    }
 }
 
 function watchRestrictedNodes(flags) {
@@ -77,17 +109,38 @@ function watchRestrictedNodes(flags) {
 export const rbacGlobalRestrictionsService = {
     async start() {
         let flags = {};
-        try {
-            flags = await rpc("/rbac/access/global_flags", {});
-        } catch {
-            return {};
-        }
-        applyBodyClasses(flags);
-        const observer = watchRestrictedNodes(flags);
-        return {
-            flags,
-            stop() {
+        let observer;
+        const refreshFlags = async () => {
+            try {
+                flags = await rpc("/rbac/access/global_flags", { company_key: companyKey() });
+            } catch {
+                flags = {};
+            }
+            clearRestrictedNodes();
+            applyBodyClasses(flags);
+            hideRestrictedNodes(flags);
+        };
+        await refreshFlags();
+        observer = watchRestrictedNodes(flags);
+        const onCompanyChange = async () => {
+            if (observer) {
                 observer.disconnect();
+            }
+            await refreshFlags();
+            observer = watchRestrictedNodes(flags);
+        };
+        userBus.addEventListener("ACTIVE_COMPANIES_CHANGED", onCompanyChange);
+        return {
+            get flags() {
+                return flags;
+            },
+            stop() {
+                userBus.removeEventListener("ACTIVE_COMPANIES_CHANGED", onCompanyChange);
+                if (observer) {
+                    observer.disconnect();
+                }
+                clearRestrictedNodes();
+                applyBodyClasses({});
             },
         };
     },

@@ -5,6 +5,7 @@ import {browser} from "@web/core/browser/browser";
 import {router} from "@web/core/browser/router";
 import {user} from "@web/core/user";
 import {useService} from "@web/core/utils/hooks";
+import {session} from "@web/session";
 import {WebClient} from "@web/webclient/webclient";
 import {UserMenu} from "@web/webclient/user_menu/user_menu";
 
@@ -23,6 +24,22 @@ function visibleRootApp(app) {
     const xmlid = String(app.xmlid || "").toLowerCase();
     return xmlid !== "menu_root" && xmlid !== "base.menu_root";
 }
+
+function activeCompanyCacheKey() {
+    return (user.activeCompanies || []).map((company) => company.id).join("-") || String(user.activeCompany?.id || "");
+}
+
+function clearStoredMenusForCompanyChange() {
+    const key = activeCompanyCacheKey();
+    const storedKey = browser.localStorage.getItem("rbac_webclient_menus_company_key");
+    if (storedKey !== key) {
+        browser.localStorage.removeItem("webclient_menus");
+        browser.localStorage.removeItem("webclient_menus_version");
+        browser.localStorage.setItem("rbac_webclient_menus_company_key", key);
+    }
+}
+
+clearStoredMenusForCompanyChange();
 
 export class RBACGlobalSidebar extends Component {
     static template = "rbac.GlobalSidebar";
@@ -262,8 +279,8 @@ export class RBACGlobalSidebar extends Component {
             {label: "System", keys: ["settings"], items: []},
         ];
         const byLabel = Object.fromEntries(groups.map((group) => [group.label, group]));
-        const hiddenNames = new Set(["user permissions", "super admin view"]);
-        const hiddenXmlids = ["menu_user_permissions", "menu_super_admin"];
+        const hiddenNames = new Set(["user permissions", "super admin view", "audit"]);
+        const hiddenXmlids = ["menu_user_permissions", "menu_super_admin", "menu_audit_parent", "menu_rbac_audit", "menu_rbac_line_audit"];
 
         for (const item of items) {
             const name = String(item.name || "").trim().toLowerCase();
@@ -278,8 +295,6 @@ export class RBACGlobalSidebar extends Component {
             } else if (name === "user roles" || name === "roles" || xmlid.includes("menu_user_roles")) {
                 byLabel.People.items.push(item);
             } else if (name === "settings" || xmlid.includes("rbac_settings") || xmlid.includes("menu_rbac_settings")) {
-                byLabel.System.items.push(item);
-            } else if (name === "audit" || xmlid.includes("menu_audit_parent")) {
                 byLabel.System.items.push(item);
             } else {
                 byLabel.Policy.items.push(item);
@@ -393,12 +408,13 @@ export class RBACGlobalTopbar extends Component {
         this.state = useState({
             query: "",
             open: false,
+            companyOpen: false,
             activeIndex: 0,
             activeMenuId: null,
         });
         this._onMenuChange = () => this.syncCurrentMenu();
         this._onRouteChange = () => this.syncCurrentMenu();
-        this._onDocumentClick = () => this.closeSearch();
+        this._onDocumentClick = () => this.closeFloatingMenus();
         onMounted(() => {
             this.env.bus.addEventListener("MENUS:APP-CHANGED", this._onMenuChange);
             this.env.bus.addEventListener("ROUTE_CHANGE", this._onRouteChange);
@@ -440,6 +456,33 @@ export class RBACGlobalTopbar extends Component {
 
     get userName() {
         return user.name || "";
+    }
+
+    get dbName() {
+        return session.db || "";
+    }
+
+    get isDebugMode() {
+        return Boolean(this.env.debug);
+    }
+
+    get allowedCompanies() {
+        return (user.allowedCompanies || []).slice().sort((a, b) => {
+            const sequenceDiff = (a.sequence || 0) - (b.sequence || 0);
+            return sequenceDiff || String(a.name || "").localeCompare(String(b.name || ""));
+        });
+    }
+
+    get activeCompany() {
+        return user.activeCompany || user.activeCompanies?.[0] || this.allowedCompanies[0] || null;
+    }
+
+    get activeCompanyName() {
+        return this.activeCompany?.name || "";
+    }
+
+    get hasMultipleCompanies() {
+        return this.allowedCompanies.length > 1;
     }
 
     get searchResults() {
@@ -525,6 +568,38 @@ export class RBACGlobalTopbar extends Component {
 
     closeSearch() {
         this.state.open = false;
+    }
+
+    closeFloatingMenus() {
+        this.state.open = false;
+        this.state.companyOpen = false;
+    }
+
+    toggleCompanySelector() {
+        if (!this.hasMultipleCompanies) {
+            return;
+        }
+        this.state.companyOpen = !this.state.companyOpen;
+        this.state.open = false;
+    }
+
+    isActiveCompany(company) {
+        return this.activeCompany?.id === company?.id;
+    }
+
+    async switchCompany(company) {
+        if (!company || this.isActiveCompany(company)) {
+            this.state.companyOpen = false;
+            return;
+        }
+        this.state.companyOpen = false;
+        browser.localStorage.removeItem("webclient_menus");
+        browser.localStorage.removeItem("webclient_menus_version");
+        browser.localStorage.setItem("rbac_webclient_menus_company_key", String(company.id));
+        await user.activateCompanies([company.id], {
+            includeChildCompanies: false,
+            reload: true,
+        });
     }
 
     syncCurrentMenu() {

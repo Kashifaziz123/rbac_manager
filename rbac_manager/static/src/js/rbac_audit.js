@@ -157,17 +157,66 @@ export class RBACAudit extends Component {
     }
 
     eventTitle(log) {
-        const target = log.user_uid?.[0] || "";
-        return target ? `${log.method || log.action || "Audit event"} -> ${target}` : (log.method || log.action || "Audit event");
+        const action = this.friendlyAction(log);
+        const subject = this.subject(log);
+        return subject ? `${action}: ${subject}` : action;
     }
 
     eventDescription(log) {
-        const lines = this.getLines(log);
-        if (!lines.length) {
-            return "No field-level changes recorded.";
+        const displayLines = this.getDisplayLines(log);
+        if (displayLines.length) {
+            return displayLines.slice(0, 2).map((line) => line.message).join(" ");
         }
+        return "RBAC access was changed.";
+    }
+
+    friendlyAction(log) {
+        const action = String(log.action || log.method || "").toLowerCase();
+        const labels = [
+            ["add role", "Role assigned"],
+            ["remove role", "Role removed"],
+            ["update role permissions", "Role permissions updated"],
+            ["add extra", "Direct permission granted"],
+            ["remove extra", "Direct permission removed"],
+            ["add exclude", "Permission blocked"],
+            ["remove exclude", "Permission unblocked"],
+            ["grant all", "All permissions granted"],
+            ["revoke all", "Permissions revoked"],
+            ["access rule created", "Access rule created"],
+            ["access rule updated", "Access rule updated"],
+            ["access rule status changed", "Access rule status changed"],
+            ["access rule deleted", "Access rule deleted"],
+            ["initialize", "Permissions initialized"],
+        ];
+        const found = labels.find(([key]) => action.startsWith(key));
+        return found ? found[1] : (log.action || log.method || "Audit event");
+    }
+
+    subject(log) {
+        const method = String(log.method || "");
+        if (method.includes("->")) {
+            return method.split("->").slice(1).join("->").trim();
+        }
+        return log.user_uid?.[0] || "";
+    }
+
+    getDisplayLines(log) {
+        try {
+            const data = typeof log.data_json === "string" ? JSON.parse(log.data_json) : log.data_json;
+            return data?.display_lines || [];
+        } catch {
+            return [];
+        }
+    }
+
+    changeSummary(log) {
+        const displayLines = this.getDisplayLines(log);
+        if (displayLines.length) {
+            return displayLines;
+        }
+        const lines = this.getLines(log);
         const names = lines.map((line) => this.fieldLabel(line.field_name)).filter(Boolean);
-        return `${names.join(", ")} changed.`;
+        return names.map((name) => ({message: `${name} changed.`}));
     }
 
     fieldLabel(fieldName) {
