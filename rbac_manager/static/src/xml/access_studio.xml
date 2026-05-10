@@ -399,38 +399,44 @@
                         <t t-if="this.state.wRestrictTab === 'menu'">
                             <p class="as_rtab_desc">Search and select menus to hide from the selected audience.</p>
                             <div class="as_form_group">
-                                <div class="as_tokenizer_wrap as_big_selector">
-                                    <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('menus')">
-                                        <t t-foreach="this.state.wHideMenus" t-as="item" t-key="item.id">
-                                            <span class="as_tag as_tag_danger">
-                                                <t t-esc="item.name"/>
-                                                <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('menus', item.id)">×</span>
-                                            </span>
-                                        </t>
-                                        <input type="text" class="as_tokenizer_input"
-                                               t-att-placeholder="this.state.wHideMenus.length ? '' : 'Search menus… e.g. Accounting, HR, Fleet'"
-                                               t-att-value="this.state.wSearches.menus"
-                                               t-on-input="(ev) => this.onTokenizerInput(ev, 'menus')"
-                                               t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'menus')"
-                                               t-on-focus="() => this.openDropdown('menus')"
-                                               t-on-blur="() => this.scheduleClose('menus')"/>
-                                    </div>
-                                    <div t-if="this.state.wOpenField === 'menus'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                        <div class="as_selector_panel_head">
-                                            <div>
-                                                <div class="as_selector_panel_title">Menu catalog</div>
-                                                <div class="as_selector_panel_sub">
-                                                    <t t-esc="this.state.wHideMenus.length"/> selected · <t t-esc="this.getFiltered('menus').length"/> visible
-                                                </div>
-                                            </div>
-                                            <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                <i class="fa fa-times"/>
-                                            </button>
+                                <div class="as_model_add_bar">
+                                    <div class="as_model_pick_row">
+                                        <div class="as_tokenizer as_model_pick_box" t-on-click.stop="() => this.openDropdown('menus')">
+                                            <t t-foreach="this.state.wHideMenus" t-as="item" t-key="'selected-' + item.id">
+                                                <span class="as_tag as_tag_danger as_model_pick_tag">
+                                                    <t t-esc="item.name"/>
+                                                    <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('menus', item.id)">×</span>
+                                                </span>
+                                            </t>
+                                            <t t-foreach="this.state.wMenuCandidates" t-as="item" t-key="item.id">
+                                                <span class="as_tag as_tag_danger as_model_pick_tag">
+                                                    <t t-esc="item.name"/>
+                                                    <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removePendingMenu(item.id)">×</span>
+                                                </span>
+                                            </t>
+                                            <input type="text"
+                                                   class="as_model_pick_input"
+                                                   t-att-placeholder="this.state.wHideMenus.length ? 'Search more menus… e.g. Accounting, HR, Fleet' : 'Search menus… e.g. Accounting, HR, Fleet'"
+                                                   t-att-value="this.state.wSearches.menus"
+                                                   t-on-input="(ev) => this.onTokenizerInput(ev, 'menus')"
+                                                   t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'menus')"
+                                                   t-on-focus="() => this.openDropdown('menus')"
+                                                   t-on-blur="() => this.scheduleClose('menus')"/>
                                         </div>
+                                        <button type="button"
+                                                t-att-class="'as_model_add_btn' + (this.state.wMenuCandidates.length ? '' : ' disabled')"
+                                                t-on-mousedown.prevent.stop="addSelectedMenus">Add Menu</button>
+                                    </div>
+                                </div>
+                                <div class="as_model_catalog_wrap">
+                                    <div t-if="this.state.wOpenField === 'menus'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
                                         <t t-foreach="this.getFiltered('menus')" t-as="opt" t-key="opt.id">
                                             <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('menus', opt)">
                                                 <i class="fa fa-bars as_dropdown_item_icon"/>
-                                                <t t-esc="opt.name"/>
+                                                <span class="as_dropdown_item_text">
+                                                    <span class="as_dropdown_item_title" t-esc="opt.name"/>
+                                                    <span class="as_dropdown_item_sub" t-esc="opt.model"/>
+                                                </span>
                                             </div>
                                         </t>
                                         <div t-if="!this.getFiltered('menus').length" class="as_dropdown_empty">No results found.</div>

@@ -51,6 +51,8 @@ export class RBACAccessStudio extends Component {
             wExclude: [],
             // Step 3 selections
             wHideMenus: [],
+            wMenuCandidates: [],
+            wMenuPickerOpen: false,
             wModelItems: [],
             wModelCandidates: [],
             wDomainCandidates: [],
@@ -172,7 +174,7 @@ export class RBACAccessStudio extends Component {
         Object.assign(this.state, {
             wName: '', wDesc: '', wType: 'Restriction', wPriority: 'Normal (50)', wActivate: true,
             wRoles: [], wDepts: [], wUsers: [], wCompanies: [], wExclude: [],
-            wHideMenus: [], wModelItems: [], wModelCandidates: [], wFieldRules: [],
+            wHideMenus: [], wMenuCandidates: [], wMenuPickerOpen: false, wModelItems: [], wModelCandidates: [], wFieldRules: [],
             wDomainCandidates: [],
             wFieldModels: [], wFieldModelCandidates: [],
             wFieldModelId: '', wFieldModel: null, wFieldItems: [], wAllFieldChoices: [],
@@ -222,6 +224,8 @@ export class RBACAccessStudio extends Component {
             wCompanies:(ad.companies || []).map(item => this._normalizeOption(item)),
             wExclude:  (ad.exclude   || []).map(item => this._normalizeOption(item)),
             wHideMenus: (cfg.hide_menus || []).map(item => this._normalizeOption(item)),
+            wMenuCandidates: [],
+            wMenuPickerOpen: false,
             wModelItems: (cfg.models || []).map(item => this._normalizeModelOption(item, true)),
             wModelCandidates: [],
             wDomainCandidates: [],
@@ -868,6 +872,11 @@ export class RBACAccessStudio extends Component {
                 selIds.add(item.id);
             }
         }
+        if (field === 'menus') {
+            for (const item of this.state.wMenuCandidates || []) {
+                selIds.add(item.id);
+            }
+        }
         if (field === 'models') {
             for (const item of this.state.wModelCandidates || []) {
                 selIds.add(item.id);
@@ -936,6 +945,8 @@ export class RBACAccessStudio extends Component {
             this.state.wButtonPickerOpen = true;
         } else if (field === 'filter_models') {
             this.state.wFilterPickerOpen = true;
+        } else if (field === 'menus') {
+            this.state.wMenuPickerOpen = true;
         }
     }
 
@@ -944,6 +955,7 @@ export class RBACAccessStudio extends Component {
         this.state.wButtonPickerOpen = !!this.state.wButtonModelCandidates.length;
         this.state.wDomainPickerOpen = !!this.state.wDomainCandidates.length;
         this.state.wFilterPickerOpen = !!this.state.wFilterModelCandidates.length;
+        this.state.wMenuPickerOpen = !!this.state.wMenuCandidates.length;
     }
 
     blurActiveInput() {
@@ -974,6 +986,18 @@ export class RBACAccessStudio extends Component {
             }
             this.state.wSearches[field] = '';
             this.state.wOpenField = 'field_fields';
+            return;
+        }
+        if (field === 'menus') {
+            const candidate = this._normalizeOption(opt);
+            const exists = this.state.wMenuCandidates.some(item => item.id === candidate.id) ||
+                this.state.wHideMenus.some(item => item.id === candidate.id);
+            if (!exists) {
+                this.state.wMenuCandidates.push(candidate);
+            }
+            this.state.wSearches[field] = '';
+            this.state.wMenuPickerOpen = true;
+            this.state.wOpenField = 'menus';
             return;
         }
         if (field === 'domain_models') {
@@ -1069,6 +1093,14 @@ export class RBACAccessStudio extends Component {
             return;
         }
         if (ev.key !== 'Backspace' || (this.state.wSearches[field] || '').length) {
+            return;
+        }
+        if (field === 'menus' && this.state.wMenuCandidates.length) {
+            ev.preventDefault();
+            this.state.wMenuCandidates.pop();
+            if (!this.state.wMenuCandidates.length) {
+                this.state.wMenuPickerOpen = false;
+            }
             return;
         }
         const list = this._selectedList(field);
@@ -1357,6 +1389,44 @@ export class RBACAccessStudio extends Component {
         this.state.wSearches.button_nodes = '';
         this.state.wOpenField = '';
         this.state.wButtonPickerOpen = true;
+    }
+
+    addSelectedMenus() {
+        const candidates = this.state.wMenuCandidates || [];
+        if (!candidates.length) {
+            this.openDropdown('menus');
+            return;
+        }
+        const next = [];
+        for (const candidate of candidates) {
+            if (!this.state.wHideMenus.find(item => item.id === candidate.id)) {
+                next.unshift(candidate);
+            }
+        }
+        if (next.length) {
+            this.state.wHideMenus.unshift(...next);
+        }
+        this.state.wMenuCandidates = [];
+        this.state.wSearches.menus = '';
+        this.state.wMenuPickerOpen = false;
+        this.state.wOpenField = '';
+        this.blurActiveInput();
+    }
+
+    removePendingMenu(menuId) {
+        const idx = this.state.wMenuCandidates.findIndex(item => item.id === menuId);
+        if (idx >= 0) {
+            this.state.wMenuCandidates.splice(idx, 1);
+        }
+        if (!this.state.wMenuCandidates.length) {
+            this.state.wMenuPickerOpen = false;
+        }
+    }
+
+    clearMenuCandidates() {
+        this.state.wMenuCandidates = [];
+        this.state.wSearches.menus = '';
+        this.state.wMenuPickerOpen = false;
     }
 
     onFilterModelInput(ev) {
@@ -1906,6 +1976,20 @@ export class RBACAccessStudio extends Component {
     }
 
     removeWItem(field, id) {
+        if (field === 'menus') {
+            const selectedIdx = this.state.wHideMenus.findIndex(item => item.id === id);
+            if (selectedIdx >= 0) {
+                this.state.wHideMenus.splice(selectedIdx, 1);
+            }
+            const pendingIdx = this.state.wMenuCandidates.findIndex(item => item.id === id);
+            if (pendingIdx >= 0) {
+                this.state.wMenuCandidates.splice(pendingIdx, 1);
+            }
+            if (!this.state.wMenuCandidates.length) {
+                this.state.wMenuPickerOpen = false;
+            }
+            return;
+        }
         const list = this._selectedList(field);
         const idx = list.findIndex(i => i.id === id);
         if (idx >= 0) list.splice(idx, 1);
