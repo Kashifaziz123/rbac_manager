@@ -101,7 +101,7 @@
 
     <!-- ── Wizard Modal ──────────────────────────────────────────────────── -->
     <t t-if="this.state.wizardOpen">
-        <div class="as_modal_overlay" t-on-click.self="closeWizard">
+        <div class="as_modal_overlay">
             <div class="as_modal">
 
                 <!-- Modal header -->
@@ -507,7 +507,7 @@
                                         </div>
                                         <button type="button"
                                                 t-att-class="'as_model_add_btn' + (this.modelAccessPendingCount ? '' : ' disabled')"
-                                                t-on-click.stop="addSelectedModelAccess">Add Model</button>
+                                                t-on-mousedown.prevent.stop="addSelectedModelAccess">Add Model</button>
                                     </div>
                                 </div>
                                 <div class="as_model_catalog_wrap">
@@ -613,7 +613,7 @@
                                                                 </div>
                                                                 <button type="button"
                                                                         t-att-class="'as_model_add_btn' + (this.state.wFieldItems.length ? '' : ' disabled')"
-                                                                        t-on-click.stop="addFieldRule">Add Field</button>
+                                                                        t-on-mousedown.prevent.stop="addFieldRule">Add Field</button>
                                                                 <div t-if="this.state.wOpenField === 'field_fields' &amp;&amp; this.isFieldModelCardOpen(model.id)" class="as_dropdown as_selector_panel as_field_dropdown" t-on-mousedown.stop="">
                                                                     <t t-foreach="this.getFiltered('field_fields')" t-as="opt" t-key="opt.id">
                                                                         <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('field_fields', opt)">
@@ -749,7 +749,7 @@
                                             </div>
                                             <button type="button"
                                                     t-att-class="'as_model_add_btn' + (this.state.wDomainCandidates.length ? '' : ' disabled')"
-                                                    t-on-click.stop="() => this.addDomainRule(this.state.wDomainCandidates)">Add Domain Rule</button>
+                                                    t-on-mousedown.prevent.stop="() => this.addDomainRule(this.state.wDomainCandidates)">Add Domain Rule</button>
                                         </div>
                                         <div class="as_model_catalog_wrap">
                                             <div t-if="this.state.wOpenField === 'domain_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
@@ -888,7 +888,7 @@
                                             </div>
                                             <button type="button"
                                                     t-att-class="'as_model_add_btn' + (this.state.wButtonModelCandidates.length ? '' : ' disabled')"
-                                                    t-on-click.stop="addSelectedButtonModels">Add Model Section</button>
+                                                    t-on-mousedown.prevent.stop="addSelectedButtonModels">Add Model Section</button>
                                         </div>
                                         <div class="as_model_catalog_wrap">
                                             <div t-if="this.state.wOpenField === 'button_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
@@ -908,7 +908,7 @@
                                     <t t-else="">
                                         <button type="button"
                                                 class="as_model_add_btn"
-                                                t-on-click.stop="() => this.openDropdown('button_models')">+ Add Model Section</button>
+                                                t-on-mousedown.prevent.stop="() => this.openDropdown('button_models')">+ Add Model Section</button>
                                     </t>
                                 </div>
                             </div>
@@ -1024,7 +1024,7 @@
                                             </div>
                                             <button type="button"
                                                     t-att-class="'as_model_add_btn' + (this.state.wFilterModelCandidates.length ? '' : ' disabled')"
-                                                    t-on-click.stop="addSelectedFilterModels">Add Model Section</button>
+                                                    t-on-mousedown.prevent.stop="addSelectedFilterModels">Add Model Section</button>
                                         </div>
                                         <div class="as_model_catalog_wrap">
                                             <div t-if="this.state.wOpenField === 'filter_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
@@ -1044,7 +1044,7 @@
                                     <t t-else="">
                                         <button type="button"
                                                 class="as_model_add_btn"
-                                                t-on-click.stop="() => this.openDropdown('filter_models')">+ Add Model Section</button>
+                                                t-on-mousedown.prevent.stop="() => this.openDropdown('filter_models')">+ Add Model Section</button>
                                     </t>
                                 </div>
                             </div>
