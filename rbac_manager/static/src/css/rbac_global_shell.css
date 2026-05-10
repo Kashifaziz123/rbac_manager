@@ -181,10 +181,157 @@ body.rbac-panel-open .rsh_global_nav {
     padding-left: 48px;
 }
 
+.rsh_child_shell {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow: hidden;
+    background: #f3f4f8;
+}
+
+.rsh_child_shell .rsh_global_nav {
+    position: relative;
+    inset: auto;
+    width: 220px;
+    height: 100%;
+    flex: 0 0 220px;
+    z-index: 1;
+}
+
+.rsh_child_shell .rsh_global_nav.rsh_child_nav_closed {
+    width: 48px;
+    flex-basis: 48px;
+    align-items: flex-start;
+    justify-content: center;
+    background: #f3f4f8;
+    overflow: visible;
+}
+
+.rsh_child_shell .rsh_global_sidebar {
+    width: 100%;
+    height: 100%;
+    flex: 1 1 auto;
+}
+
+.rsh_child_shell .rsh_global_sidebar.rsh_sidebar_closed {
+    width: 0;
+    border-right: 0;
+    display: none;
+}
+
+.rsh_sidebar_reopen {
+    position: absolute;
+    top: 42px;
+    left: 8px;
+    z-index: 4;
+    width: 32px;
+    min-width: 0;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: #fff;
+    color: #5a6478;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15, 20, 40, .08), 0 0 0 1px #e2e5ea;
+}
+
+.rsh_sidebar_reopen:hover {
+    background: #eef2ff;
+    color: #3a5bd9;
+}
+
+.rsh_sidebar_reopen i {
+    font-size: 16px;
+}
+
+.rsh_child_content {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.rsh_child_content > .o_action_manager {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.rsh_child_content > .o_action_manager > .o_action {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    overflow: hidden;
+}
+
+.rsh_child_content > .o_action_manager > .o_action > .rd_wrap,
+.rsh_child_content > .o_action_manager > .o_action > .rq_wrap,
+.rsh_child_content > .o_action_manager > .o_action > .db_wrap,
+.rsh_child_content > .o_action_manager > .o_action > .ud_wrap,
+.rsh_child_content > .o_action_manager > .o_action > .ra_wrap,
+.rsh_child_content > .o_action_manager > .o_action > .rs_wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.rsh_child_content > .o_action_manager .o_content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    position: relative;
+}
+
 .rsh_sidebar_item {
     width: 100%;
     background: transparent;
     text-align: left;
+}
+
+.o_main_navbar .o_menu_sections {
+    display: none !important;
+}
+
+.rsh_cp_root_breadcrumb {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: #5a6478;
+    font: inherit;
+    font-weight: 700;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    line-height: inherit;
+    flex: 0 0 auto;
+}
+
+.rsh_cp_root_breadcrumb:hover {
+    color: #3a5bd9;
+}
+
+.rsh_cp_breadcrumb_sep {
+    color: #9ba3b2;
+    font-size: 10px;
+    line-height: 1;
+    margin: 0 2px;
+    flex: 0 0 auto;
+    align-self: center;
 }
 
 .rsh_sidebar_child {

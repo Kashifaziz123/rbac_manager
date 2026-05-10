@@ -48,6 +48,29 @@
     z-index: 20;
 }
 
+.ud_create_btn {
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3a5bd9 0%, #2f7eea 100%);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .2px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(58, 91, 217, .22);
+}
+
+.ud_create_btn:hover {
+    background: linear-gradient(135deg, #294cc8 0%, #256fd7 100%);
+    box-shadow: 0 10px 22px rgba(58, 91, 217, .28);
+}
+
 .ud_bulk_btn {
     display: inline-flex;
     align-items: center;
@@ -1649,6 +1672,324 @@
         justify-self: stretch;
     }
     .ud_perm_choice_actions button {
+        flex: 1 1 0;
+    }
+}
+
+.ud_panel.ud_create_panel {
+    width: min(720px, 100vw);
+}
+
+.ud_create_panel .ud_panel_body {
+    background: #f8fafc;
+}
+
+.ud_create_summary,
+.ud_create_section {
+    border: 1px solid var(--ud-border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 20, 40, .04);
+}
+
+.ud_create_summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.ud_create_summary .ud_profile_avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 17px;
+    overflow: hidden;
+}
+
+.ud_create_summary .ud_profile_avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ud_create_avatar_block {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.ud_avatar_upload {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ud-accent);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+.ud_avatar_upload input {
+    display: none;
+}
+
+.ud_link_btn {
+    border: 0;
+    background: transparent;
+    color: var(--ud-accent);
+    padding: 4px 0 0;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ud_create_summary h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.ud_create_summary p {
+    margin: 3px 0 0;
+    color: var(--ud-text3);
+    font-size: 12px;
+}
+
+.ud_create_section {
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.ud_create_section .ud_section_label {
+    margin: 0 0 10px;
+    padding: 0;
+    color: var(--ud-text2);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+}
+
+.ud_section_head.compact {
+    margin: 0 0 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.ud_section_head.compact .ud_section_label {
+    margin: 0;
+}
+
+.ud_section_head.compact span {
+    color: var(--ud-text3);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ud_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.ud_form_group.invalid label,
+.ud_company_grid.invalid + .ud_form_group label {
+    color: var(--ud-red);
+}
+
+.ud_form_group.invalid .ud_input,
+.ud_company_grid.invalid {
+    border-color: var(--ud-red);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .10);
+}
+
+.ud_form_group label span {
+    color: var(--ud-red);
+}
+
+.ud_company_grid,
+.ud_role_grid.compact {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.ud_role_grid.compact button,
+.ud_company_grid button,
+.ud_toggle_card {
+    min-height: 46px;
+    border: 1px solid var(--ud-border);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--ud-text2);
+    display: grid;
+    align-items: center;
+    gap: 9px;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ud_role_grid.compact button,
+.ud_company_grid button {
+    grid-template-columns: 18px minmax(0, 1fr);
+}
+
+.ud_role_grid.compact button.checked,
+.ud_company_grid button.checked,
+.ud_toggle_card.checked {
+    border-color: var(--ud-accent);
+    background: var(--ud-accent-soft);
+    color: var(--ud-accent);
+}
+
+.ud_role_grid.compact input,
+.ud_company_grid input {
+    pointer-events: none;
+    accent-color: var(--ud-accent);
+}
+
+.ud_toggle_card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+    font: inherit;
+}
+
+.ud_toggle_card strong,
+.ud_toggle_card small {
+    display: block;
+}
+
+.ud_toggle_card small {
+    margin-top: 3px;
+    color: var(--ud-text3);
+    font-size: 11px;
+}
+
+.ud_toggle_card i {
+    font-size: 24px;
+}
+
+.ud_perm_tools.compact {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ud_create_permission_grid {
+    display: grid;
+    gap: 8px;
+    max-height: 320px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.ud_create_permission {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--ud-border);
+    border-radius: 9px;
+    background: #fff;
+    padding: 10px;
+}
+
+.ud_create_permission.extra {
+    border-color: rgba(14, 166, 91, .35);
+    background: #f0fdf4;
+}
+
+.ud_create_permission.excluded {
+    border-color: rgba(220, 38, 38, .35);
+    background: #fff5f5;
+}
+
+.ud_create_permission strong,
+.ud_create_permission small {
+    display: block;
+}
+
+.ud_create_permission strong {
+    font-size: 13px;
+}
+
+.ud_create_permission small {
+    margin-top: 2px;
+    color: var(--ud-text3);
+    font-size: 11px;
+}
+
+.ud_perm_choice_actions.compact {
+    display: inline-flex;
+    gap: 6px;
+}
+
+.ud_perm_choice_actions.compact button {
+    min-height: 0;
+    border: 1px solid var(--ud-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ud-text2);
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ud_perm_choice_actions.compact button.active {
+    border-color: var(--ud-accent);
+    background: var(--ud-accent-soft);
+    color: var(--ud-accent);
+}
+
+.ud_perm_choice_actions.compact button.active.extra {
+    border-color: var(--ud-green);
+    background: var(--ud-green-soft);
+    color: var(--ud-green);
+}
+
+.ud_perm_choice_actions.compact button.active.excluded {
+    border-color: var(--ud-red);
+    background: var(--ud-red-soft);
+    color: var(--ud-red);
+}
+
+.ud_security_note {
+    margin: 10px 0 14px;
+    border: 1px solid #dbe4ff;
+    border-radius: 9px;
+    background: #eef2ff;
+    color: #31437d;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.ud_security_note i {
+    margin-right: 6px;
+}
+
+@media (max-width: 760px) {
+    .ud_form_grid,
+    .ud_company_grid,
+    .ud_role_grid.compact,
+    .ud_perm_tools.compact,
+    .ud_create_permission {
+        grid-template-columns: 1fr;
+    }
+
+    .ud_perm_choice_actions.compact {
+        justify-content: stretch;
+    }
+
+    .ud_perm_choice_actions.compact button {
         flex: 1 1 0;
     }
 }

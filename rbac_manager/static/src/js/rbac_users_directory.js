@@ -45,9 +45,19 @@ export class RBACUsersDirectory extends Component {
             departments: [],
             roles: [],
             groups: [],
+            companies: [],
+            languages: [],
+            timezones: [],
+            calendars: [],
+            defaults: {},
             search: "",
             userRoleFilter: "",
             panelOpen: false,
+            createOpen: false,
+            createUser: {},
+            createErrors: {},
+            createPermissionSearch: "",
+            createPermissionCategory: "",
             actionOpen: false,
             listActionOpen: false,
             activeUser: null,
@@ -110,6 +120,11 @@ export class RBACUsersDirectory extends Component {
             this.state.departments = data.departments || [];
             this.state.roles = data.roles || [];
             this.state.groups = data.groups || [];
+            this.state.companies = data.companies || [];
+            this.state.languages = data.languages || [];
+            this.state.timezones = data.timezones || [];
+            this.state.calendars = data.calendars || [];
+            this.state.defaults = data.defaults || {};
             if (this.state.activeUser) {
                 const fresh = this.state.users.find((user) => user.id === this.state.activeUser.id);
                 this.state.activeUser = fresh || null;
@@ -238,6 +253,169 @@ export class RBACUsersDirectory extends Component {
 
     onUserRoleFilter(ev) {
         this.state.userRoleFilter = ev.target.value || "";
+    }
+
+    defaultCreateUser() {
+        const defaults = this.state.defaults || {};
+        return {
+            name: "",
+            email: "",
+            login: "",
+            phone: "",
+            password: "",
+            send_reset: true,
+            role_ids: [],
+            company_id: defaults.company_id || this.state.companies[0]?.id || 0,
+            company_ids: [...(defaults.company_ids || (this.state.companies[0] ? [this.state.companies[0].id] : []))],
+            lang: defaults.lang || this.state.languages[0]?.code || "en_US",
+            tz: defaults.tz || "UTC",
+            notification_type: defaults.notification_type || "email",
+            resource_calendar_id: 0,
+            signature: "",
+            image_1920: "",
+            extra_group_ids: [],
+            excluded_group_ids: [],
+        };
+    }
+
+    openCreateUser() {
+        this.state.createUser = this.defaultCreateUser();
+        this.state.createErrors = {};
+        this.state.createPermissionSearch = "";
+        this.state.createPermissionCategory = "";
+        this.state.createOpen = true;
+        this.state.actionOpen = false;
+        this.state.listActionOpen = false;
+    }
+
+    closeCreateUser() {
+        if (this.state.saving) return;
+        this.state.createOpen = false;
+        this.state.createErrors = {};
+    }
+
+    updateCreateField(field, value) {
+        this.state.createUser = {
+            ...this.state.createUser,
+            [field]: value,
+        };
+        if (field === "email" && !this.state.createUser.login) {
+            this.state.createUser.login = value;
+        }
+        if (this.state.createErrors[field]) {
+            this.state.createErrors = {...this.state.createErrors, [field]: false};
+        }
+    }
+
+    onCreateImageChange(ev) {
+        const file = ev.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = String(reader.result || "");
+            this.updateCreateField("image_1920", result.includes(",") ? result.split(",").pop() : result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    removeCreateImage() {
+        this.updateCreateField("image_1920", "");
+    }
+
+    toggleCreateRole(roleId) {
+        const selected = this.state.createUser.role_ids || [];
+        this.updateCreateField(
+            "role_ids",
+            selected.includes(roleId) ? selected.filter((id) => id !== roleId) : [...selected, roleId]
+        );
+    }
+
+    toggleCreateCompany(companyId) {
+        const selected = this.state.createUser.company_ids || [];
+        const next = selected.includes(companyId) ? selected.filter((id) => id !== companyId) : [...selected, companyId];
+        const fallbackCompany = next[0] || companyId;
+        this.state.createUser = {
+            ...this.state.createUser,
+            company_ids: next,
+            company_id: next.includes(this.state.createUser.company_id) ? this.state.createUser.company_id : fallbackCompany,
+        };
+        this.state.createErrors = {...this.state.createErrors, company_ids: false, company_id: false};
+    }
+
+    get createPermissionCategories() {
+        return [...new Set((this.state.groups || []).map((group) => group.category || "Other"))].sort();
+    }
+
+    get createPermissionCatalog() {
+        const query = this.state.createPermissionSearch.trim().toLowerCase();
+        return (this.state.groups || []).filter((group) => {
+            const matchesCategory = !this.state.createPermissionCategory || group.category === this.state.createPermissionCategory;
+            const text = `${group.full_name || ""} ${group.name || ""} ${group.category || ""}`.toLowerCase();
+            return matchesCategory && (!query || text.includes(query));
+        });
+    }
+
+    createPermissionState(groupId) {
+        if ((this.state.createUser.excluded_group_ids || []).includes(groupId)) return "excluded";
+        if ((this.state.createUser.extra_group_ids || []).includes(groupId)) return "extra";
+        return "default";
+    }
+
+    setCreatePermissionState(groupId, state) {
+        const currentExtra = this.state.createUser.extra_group_ids || [];
+        const currentExcluded = this.state.createUser.excluded_group_ids || [];
+        const nextExtra = currentExtra.filter((id) => id !== groupId);
+        const nextExcluded = currentExcluded.filter((id) => id !== groupId);
+        if (state === "extra") {
+            nextExtra.push(groupId);
+        } else if (state === "excluded") {
+            nextExcluded.push(groupId);
+        }
+        this.state.createUser = {
+            ...this.state.createUser,
+            extra_group_ids: nextExtra,
+            excluded_group_ids: nextExcluded,
+        };
+    }
+
+    onCreatePermissionSearch(ev) {
+        this.state.createPermissionSearch = ev.target.value || "";
+    }
+
+    onCreatePermissionCategory(ev) {
+        this.state.createPermissionCategory = ev.target.value || "";
+    }
+
+    validateCreateUser() {
+        const user = this.state.createUser || {};
+        const errors = {};
+        if (!String(user.name || "").trim()) errors.name = true;
+        if (!String(user.email || "").trim()) errors.email = true;
+        if (!String(user.login || user.email || "").trim()) errors.login = true;
+        if (!(user.company_ids || []).length) errors.company_ids = true;
+        if (!user.company_id) errors.company_id = true;
+        this.state.createErrors = errors;
+        return !Object.keys(errors).length;
+    }
+
+    async createUser() {
+        if (!this.validateCreateUser()) {
+            this.notification.add(_t("Complete the highlighted required fields."), {type: "warning"});
+            return;
+        }
+        this.state.saving = true;
+        try {
+            const card = await this.orm.call("rbac.model", "create_rbac_user_from_directory", [], {
+                values: this.state.createUser,
+            });
+            this.notification.add(_t("User created."), {type: "success"});
+            this.state.createOpen = false;
+            await this.loadData();
+            const fresh = this.state.users.find((user) => user.id === card.id) || card;
+            this.openPanel(fresh);
+        } finally {
+            this.state.saving = false;
+        }
     }
 
     toggleUserSelection(userId) {

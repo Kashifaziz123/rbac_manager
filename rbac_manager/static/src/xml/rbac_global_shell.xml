@@ -2,45 +2,43 @@
 <templates xml:space="preserve">
 
     <t t-inherit="web.WebClient" t-inherit-mode="extension">
-        <xpath expr="//t[@t-if='!state.fullscreen']" position="replace">
-            <t t-if="!state.fullscreen">
-                <RBACGlobalSidebar/>
-            </t>
-        </xpath>
         <xpath expr="//ActionContainer" position="replace">
-            <div class="rsh_global_main">
+            <div class="rsh_child_shell">
                 <t t-if="!state.fullscreen">
-                    <RBACGlobalTopbar/>
+                    <RBACGlobalSidebar/>
                 </t>
-                <ActionContainer/>
+                <div class="rsh_child_content">
+                    <ActionContainer/>
+                </div>
             </div>
         </xpath>
     </t>
 
+    <t t-inherit="web.NavBar" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='currentAppSections.length' and @t-call='web.NavBar.SectionsMenu']" position="replace"/>
+    </t>
+
+    <t t-inherit="web.Breadcrumbs" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_last_breadcrumb_item')]/span[1]" position="before">
+            <t t-if="this.rbacRootBreadcrumb">
+                <button type="button"
+                        class="rsh_cp_root_breadcrumb"
+                        t-on-click.prevent="() => this.openRbacRootBreadcrumb()"
+                        t-esc="this.rbacRootBreadcrumb.name"/>
+                <i class="fa fa-chevron-right rsh_cp_breadcrumb_sep"/>
+            </t>
+        </xpath>
+    </t>
+
     <t t-name="rbac.GlobalSidebar">
-        <div class="rsh_global_nav">
-            <aside class="rsh_icon_strip">
-                <button class="rsh_logo" title="Home" t-on-click="() => this.selectApp(this.apps[0])">
-                    <i class="fa fa-shield"/>
-                </button>
-
-                <div class="rsh_global_app_list">
-                    <t t-foreach="this.apps" t-as="app" t-key="app.id">
-                        <button t-att-class="'rsh_strip_ico' + (this.isActiveApp(app) ? ' active' : '')"
-                                t-att-title="app.name"
-                                t-on-click="() => this.selectApp(app)">
-                            <t t-if="this.hasMenuIconData(app)">
-                                <img class="rsh_menu_icon_img" t-att-src="this.getMenuIconDataSrc(app)" t-att-alt="app.name"/>
-                            </t>
-                            <i t-elif="this.isRbacMenu(app)" class="fa fa-lock rsh_rbac_lock_icon"/>
-                            <span t-else="" class="rsh_menu_icon_initials" t-esc="this.getMenuInitials(app)"/>
-                            <span class="rsh_strip_tooltip"><t t-esc="app.name"/></span>
-                        </button>
-                    </t>
-                </div>
-
-            </aside>
-
+        <div t-att-class="'rsh_global_nav rsh_child_nav' + (this.state.panelOpen ? '' : ' rsh_child_nav_closed')">
+            <button t-if="!this.state.panelOpen"
+                    type="button"
+                    class="rsh_sidebar_reopen"
+                    t-att-title="'Open ' + (this.activeApp ? this.activeApp.name : 'menu') + ' menu'"
+                    t-on-click="togglePanel">
+                <i class="fa fa-angle-right"/>
+            </button>
             <aside t-att-class="'rsh_sidebar rsh_global_sidebar' + (this.state.panelOpen ? '' : ' rsh_sidebar_closed')">
                 <div class="rsh_sidebar_header">
                     <div>

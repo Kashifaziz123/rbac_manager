@@ -442,37 +442,78 @@
                         <!-- Model Access -->
                         <t t-elif="this.state.wRestrictTab === 'model'">
                             <p class="as_rtab_desc">Select models to restrict. Each selected model can be configured with operation-level access rules.</p>
-                            <div class="as_form_group">
-                                <div class="as_tokenizer_wrap as_big_selector">
-                                    <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('models')">
-                                        <t t-foreach="this.state.wModelItems" t-as="item" t-key="item.id">
-                                            <span class="as_tag as_tag_role">
-                                                <t t-esc="item.name"/>
-                                                <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('models', item.id)">×</span>
-                                            </span>
-                                        </t>
-                                        <input type="text" class="as_tokenizer_input"
-                                               t-att-placeholder="this.state.wModelItems.length ? '' : 'Search models… e.g. Sale Order, Invoice, Contact'"
-                                               t-att-value="this.state.wSearches.models"
-                                               t-on-input="(ev) => this.onTokenizerInput(ev, 'models')"
-                                               t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'models')"
-                                               t-on-focus="() => this.openDropdown('models')"
-                                               t-on-blur="() => this.scheduleClose('models')"/>
-                                    </div>
-                                    <div t-if="this.state.wOpenField === 'models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                        <div class="as_selector_panel_head">
-                                            <div>
-                                                <div class="as_selector_panel_title">Model catalog</div>
-                                                <div class="as_selector_panel_sub">
-                                                    <t t-esc="this.state.wModelItems.length"/> selected · <t t-esc="this.getFiltered('models').length"/> visible
+                            <div class="as_model_access_builder">
+                                <t t-if="this.state.wModelItems.length">
+                                    <div class="as_model_rules">
+                                        <t t-foreach="this.state.wModelItems" t-as="model" t-key="model.id">
+                                            <div t-att-class="'as_model_rule_card' + (this.isModelCardOpen(model.id) ? ' open' : '')">
+                                                <div class="as_model_rule_head" t-on-click="() => this.toggleModelCard(model.id)">
+                                                    <div class="as_model_rule_icon"><i class="fa fa-cube"/></div>
+                                                    <div>
+                                                        <div class="as_model_rule_title"><t t-esc="model.name"/></div>
+                                                        <div class="as_model_rule_sub"><t t-esc="model.model || 'Selected model'"/> · <t t-esc="this.modelRestrictionCount(model)"/> restrictions</div>
+                                                    </div>
+                                                    <span t-att-class="'as_model_rule_badge' + (this.modelRestrictionCount(model) ? '' : ' empty')">
+                                                        <t t-esc="this.modelRestrictionCount(model)"/> restricted
+                                                    </span>
+                                                    <div class="as_model_rule_presets">
+                                                        <button type="button" class="as_model_preset_badge" t-on-click.stop="() => this.setModelPreset(model.id, 'all')">Block all</button>
+                                                        <button type="button" class="as_model_preset_badge clear" t-on-click.stop="() => this.setModelPreset(model.id, 'clear')">Clear all</button>
+                                                        <button type="button" class="as_model_remove_btn" title="Remove" t-on-click.stop="() => this.removeWItem('models', model.id)">
+                                                            <i class="fa fa-times"/>
+                                                        </button>
+                                                    </div>
+                                                    <i class="fa fa-chevron-down as_model_rule_chevron"/>
                                                 </div>
+                                                <t t-if="this.isModelCardOpen(model.id)">
+                                                    <div class="as_model_rule_grid">
+                                                        <t t-foreach="this.modelAccessOptions" t-as="opt" t-key="opt.key">
+                                                            <label t-att-class="'as_model_toggle_row' + (model[opt.key] ? ' active' : '')">
+                                                                <span><t t-esc="opt.label"/></span>
+                                                                <input type="checkbox"
+                                                                       t-att-checked="model[opt.key]"
+                                                                       t-on-change="() => this.toggleModelAccess(model.id, opt.key)"/>
+                                                                <span class="as_switch_track"><span class="as_switch_thumb"/></span>
+                                                            </label>
+                                                        </t>
+                                                    </div>
+                                                </t>
                                             </div>
-                                            <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                <i class="fa fa-times"/>
-                                            </button>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="as_model_placeholder">
+                                        <i class="fa fa-cube"/> Click Add Model to create a model restriction section.
+                                    </div>
+                                </t>
+                                <div class="as_model_add_bar">
+                                    <div class="as_model_pick_row">
+                                        <div class="as_tokenizer as_model_pick_box" t-on-click.stop="() => this.openDropdown('models')">
+                                            <t t-foreach="this.state.wModelCandidates" t-as="candidate" t-key="candidate.id">
+                                                <span class="as_tag as_tag_role as_model_pick_tag">
+                                                    <t t-esc="candidate.name"/>
+                                                    <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removePendingModel(candidate.id)">×</span>
+                                                </span>
+                                            </t>
+                                            <input type="text"
+                                                   class="as_model_pick_input"
+                                                   placeholder="Search models... e.g. Journal Entry, account.move"
+                                                   t-att-value="this.state.wSearches.models"
+                                                   t-on-input="(ev) => this.onTokenizerInput(ev, 'models')"
+                                                   t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'models')"
+                                                   t-on-focus="() => this.openDropdown('models')"
+                                                   t-on-blur="() => this.scheduleClose('models')"/>
                                         </div>
+                                        <button type="button"
+                                                t-att-class="'as_model_add_btn' + (this.modelAccessPendingCount ? '' : ' disabled')"
+                                                t-on-click.stop="addSelectedModelAccess">Add Model</button>
+                                    </div>
+                                </div>
+                                <div class="as_model_catalog_wrap">
+                                    <div t-if="this.state.wOpenField === 'models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
                                         <t t-foreach="this.getFiltered('models')" t-as="opt" t-key="opt.id">
-                                            <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('models', opt)">
+                                            <div t-att-class="'as_dropdown_item'" t-on-mousedown.prevent="() => this.selectOption('models', opt)">
                                                 <i class="fa fa-cube as_dropdown_item_icon"/>
                                                 <span class="as_dropdown_item_text">
                                                     <span class="as_dropdown_item_title" t-esc="opt.name"/>
@@ -484,264 +525,251 @@
                                     </div>
                                 </div>
                             </div>
-                            <t t-if="!this.state.wModelItems.length">
-                                <div class="as_model_placeholder">
-                                    <i class="fa fa-cube"/> Select models above to configure access restrictions.
-                                </div>
-                            </t>
-                            <div t-else="" class="as_model_rules">
-                                <t t-foreach="this.state.wModelItems" t-as="model" t-key="model.id">
-                                    <div class="as_model_rule_card">
-                                        <div class="as_model_rule_head">
-                                            <div>
-                                                <div class="as_model_rule_title"><t t-esc="model.name"/></div>
-                                                <div class="as_model_rule_sub"><t t-esc="model.model || 'Selected model'"/></div>
-                                            </div>
-                                            <div class="as_model_rule_presets">
-                                                <button type="button" class="as_mini_btn" t-on-click="() => this.setModelPreset(model.id, 'readonly')">Read-only</button>
-                                                <button type="button" class="as_mini_btn" t-on-click="() => this.setModelPreset(model.id, 'all')">Block all</button>
-                                                <button type="button" class="as_mini_btn" t-on-click="() => this.setModelPreset(model.id, 'clear')">Clear</button>
-                                            </div>
-                                        </div>
-                                        <div class="as_model_rule_grid">
-                                            <t t-foreach="this.modelAccessOptions" t-as="opt" t-key="opt.key">
-                                                <label class="as_model_rule_check">
-                                                    <input type="checkbox"
-                                                           t-att-checked="model[opt.key]"
-                                                           t-on-change="() => this.toggleModelAccess(model.id, opt.key)"/>
-                                                    <span><t t-esc="opt.label"/></span>
-                                                </label>
-                                            </t>
-                                        </div>
-                                    </div>
-                                </t>
-                            </div>
                         </t>
 
                         <!-- Field Access -->
                         <t t-elif="this.state.wRestrictTab === 'field'">
                             <p class="as_rtab_desc">Hide fields, make them read-only or required, or remove external links for the selected audience.</p>
                             <div class="as_field_builder">
-                                <div class="as_field_builder_top">
-                                    <div class="as_form_group">
-                                        <label class="as_form_label">Model</label>
-                                        <div class="as_tokenizer_wrap as_big_selector">
-                                            <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('field_models')">
-                                                <t t-if="this.state.wFieldModel">
-                                                    <span class="as_field_model_badge">
-                                                        <i class="fa fa-cube"/>
-                                                        <span class="as_field_model_badge_text">
-                                                            <span t-esc="this.state.wFieldModel.name"/>
-                                                            <small t-esc="this.state.wFieldModel.model"/>
-                                                        </span>
-                                                        <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.clearFieldModel()">×</span>
-                                                    </span>
-                                                </t>
-                                                <input type="text" class="as_tokenizer_input"
-                                                       t-att-placeholder="this.state.wFieldModel ? '' : 'Search models... e.g. Journal Entry, account.move'"
-                                                       t-att-value="this.state.wSearches.field_models"
-                                                       t-on-input="(ev) => this.onFieldModelInput(ev)"
-                                                       t-on-keydown="(ev) => this.onFieldModelKeydown(ev)"
-                                                       t-on-focus="() => this.openDropdown('field_models')"
-                                                       t-on-blur="() => this.scheduleClose('field_models')"/>
-                                            </div>
-                                            <div t-if="this.state.wOpenField === 'field_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                                <div class="as_selector_panel_head">
+                                <t t-if="this.state.wFieldModels.length">
+                                    <div class="as_field_rules">
+                                        <t t-foreach="this.state.wFieldModels" t-as="model" t-key="model.id">
+                                            <div t-att-class="'as_field_model_card' + (this.isFieldModelCardOpen(model.id) ? ' open' : '')">
+                                                <div class="as_model_rule_head as_field_model_head" t-on-click="() => this.toggleFieldModelCard(model)">
+                                                    <div class="as_model_rule_icon as_field_icon">
+                                                        <i class="fa fa-list"/>
+                                                    </div>
                                                     <div>
-                                                        <div class="as_selector_panel_title">Select Model</div>
-                                                        <div class="as_selector_panel_sub">
-                                                            <t t-esc="this.getFilteredFieldModels().length"/> visible
+                                                        <div class="as_model_rule_title" t-esc="model.name"/>
+                                                        <div class="as_model_rule_sub">
+                                                            <t t-esc="model.model"/> · <t t-esc="this.fieldRuleCountForModel(model.id)"/> fields configured
                                                         </div>
                                                     </div>
-                                                    <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
+                                                    <span t-att-class="'as_model_rule_badge' + (this.fieldRuleCountForModel(model.id) ? '' : ' empty')">
+                                                        <t t-esc="this.fieldRuleCountForModel(model.id)"/> fields
+                                                    </span>
+                                                    <button type="button" class="as_model_remove_btn" title="Remove" t-on-click.stop="() => this.removeFieldModelSection(model.id)">
                                                         <i class="fa fa-times"/>
                                                     </button>
+                                                    <i class="fa fa-chevron-down as_model_rule_chevron"/>
                                                 </div>
-                                                <t t-foreach="this.getFilteredFieldModels()" t-as="model" t-key="model.id">
-                                                    <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectFieldModel(model)">
-                                                        <i class="fa fa-cube as_dropdown_item_icon"/>
-                                                        <span class="as_dropdown_item_text">
-                                                            <span class="as_dropdown_item_title" t-esc="model.name"/>
-                                                            <span class="as_dropdown_item_sub" t-esc="model.model"/>
-                                                        </span>
+                                                <t t-if="this.isFieldModelCardOpen(model.id)">
+                                                    <div class="as_field_model_body">
+                                                        <t t-if="this.fieldRulesForModel(model.id).length">
+                                                            <div class="as_field_matrix">
+                                                                <div class="as_field_matrix_head">
+                                                                    <div>Field</div>
+                                                                    <div>Hide</div>
+                                                                    <div>Readonly</div>
+                                                                    <div>Required</div>
+                                                                </div>
+                                                                <t t-foreach="this.fieldRulesForModel(model.id)" t-as="rule" t-key="rule.id">
+                                                                    <div class="as_field_matrix_row">
+                                                                        <div class="as_field_matrix_field">
+                                                                            <div class="as_model_rule_title" t-esc="this._fieldRuleFieldNames(rule)"/>
+                                                                            <div class="as_model_rule_sub">
+                                                                                <t t-esc="this._fieldRuleTechnicalNames(rule)"/>
+                                                                            </div>
+                                                                        </div>
+                                                                        <label class="as_field_check">
+                                                                            <input type="checkbox" t-att-checked="rule.invisible" t-on-change="(ev) => this.setFieldRuleAttribute(rule.id, 'invisible', ev.target.checked)"/>
+                                                                            <span></span>
+                                                                        </label>
+                                                                        <label class="as_field_check">
+                                                                            <input type="checkbox" t-att-checked="rule.readonly" t-on-change="(ev) => this.setFieldRuleAttribute(rule.id, 'readonly', ev.target.checked)"/>
+                                                                            <span></span>
+                                                                        </label>
+                                                                        <label class="as_field_check">
+                                                                            <input type="checkbox" t-att-checked="rule.required" t-on-change="(ev) => this.setFieldRuleAttribute(rule.id, 'required', ev.target.checked)"/>
+                                                                            <span></span>
+                                                                        </label>
+                                                                    </div>
+                                                                </t>
+                                                            </div>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <div class="as_model_placeholder as_field_empty">
+                                                                <i class="fa fa-list"/> No fields configured yet.
+                                                            </div>
+                                                        </t>
+
+                                                        <div class="as_field_add_bar">
+                                                            <div class="as_model_pick_row as_field_pick_row">
+                                                                <div class="as_tokenizer as_model_pick_box" t-on-click.stop="() => this.openFieldPickerForModel(model)">
+                                                                    <t t-foreach="this.state.wFieldItems" t-as="item" t-key="item.id">
+                                                                        <span class="as_tag as_tag_user as_model_pick_tag">
+                                                                            <t t-esc="item.name"/>
+                                                                            <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('field_fields', item.id)">×</span>
+                                                                        </span>
+                                                                    </t>
+                                                                    <input type="text"
+                                                                           class="as_model_pick_input"
+                                                                           t-att-placeholder="'Search fields... e.g. customer, journal_id, amount'"
+                                                                           t-att-value="this.state.wSearches.field_fields"
+                                                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'field_fields')"
+                                                                           t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'field_fields')"
+                                                                           t-on-focus="() => this.openFieldPickerForModel(model)"
+                                                                           t-on-blur="() => this.scheduleClose('field_fields')"/>
+                                                                </div>
+                                                                <button type="button"
+                                                                        t-att-class="'as_model_add_btn' + (this.state.wFieldItems.length ? '' : ' disabled')"
+                                                                        t-on-click.stop="addFieldRule">Add Field</button>
+                                                                <div t-if="this.state.wOpenField === 'field_fields' &amp;&amp; this.isFieldModelCardOpen(model.id)" class="as_dropdown as_selector_panel as_field_dropdown" t-on-mousedown.stop="">
+                                                                    <t t-foreach="this.getFiltered('field_fields')" t-as="opt" t-key="opt.id">
+                                                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('field_fields', opt)">
+                                                                            <i class="fa fa-list as_dropdown_item_icon"/>
+                                                                            <span class="as_dropdown_item_text">
+                                                                                <span class="as_dropdown_item_title" t-esc="opt.name"/>
+                                                                                <span class="as_dropdown_item_sub"><t t-esc="opt.field_name"/> · <t t-esc="opt.ttype"/></span>
+                                                                            </span>
+                                                                        </div>
+                                                                    </t>
+                                                                    <div t-if="!this.getFiltered('field_fields').length" class="as_dropdown_empty">No results found.</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </t>
-                                                <div t-if="!this.getFilteredFieldModels().length" class="as_dropdown_empty">No results found.</div>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="as_form_group">
-                                    <label class="as_form_label">Fields</label>
-                                    <div class="as_tokenizer_wrap as_big_selector">
-                                        <div t-att-class="'as_tokenizer' + (this.state.wFieldModel ? '' : ' disabled')" t-on-click.stop="() => this.state.wFieldModel &amp;&amp; this.openDropdown('field_fields')">
-                                            <t t-foreach="this.state.wFieldItems" t-as="item" t-key="item.id">
-                                                <span class="as_tag as_tag_user">
-                                                    <t t-esc="item.name"/>
-                                                    <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removeWItem('field_fields', item.id)">×</span>
-                                                </span>
-                                            </t>
-                                            <input type="text" class="as_tokenizer_input"
-                                                   t-att-disabled="!this.state.wFieldModel"
-                                                   t-att-placeholder="this.state.wFieldModel ? (this.state.wFieldItems.length ? '' : 'Search fields... e.g. Customer, journal_id, Amount') : 'Select a model first'"
-                                                   t-att-value="this.state.wSearches.field_fields"
-                                                   t-on-input="(ev) => this.onTokenizerInput(ev, 'field_fields')"
-                                                   t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'field_fields')"
-                                                   t-on-focus="() => this.state.wFieldModel &amp;&amp; this.openDropdown('field_fields')"
-                                                   t-on-blur="() => this.scheduleClose('field_fields')"/>
-                                        </div>
-                                        <div t-if="this.state.wOpenField === 'field_fields'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                            <div class="as_selector_panel_head">
-                                                <div>
-                                                    <div class="as_selector_panel_title">Fields in <t t-esc="this.selectedFieldModelName"/></div>
-                                                    <div class="as_selector_panel_sub">
-                                                        Select a field to add it · <t t-esc="this.getFiltered('field_fields').length"/> visible
-                                                    </div>
-                                                </div>
-                                                <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                    <i class="fa fa-times"/>
-                                                </button>
-                                            </div>
-                                            <t t-foreach="this.getFiltered('field_fields')" t-as="opt" t-key="opt.id">
-                                                <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('field_fields', opt)">
-                                                    <i class="fa fa-list as_dropdown_item_icon"/>
-                                                    <span class="as_dropdown_item_text">
-                                                        <span class="as_dropdown_item_title" t-esc="opt.name"/>
-                                                        <span class="as_dropdown_item_sub"><t t-esc="opt.field_name"/> · <t t-esc="opt.ttype"/></span>
-                                                    </span>
-                                                </div>
-                                            </t>
-                                            <div t-if="!this.getFiltered('field_fields').length" class="as_dropdown_empty">No results found.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div t-if="!this.state.wFieldRules.length" class="as_model_placeholder">
-                                <i class="fa fa-list"/> Add a field rule above to configure field-level access.
-                            </div>
-                            <div t-else="" class="as_field_rule_list">
-                                <t t-foreach="this.state.wFieldRules" t-as="rule" t-key="rule.id">
-                                    <div class="as_field_rule_card">
-                                        <div>
-                                            <div class="as_model_rule_title" t-esc="rule.model_name"/>
-                                            <div class="as_model_rule_sub">
-                                                <t t-esc="this._fieldRuleFieldNames(rule)"/>
-                                            </div>
-                                            <div class="as_field_rule_meta">
-                                                <span t-esc="this._fieldRuleTechnicalNames(rule)"/>
-                                                <span class="as_field_rule_count" t-esc="this._fieldRuleAttributeLabel(rule)"/>
-                                            </div>
-                                        </div>
-                                        <div class="as_field_rule_toggles">
-                                            <t t-foreach="this.fieldRuleAttributeOptions" t-as="opt" t-key="opt.key">
-                                                <label t-att-class="'as_field_rule_toggle' + (rule[opt.key] ? ' active' : '')"
-                                                       t-att-title="opt.label">
-                                                    <input type="checkbox"
-                                                           t-att-checked="rule[opt.key]"
-                                                           t-on-change="(ev) => this.setFieldRuleAttribute(rule.id, opt.key, ev.target.checked)"/>
-                                                    <i t-att-class="opt.icon"/>
-                                                    <span t-esc="opt.label"/>
-                                                </label>
-                                            </t>
-                                        </div>
-                                        <button type="button" class="as_row_btn as_row_btn_delete" t-on-click="() => this.removeFieldRule(rule.id)">
-                                            <i class="fa fa-trash-o"/>
-                                        </button>
+                                        </t>
                                     </div>
                                 </t>
+                                <t t-else="">
+                                    <div class="as_model_placeholder">
+                                        <i class="fa fa-list"/> Click Add Model to create a field restriction section.
+                                    </div>
+                                </t>
+                                <div class="as_model_add_bar">
+                                    <div class="as_model_pick_row">
+                                        <div class="as_tokenizer as_model_pick_box" t-on-click.stop="() => this.openDropdown('field_models')">
+                                            <t t-foreach="this.state.wFieldModelCandidates" t-as="candidate" t-key="candidate.id">
+                                                <span class="as_tag as_tag_role as_model_pick_tag">
+                                                    <t t-esc="candidate.name"/>
+                                                    <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removePendingFieldModel(candidate.id)">×</span>
+                                                </span>
+                                            </t>
+                                            <input type="text"
+                                                   class="as_model_pick_input"
+                                                   placeholder="Search models... e.g. Journal Entry, account.move"
+                                                   t-att-value="this.state.wSearches.field_models"
+                                                   t-on-input="(ev) => this.onTokenizerInput(ev, 'field_models')"
+                                                   t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'field_models')"
+                                                   t-on-focus="() => this.openDropdown('field_models')"
+                                                   t-on-blur="() => this.scheduleClose('field_models')"/>
+                                        </div>
+                                        <button type="button"
+                                                t-att-class="'as_model_add_btn' + (this.state.wFieldModelCandidates.length ? '' : ' disabled')"
+                                                t-on-click.stop="addSelectedFieldModels">Add Model</button>
+                                    </div>
+                                </div>
+                                <div class="as_model_catalog_wrap">
+                                    <div t-if="this.state.wOpenField === 'field_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
+                                        <t t-foreach="this.getFilteredFieldModels()" t-as="model" t-key="model.id">
+                                            <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('field_models', model)">
+                                                <i class="fa fa-cube as_dropdown_item_icon"/>
+                                                <span class="as_dropdown_item_text">
+                                                    <span class="as_dropdown_item_title" t-esc="model.name"/>
+                                                    <span class="as_dropdown_item_sub" t-esc="model.model"/>
+                                                </span>
+                                            </div>
+                                        </t>
+                                        <div t-if="!this.getFilteredFieldModels().length" class="as_dropdown_empty">No results found.</div>
+                                    </div>
+                                </div>
                             </div>
+
                         </t>
 
                         <!-- Domain Access -->
                         <t t-elif="this.state.wRestrictTab === 'domain'">
                             <p class="as_rtab_desc">Apply strict model rights and record-level domains. These rules affect backend, code, and API access.</p>
                             <div class="as_domain_builder">
-                                <div class="as_form_group">
-                                    <label class="as_form_label">Add Model</label>
-                                    <div class="as_tokenizer_wrap as_big_selector">
-                                        <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('domain_models')">
-                                            <input type="text" class="as_tokenizer_input"
-                                                   placeholder="Search models... e.g. Customer, res.partner"
-                                                   t-att-value="this.state.wSearches.domain_models"
-                                                   t-on-input="(ev) => this.onTokenizerInput(ev, 'domain_models')"
-                                                   t-on-focus="() => this.openDropdown('domain_models')"
-                                                   t-on-blur="() => this.scheduleClose('domain_models')"/>
-                                        </div>
-                                        <div t-if="this.state.wOpenField === 'domain_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                            <div class="as_selector_panel_head">
-                                                <div>
-                                                    <div class="as_selector_panel_title">Select Model</div>
-                                                    <div class="as_selector_panel_sub">
-                                                        <t t-esc="this.getFiltered('domain_models').length"/> visible
+                                <t t-if="this.state.wDomainRules.length">
+                                    <div class="as_domain_rules">
+                                        <t t-foreach="this.state.wDomainRules" t-as="rule" t-key="rule.id">
+                                            <div t-att-class="'as_domain_rule_card' + (this.isDomainCardOpen(rule.id) ? ' open' : '')">
+                                                <div class="as_model_rule_head as_domain_rule_head" t-on-click="() => this.toggleDomainCard(rule.id)">
+                                                    <div class="as_model_rule_icon as_domain_icon">
+                                                        <i class="fa fa-filter"/>
                                                     </div>
-                                                </div>
-                                                <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                    <i class="fa fa-times"/>
-                                                </button>
-                                            </div>
-                                            <t t-foreach="this.getFiltered('domain_models')" t-as="model" t-key="model.id">
-                                                <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('domain_models', model)">
-                                                    <i class="fa fa-filter as_dropdown_item_icon"/>
-                                                    <span class="as_dropdown_item_text">
-                                                        <span class="as_dropdown_item_title" t-esc="model.name"/>
-                                                        <span class="as_dropdown_item_sub" t-esc="model.model"/>
+                                                    <div>
+                                                        <div class="as_model_rule_title" t-esc="rule.name"/>
+                                                        <div class="as_model_rule_sub">
+                                                            <t t-esc="rule.model"/> · domain
+                                                        </div>
+                                                    </div>
+                                                    <span t-att-class="'as_model_rule_badge' + (rule.apply_domain ? '' : ' empty')">
+                                                        <t t-esc="rule.apply_domain ? 'Domain on' : 'Domain off'"/>
                                                     </span>
+                                                    <button type="button" class="as_model_remove_btn" t-on-click.stop="() => this.removeDomainRule(rule.id)" title="Remove">
+                                                        <i class="fa fa-times"/>
+                                                    </button>
+                                                    <i class="fa fa-chevron-down as_model_rule_chevron"/>
                                                 </div>
-                                            </t>
-                                            <div t-if="!this.getFiltered('domain_models').length" class="as_dropdown_empty">No results found.</div>
-                                        </div>
+                                                <t t-if="this.isDomainCardOpen(rule.id)">
+                                                    <div class="as_domain_rule_body">
+                                                        <label class="as_domain_apply">
+                                                            <input type="checkbox" t-att-checked="rule.apply_domain" t-on-change="() => this.toggleDomainRight(rule.id, 'apply_domain')"/>
+                                                            <span>Apply custom domain filter</span>
+                                                        </label>
+                                                        <textarea class="as_domain_textarea"
+                                                                  t-att-disabled="!rule.apply_domain"
+                                                                  t-att-value="rule.domain"
+                                                                  t-on-input="(ev) => this.setDomainValue(rule.id, ev.target.value)"
+                                                                  placeholder="[] or [('user_id', '=', user.id)]"/>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </t>
                                     </div>
-                                </div>
-
-                                <div t-if="!this.state.wDomainRules.length" class="as_model_placeholder">
-                                    <i class="fa fa-filter"/> Add a model above to configure domain access.
-                                </div>
-                                <div t-else="" class="as_domain_rules">
-                                    <t t-foreach="this.state.wDomainRules" t-as="rule" t-key="rule.id">
-                                        <div class="as_domain_rule_card">
-                                            <div class="as_model_rule_head">
-                                                <div>
-                                                    <div class="as_model_rule_title" t-esc="rule.name"/>
-                                                    <div class="as_model_rule_sub" t-esc="rule.model"/>
-                                                </div>
-                                                <button type="button" class="as_row_btn as_row_btn_delete" t-on-click="() => this.removeDomainRule(rule.id)">
-                                                    <i class="fa fa-trash-o"/>
-                                                </button>
+                                </t>
+                                <t t-else="">
+                                    <div class="as_model_placeholder">
+                                        <i class="fa fa-filter"/> Click Add Domain Rule to create a domain section.
+                                    </div>
+                                </t>
+                                <div class="as_domain_add_bar">
+                                    <t t-if="this.state.wDomainPickerOpen || this.state.wDomainCandidates.length">
+                                        <div class="as_model_pick_row">
+                                            <div class="as_tokenizer as_model_pick_box" t-on-click.stop="() => this.openDropdown('domain_models')">
+                                                <t t-foreach="this.state.wDomainCandidates" t-as="candidate" t-key="candidate.id">
+                                                    <span class="as_tag as_tag_role as_model_pick_tag">
+                                                        <t t-esc="candidate.name"/>
+                                                        <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removePendingDomainModel(candidate.id)">×</span>
+                                                    </span>
+                                                </t>
+                                                <input type="text"
+                                                       class="as_model_pick_input"
+                                                       placeholder="Search models... e.g. Customer, res.partner"
+                                                       t-att-value="this.state.wSearches.domain_models"
+                                                       t-on-input="(ev) => this.onTokenizerInput(ev, 'domain_models')"
+                                                       t-on-keydown="(ev) => this.onTokenizerKeydown(ev, 'domain_models')"
+                                                       t-on-focus="() => this.openDropdown('domain_models')"
+                                                       t-on-blur="() => this.scheduleClose('domain_models')"/>
                                             </div>
-                                            <div class="as_model_rule_grid">
-                                                <label class="as_model_rule_check">
-                                                    <input type="checkbox" t-att-checked="rule.read_right" t-on-change="() => this.toggleDomainRight(rule.id, 'read_right')"/>
-                                                    <span>Read</span>
-                                                </label>
-                                                <label class="as_model_rule_check">
-                                                    <input type="checkbox" t-att-checked="rule.create_right" t-on-change="() => this.toggleDomainRight(rule.id, 'create_right')"/>
-                                                    <span>Create</span>
-                                                </label>
-                                                <label class="as_model_rule_check">
-                                                    <input type="checkbox" t-att-checked="rule.write_right" t-on-change="() => this.toggleDomainRight(rule.id, 'write_right')"/>
-                                                    <span>Edit</span>
-                                                </label>
-                                                <label class="as_model_rule_check">
-                                                    <input type="checkbox" t-att-checked="rule.delete_right" t-on-change="() => this.toggleDomainRight(rule.id, 'delete_right')"/>
-                                                    <span>Delete</span>
-                                                </label>
-                                            </div>
-                                            <label class="as_domain_apply">
-                                                <input type="checkbox" t-att-checked="rule.apply_domain" t-att-disabled="!rule.read_right" t-on-change="() => this.toggleDomainRight(rule.id, 'apply_domain')"/>
-                                                <span>Apply custom domain filter</span>
-                                            </label>
-                                            <textarea class="as_domain_textarea"
-                                                      t-att-disabled="!rule.apply_domain || !rule.read_right"
-                                                      t-att-value="rule.domain"
-                                                      t-on-input="(ev) => this.setDomainValue(rule.id, ev.target.value)"
-                                                      placeholder="[] or [('user_id', '=', user.id)]"/>
-                                            <div class="as_domain_hint">
-                                                Use normal Odoo domains. Available variables: user, company_id, company_ids.
+                                            <button type="button"
+                                                    t-att-class="'as_model_add_btn' + (this.state.wDomainCandidates.length ? '' : ' disabled')"
+                                                    t-on-click.stop="() => this.addDomainRule(this.state.wDomainCandidates)">Add Domain Rule</button>
+                                        </div>
+                                        <div class="as_model_catalog_wrap">
+                                            <div t-if="this.state.wOpenField === 'domain_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
+                                                <t t-foreach="this.getFiltered('domain_models')" t-as="model" t-key="model.id">
+                                                    <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('domain_models', model)">
+                                                        <i class="fa fa-filter as_dropdown_item_icon"/>
+                                                        <span class="as_dropdown_item_text">
+                                                            <span class="as_dropdown_item_title" t-esc="model.name"/>
+                                                            <span class="as_dropdown_item_sub" t-esc="model.model"/>
+                                                        </span>
+                                                    </div>
+                                                </t>
+                                                <div t-if="!this.getFiltered('domain_models').length" class="as_dropdown_empty">No results found.</div>
                                             </div>
                                         </div>
+                                    </t>
+                                    <t t-else="">
+                                        <button type="button"
+                                                class="as_model_add_btn"
+                                                t-on-click.stop="() => this.addDomainRule()">+ Add Domain Rule</button>
                                     </t>
                                 </div>
                             </div>
@@ -751,121 +779,136 @@
                         <t t-elif="this.state.wRestrictTab === 'button'">
                             <p class="as_rtab_desc">Hide action buttons, object buttons, notebook tabs, smart buttons, and kanban links for selected models.</p>
                             <div class="as_button_builder">
-                                <div class="as_form_group">
-                                    <label class="as_form_label">Model</label>
-                                    <div class="as_tokenizer_wrap as_big_selector">
-                                        <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('button_models')">
-                                            <t t-if="this.state.wButtonModel">
-                                                <span class="as_field_model_badge">
-                                                    <i class="fa fa-cube"/>
-                                                    <span class="as_field_model_badge_text">
-                                                        <span t-esc="this.state.wButtonModel.name"/>
-                                                        <small t-esc="this.state.wButtonModel.model"/>
+                                <t t-if="this.state.wButtonRules.length">
+                                    <div class="as_button_rules">
+                                        <t t-foreach="this.state.wButtonRules" t-as="rule" t-key="rule.id">
+                                            <div t-att-class="'as_button_rule_card' + (this.isButtonModelCardOpen(rule.id) ? ' open' : '')">
+                                                <div class="as_model_rule_head as_button_rule_head" t-on-click="() => this.toggleButtonModelCard(rule)">
+                                                    <div class="as_model_rule_icon as_button_icon">
+                                                        <i class="fa fa-toggle-off"/>
+                                                    </div>
+                                                    <div>
+                                                        <div class="as_model_rule_title" t-esc="rule.model_name"/>
+                                                        <div class="as_model_rule_sub">
+                                                            <t t-esc="rule.model"/> · <t t-esc="rule.nodes.length"/> items hidden
+                                                        </div>
+                                                    </div>
+                                                    <span t-att-class="'as_model_rule_badge' + (rule.nodes.length ? '' : ' empty')">
+                                                        <t t-esc="rule.nodes.length"/> items
                                                     </span>
-                                                    <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.clearButtonModel()">×</span>
-                                                </span>
-                                            </t>
-                                            <input type="text" class="as_tokenizer_input"
-                                                   t-att-placeholder="this.state.wButtonModel ? '' : 'Search models... e.g. Journal Entry, account.move'"
-                                                   t-att-value="this.state.wSearches.button_models"
-                                                   t-on-input="(ev) => this.onButtonModelInput(ev)"
-                                                   t-on-keydown="(ev) => this.onButtonModelKeydown(ev)"
-                                                   t-on-focus="() => this.openDropdown('button_models')"
-                                                   t-on-blur="() => this.scheduleClose('button_models')"/>
-                                        </div>
-                                        <div t-if="this.state.wOpenField === 'button_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                            <div class="as_selector_panel_head">
-                                                <div>
-                                                    <div class="as_selector_panel_title">Select Model</div>
-                                                    <div class="as_selector_panel_sub"><t t-esc="this.getFiltered('button_models').length"/> visible</div>
+                                                    <button type="button" class="as_model_remove_btn" t-on-click.stop="() => this.removeButtonRule(rule.id)" title="Remove">
+                                                        <i class="fa fa-times"/>
+                                                    </button>
+                                                    <i class="fa fa-chevron-down as_model_rule_chevron"/>
                                                 </div>
-                                                <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                    <i class="fa fa-times"/>
-                                                </button>
-                                            </div>
-                                            <t t-foreach="this.getFiltered('button_models')" t-as="model" t-key="model.id">
-                                                <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('button_models', model)">
-                                                    <i class="fa fa-cube as_dropdown_item_icon"/>
-                                                    <span class="as_dropdown_item_text">
-                                                        <span class="as_dropdown_item_title" t-esc="model.name"/>
-                                                        <span class="as_dropdown_item_sub" t-esc="model.model"/>
-                                                    </span>
-                                                </div>
-                                            </t>
-                                            <div t-if="!this.getFiltered('button_models').length" class="as_dropdown_empty">No results found.</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                                <t t-if="this.isButtonModelCardOpen(rule.id)">
+                                                    <div class="as_button_rule_body">
+                                                        <div class="as_form_group">
+                                                            <label class="as_form_label">Buttons, Tabs, Links</label>
+                                                            <div class="as_tokenizer_wrap as_big_selector">
+                                                                <div t-att-class="'as_tokenizer' + (this.state.wButtonModel ? '' : ' disabled')" t-on-click.stop="() => this.state.wButtonModel &amp;&amp; this.openDropdown('button_nodes')">
+                                                                    <input type="text" class="as_tokenizer_input"
+                                                                           t-att-disabled="!this.state.wButtonModel"
+                                                                           t-att-placeholder="this.state.wButtonModel ? 'Search buttons/tabs... e.g. Post, Notes, Reverse Entry' : 'Open the card first'"
+                                                                           t-att-value="this.state.wSearches.button_nodes"
+                                                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'button_nodes')"
+                                                                           t-on-focus="() => this.state.wButtonModel &amp;&amp; this.openDropdown('button_nodes')"
+                                                                           t-on-blur="() => this.scheduleClose('button_nodes')"/>
+                                                                </div>
+                                                                <div t-if="this.state.wOpenField === 'button_nodes'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
+                                                                    <div class="as_selector_panel_head">
+                                                                        <div>
+                                                                            <div class="as_selector_panel_title">Available View Nodes</div>
+                                                                            <div class="as_selector_panel_sub">Select an item to hide · <t t-esc="this.getFiltered('button_nodes').length"/> visible</div>
+                                                                        </div>
+                                                                        <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
+                                                                            <i class="fa fa-times"/>
+                                                                        </button>
+                                                                    </div>
+                                                                    <t t-foreach="this.getFiltered('button_nodes')" t-as="node" t-key="node.id">
+                                                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('button_nodes', node)">
+                                                                            <i t-att-class="node.node_type === 'page' ? 'fa fa-columns as_dropdown_item_icon' : (node.node_type === 'link' ? 'fa fa-link as_dropdown_item_icon' : 'fa fa-toggle-off as_dropdown_item_icon')"/>
+                                                                            <span class="as_dropdown_item_text">
+                                                                                <span class="as_dropdown_item_title">
+                                                                                    <t t-esc="node.name"/>
+                                                                                    <t t-if="node.is_smart_button"> · Smart</t>
+                                                                                </span>
+                                                                                <span class="as_dropdown_item_sub">
+                                                                                    <t t-esc="node.node_type"/> · <t t-esc="node.attribute_name"/>
+                                                                                </span>
+                                                                            </span>
+                                                                        </div>
+                                                                    </t>
+                                                                    <div t-if="!this.getFiltered('button_nodes').length" class="as_dropdown_empty">No results found.</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-                                <div class="as_form_group">
-                                    <label class="as_form_label">Buttons, Tabs, Links</label>
-                                    <div class="as_tokenizer_wrap as_big_selector">
-                                        <div t-att-class="'as_tokenizer' + (this.state.wButtonModel ? '' : ' disabled')" t-on-click.stop="() => this.state.wButtonModel &amp;&amp; this.openDropdown('button_nodes')">
-                                            <input type="text" class="as_tokenizer_input"
-                                                   t-att-disabled="!this.state.wButtonModel"
-                                                   t-att-placeholder="this.state.wButtonModel ? 'Search buttons/tabs... e.g. Post, Notes, Reverse Entry' : 'Select a model first'"
-                                                   t-att-value="this.state.wSearches.button_nodes"
-                                                   t-on-input="(ev) => this.onTokenizerInput(ev, 'button_nodes')"
-                                                   t-on-focus="() => this.state.wButtonModel &amp;&amp; this.openDropdown('button_nodes')"
-                                                   t-on-blur="() => this.scheduleClose('button_nodes')"/>
-                                        </div>
-                                        <div t-if="this.state.wOpenField === 'button_nodes'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                            <div class="as_selector_panel_head">
-                                                <div>
-                                                    <div class="as_selector_panel_title">Available View Nodes</div>
-                                                    <div class="as_selector_panel_sub">Select an item to hide · <t t-esc="this.getFiltered('button_nodes').length"/> visible</div>
-                                                </div>
-                                                <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                    <i class="fa fa-times"/>
-                                                </button>
-                                            </div>
-                                            <t t-foreach="this.getFiltered('button_nodes')" t-as="node" t-key="node.id">
-                                                <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('button_nodes', node)">
-                                                    <i t-att-class="node.node_type === 'page' ? 'fa fa-columns as_dropdown_item_icon' : (node.node_type === 'link' ? 'fa fa-link as_dropdown_item_icon' : 'fa fa-toggle-off as_dropdown_item_icon')"/>
-                                                    <span class="as_dropdown_item_text">
-                                                        <span class="as_dropdown_item_title">
-                                                            <t t-esc="node.name"/>
-                                                            <t t-if="node.is_smart_button"> · Smart</t>
-                                                        </span>
-                                                        <span class="as_dropdown_item_sub">
-                                                            <t t-esc="node.node_type"/> · <t t-esc="node.attribute_name"/>
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                            </t>
-                                            <div t-if="!this.getFiltered('button_nodes').length" class="as_dropdown_empty">No results found.</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div t-if="!this.state.wButtonRules.length" class="as_model_placeholder">
-                                    <i class="fa fa-toggle-off"/> Add a model and select buttons/tabs to hide.
-                                </div>
-                                <div t-else="" class="as_button_rules">
-                                    <t t-foreach="this.state.wButtonRules" t-as="rule" t-key="rule.id">
-                                        <div class="as_button_rule_card">
-                                            <div class="as_model_rule_head">
-                                                <div>
-                                                    <div class="as_model_rule_title" t-esc="rule.model_name"/>
-                                                    <div class="as_model_rule_sub" t-esc="rule.model"/>
-                                                </div>
-                                                <button type="button" class="as_row_btn as_row_btn_delete" t-on-click="() => this.removeButtonRule(rule.id)">
-                                                    <i class="fa fa-trash-o"/>
-                                                </button>
-                                            </div>
-                                            <div class="as_button_node_grid">
-                                                <t t-foreach="rule.nodes" t-as="node" t-key="node.id">
-                                                    <span t-att-class="'as_button_node_chip ' + node.node_type">
-                                                        <i t-att-class="node.node_type === 'page' ? 'fa fa-columns' : (node.node_type === 'link' ? 'fa fa-link' : 'fa fa-toggle-off')"/>
-                                                        <span>
-                                                            <t t-esc="node.name"/>
-                                                            <small t-esc="node.node_type"/>
-                                                        </span>
-                                                        <button type="button" t-on-click="() => this.removeButtonNode(rule.id, node.id)">×</button>
-                                                    </span>
+                                                        <div t-if="rule.nodes.length" class="as_button_node_grid">
+                                                            <t t-foreach="rule.nodes" t-as="node" t-key="node.id">
+                                                                <span t-att-class="'as_button_node_chip ' + node.node_type">
+                                                                    <i t-att-class="node.node_type === 'page' ? 'fa fa-columns' : (node.node_type === 'link' ? 'fa fa-link' : 'fa fa-toggle-off')"/>
+                                                                    <span>
+                                                                        <t t-esc="node.name"/>
+                                                                        <small t-esc="node.node_type"/>
+                                                                    </span>
+                                                                    <button type="button" t-on-click="() => this.removeButtonNode(rule.id, node.id)">×</button>
+                                                                </span>
+                                                            </t>
+                                                        </div>
+                                                    </div>
                                                 </t>
                                             </div>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="as_model_placeholder">
+                                        <i class="fa fa-toggle-off"/> Click Add Model Section to create a button/tab section.
+                                    </div>
+                                </t>
+                                <div class="as_button_add_bar">
+                                    <t t-if="this.state.wButtonPickerOpen || this.state.wButtonModelCandidates.length">
+                                        <div class="as_model_pick_row">
+                                            <div class="as_tokenizer as_model_pick_box" t-on-click.stop="() => this.openDropdown('button_models')">
+                                                <t t-foreach="this.state.wButtonModelCandidates" t-as="candidate" t-key="candidate.id">
+                                                    <span class="as_tag as_tag_role as_model_pick_tag">
+                                                        <t t-esc="candidate.name"/>
+                                                        <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removePendingButtonModel(candidate.id)">×</span>
+                                                    </span>
+                                                </t>
+                                                <input type="text"
+                                                       class="as_model_pick_input"
+                                                       placeholder="Search models... e.g. Journal Entry, account.move"
+                                                       t-att-value="this.state.wSearches.button_models"
+                                                       t-on-input="(ev) => this.onButtonModelInput(ev)"
+                                                       t-on-keydown="(ev) => this.onButtonModelKeydown(ev)"
+                                                       t-on-focus="() => this.openDropdown('button_models')"
+                                                       t-on-blur="() => this.scheduleClose('button_models')"/>
+                                            </div>
+                                            <button type="button"
+                                                    t-att-class="'as_model_add_btn' + (this.state.wButtonModelCandidates.length ? '' : ' disabled')"
+                                                    t-on-click.stop="addSelectedButtonModels">Add Model Section</button>
                                         </div>
+                                        <div class="as_model_catalog_wrap">
+                                            <div t-if="this.state.wOpenField === 'button_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
+                                                <t t-foreach="this.getFiltered('button_models')" t-as="model" t-key="model.id">
+                                                    <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('button_models', model)">
+                                                        <i class="fa fa-cube as_dropdown_item_icon"/>
+                                                        <span class="as_dropdown_item_text">
+                                                            <span class="as_dropdown_item_title" t-esc="model.name"/>
+                                                            <span class="as_dropdown_item_sub" t-esc="model.model"/>
+                                                        </span>
+                                                    </div>
+                                                </t>
+                                                <div t-if="!this.getFiltered('button_models').length" class="as_dropdown_empty">No results found.</div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <button type="button"
+                                                class="as_model_add_btn"
+                                                t-on-click.stop="() => this.openDropdown('button_models')">+ Add Model Section</button>
                                     </t>
                                 </div>
                             </div>
@@ -875,118 +918,133 @@
                         <t t-elif="this.state.wRestrictTab === 'filter'">
                             <p class="as_rtab_desc">Hide saved search filters and group-by choices from a model search view.</p>
                             <div class="as_filter_builder">
-                                <div class="as_form_group">
-                                    <label class="as_form_label">Model</label>
-                                    <div class="as_tokenizer_wrap as_big_selector">
-                                        <div class="as_tokenizer" t-on-click.stop="() => this.openDropdown('filter_models')">
-                                            <t t-if="this.state.wFilterModel">
-                                                <span class="as_field_model_badge">
-                                                    <i class="fa fa-cube"/>
-                                                    <span class="as_field_model_badge_text">
-                                                        <span t-esc="this.state.wFilterModel.name"/>
-                                                        <small t-esc="this.state.wFilterModel.model"/>
+                                <t t-if="this.state.wFilterRules.length">
+                                    <div class="as_filter_rules">
+                                        <t t-foreach="this.state.wFilterRules" t-as="rule" t-key="rule.id">
+                                            <div t-att-class="'as_filter_rule_card' + (this.isFilterModelCardOpen(rule.id) ? ' open' : '')">
+                                                <div class="as_model_rule_head as_filter_rule_head" t-on-click="() => this.toggleFilterModelCard(rule)">
+                                                    <div class="as_model_rule_icon as_filter_icon">
+                                                        <i class="fa fa-search-minus"/>
+                                                    </div>
+                                                    <div>
+                                                        <div class="as_model_rule_title" t-esc="rule.model_name"/>
+                                                        <div class="as_model_rule_sub">
+                                                            <t t-esc="rule.model"/> · <t t-esc="rule.nodes.length"/> items hidden
+                                                        </div>
+                                                    </div>
+                                                    <span t-att-class="'as_model_rule_badge' + (rule.nodes.length ? '' : ' empty')">
+                                                        <t t-esc="rule.nodes.length"/> items
                                                     </span>
-                                                    <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.clearFilterModel()">×</span>
-                                                </span>
-                                            </t>
-                                            <input type="text" class="as_tokenizer_input"
-                                                   t-att-placeholder="this.state.wFilterModel ? '' : 'Search models... e.g. Invoice, account.move'"
-                                                   t-att-value="this.state.wSearches.filter_models"
-                                                   t-on-input="(ev) => this.onFilterModelInput(ev)"
-                                                   t-on-keydown="(ev) => this.onFilterModelKeydown(ev)"
-                                                   t-on-focus="() => this.openDropdown('filter_models')"
-                                                   t-on-blur="() => this.scheduleClose('filter_models')"/>
-                                        </div>
-                                        <div t-if="this.state.wOpenField === 'filter_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                            <div class="as_selector_panel_head">
-                                                <div>
-                                                    <div class="as_selector_panel_title">Select Model</div>
-                                                    <div class="as_selector_panel_sub"><t t-esc="this.getFiltered('filter_models').length"/> visible</div>
+                                                    <button type="button" class="as_model_remove_btn" t-on-click.stop="() => this.removeFilterRule(rule.id)" title="Remove">
+                                                        <i class="fa fa-times"/>
+                                                    </button>
+                                                    <i class="fa fa-chevron-down as_model_rule_chevron"/>
                                                 </div>
-                                                <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                    <i class="fa fa-times"/>
-                                                </button>
-                                            </div>
-                                            <t t-foreach="this.getFiltered('filter_models')" t-as="model" t-key="model.id">
-                                                <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('filter_models', model)">
-                                                    <i class="fa fa-cube as_dropdown_item_icon"/>
-                                                    <span class="as_dropdown_item_text">
-                                                        <span class="as_dropdown_item_title" t-esc="model.name"/>
-                                                        <span class="as_dropdown_item_sub" t-esc="model.model"/>
-                                                    </span>
-                                                </div>
-                                            </t>
-                                            <div t-if="!this.getFiltered('filter_models').length" class="as_dropdown_empty">No results found.</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                                <t t-if="this.isFilterModelCardOpen(rule.id)">
+                                                    <div class="as_filter_rule_body">
+                                                        <div class="as_form_group">
+                                                            <label class="as_form_label">Filters / Group By</label>
+                                                            <div class="as_tokenizer_wrap as_big_selector">
+                                                                <div t-att-class="'as_tokenizer' + (this.state.wFilterModel ? '' : ' disabled')" t-on-click.stop="() => this.state.wFilterModel &amp;&amp; this.openDropdown('filter_nodes')">
+                                                                    <input type="text" class="as_tokenizer_input"
+                                                                           t-att-disabled="!this.state.wFilterModel"
+                                                                           t-att-placeholder="this.state.wFilterModel ? 'Search filters/group by... e.g. Archived, Status, Salesperson' : 'Open the card first'"
+                                                                           t-att-value="this.state.wSearches.filter_nodes"
+                                                                           t-on-input="(ev) => this.onTokenizerInput(ev, 'filter_nodes')"
+                                                                           t-on-focus="() => this.state.wFilterModel &amp;&amp; this.openDropdown('filter_nodes')"
+                                                                           t-on-blur="() => this.scheduleClose('filter_nodes')"/>
+                                                                </div>
+                                                                <div t-if="this.state.wOpenField === 'filter_nodes'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
+                                                                    <div class="as_selector_panel_head">
+                                                                        <div>
+                                                                            <div class="as_selector_panel_title">Search View Items</div>
+                                                                            <div class="as_selector_panel_sub">Select an item to hide · <t t-esc="this.getFiltered('filter_nodes').length"/> visible</div>
+                                                                        </div>
+                                                                        <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
+                                                                            <i class="fa fa-times"/>
+                                                                        </button>
+                                                                    </div>
+                                                                    <t t-foreach="this.getFiltered('filter_nodes')" t-as="node" t-key="node.id">
+                                                                        <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('filter_nodes', node)">
+                                                                            <i t-att-class="node.node_type === 'group' ? 'fa fa-object-group as_dropdown_item_icon' : 'fa fa-filter as_dropdown_item_icon'"/>
+                                                                            <span class="as_dropdown_item_text">
+                                                                                <span class="as_dropdown_item_title" t-esc="node.name"/>
+                                                                                <span class="as_dropdown_item_sub">
+                                                                                    <t t-esc="node.node_type === 'group' ? 'Group By' : 'Filter'"/> · <t t-esc="node.attribute_name"/>
+                                                                                </span>
+                                                                            </span>
+                                                                        </div>
+                                                                    </t>
+                                                                    <div t-if="!this.getFiltered('filter_nodes').length" class="as_dropdown_empty">No results found.</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-                                <div class="as_form_group">
-                                    <label class="as_form_label">Filters / Group By</label>
-                                    <div class="as_tokenizer_wrap as_big_selector">
-                                        <div t-att-class="'as_tokenizer' + (this.state.wFilterModel ? '' : ' disabled')" t-on-click.stop="() => this.state.wFilterModel &amp;&amp; this.openDropdown('filter_nodes')">
-                                            <input type="text" class="as_tokenizer_input"
-                                                   t-att-disabled="!this.state.wFilterModel"
-                                                   t-att-placeholder="this.state.wFilterModel ? 'Search filters/group by... e.g. Archived, Status, Salesperson' : 'Select a model first'"
-                                                   t-att-value="this.state.wSearches.filter_nodes"
-                                                   t-on-input="(ev) => this.onTokenizerInput(ev, 'filter_nodes')"
-                                                   t-on-focus="() => this.state.wFilterModel &amp;&amp; this.openDropdown('filter_nodes')"
-                                                   t-on-blur="() => this.scheduleClose('filter_nodes')"/>
-                                        </div>
-                                        <div t-if="this.state.wOpenField === 'filter_nodes'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
-                                            <div class="as_selector_panel_head">
-                                                <div>
-                                                    <div class="as_selector_panel_title">Search View Items</div>
-                                                    <div class="as_selector_panel_sub">Select an item to hide · <t t-esc="this.getFiltered('filter_nodes').length"/> visible</div>
-                                                </div>
-                                                <button type="button" class="as_selector_close" t-on-mousedown.prevent.stop="() => this.closeDropdown()">
-                                                    <i class="fa fa-times"/>
-                                                </button>
-                                            </div>
-                                            <t t-foreach="this.getFiltered('filter_nodes')" t-as="node" t-key="node.id">
-                                                <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('filter_nodes', node)">
-                                                    <i t-att-class="node.node_type === 'group' ? 'fa fa-object-group as_dropdown_item_icon' : 'fa fa-filter as_dropdown_item_icon'"/>
-                                                    <span class="as_dropdown_item_text">
-                                                        <span class="as_dropdown_item_title" t-esc="node.name"/>
-                                                        <span class="as_dropdown_item_sub">
-                                                            <t t-esc="node.node_type === 'group' ? 'Group By' : 'Filter'"/> · <t t-esc="node.attribute_name"/>
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                            </t>
-                                            <div t-if="!this.getFiltered('filter_nodes').length" class="as_dropdown_empty">No results found.</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div t-if="!this.state.wFilterRules.length" class="as_model_placeholder">
-                                    <i class="fa fa-search-minus"/> Add a model and select filters/group-by items to hide.
-                                </div>
-                                <div t-else="" class="as_filter_rules">
-                                    <t t-foreach="this.state.wFilterRules" t-as="rule" t-key="rule.id">
-                                        <div class="as_filter_rule_card">
-                                            <div class="as_model_rule_head">
-                                                <div>
-                                                    <div class="as_model_rule_title" t-esc="rule.model_name"/>
-                                                    <div class="as_model_rule_sub" t-esc="rule.model"/>
-                                                </div>
-                                                <button type="button" class="as_row_btn as_row_btn_delete" t-on-click="() => this.removeFilterRule(rule.id)">
-                                                    <i class="fa fa-trash-o"/>
-                                                </button>
-                                            </div>
-                                            <div class="as_filter_node_grid">
-                                                <t t-foreach="rule.nodes" t-as="node" t-key="node.id">
-                                                    <span t-att-class="'as_filter_node_chip ' + node.node_type">
-                                                        <i t-att-class="node.node_type === 'group' ? 'fa fa-object-group' : 'fa fa-filter'"/>
-                                                        <span>
-                                                            <t t-esc="node.name"/>
-                                                            <small t-esc="node.node_type === 'group' ? 'Group By' : 'Filter'"/>
-                                                        </span>
-                                                        <button type="button" t-on-click="() => this.removeFilterNode(rule.id, node.id)">×</button>
-                                                    </span>
+                                                        <div t-if="rule.nodes.length" class="as_filter_node_grid">
+                                                            <t t-foreach="rule.nodes" t-as="node" t-key="node.id">
+                                                                <span t-att-class="'as_filter_node_chip ' + node.node_type">
+                                                                    <i t-att-class="node.node_type === 'group' ? 'fa fa-object-group' : 'fa fa-filter'"/>
+                                                                    <span>
+                                                                        <t t-esc="node.name"/>
+                                                                        <small t-esc="node.node_type === 'group' ? 'Group By' : 'Filter'"/>
+                                                                    </span>
+                                                                    <button type="button" t-on-click="() => this.removeFilterNode(rule.id, node.id)">×</button>
+                                                                </span>
+                                                            </t>
+                                                        </div>
+                                                    </div>
                                                 </t>
                                             </div>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="as_model_placeholder">
+                                        <i class="fa fa-search-minus"/> Click Add Model Section to create a filter/group-by section.
+                                    </div>
+                                </t>
+                                <div class="as_filter_add_bar">
+                                    <t t-if="this.state.wFilterPickerOpen || this.state.wFilterModelCandidates.length">
+                                        <div class="as_model_pick_row">
+                                            <div class="as_tokenizer as_model_pick_box" t-on-click.stop="() => this.openDropdown('filter_models')">
+                                                <t t-foreach="this.state.wFilterModelCandidates" t-as="candidate" t-key="candidate.id">
+                                                    <span class="as_tag as_tag_role as_model_pick_tag">
+                                                        <t t-esc="candidate.name"/>
+                                                        <span class="as_tag_remove" t-on-mousedown.prevent.stop="() => this.removePendingFilterModel(candidate.id)">×</span>
+                                                    </span>
+                                                </t>
+                                                <input type="text"
+                                                       class="as_model_pick_input"
+                                                       placeholder="Search models... e.g. Invoice, account.move"
+                                                       t-att-value="this.state.wSearches.filter_models"
+                                                       t-on-input="(ev) => this.onFilterModelInput(ev)"
+                                                       t-on-keydown="(ev) => this.onFilterModelKeydown(ev)"
+                                                       t-on-focus="() => this.openDropdown('filter_models')"
+                                                       t-on-blur="() => this.scheduleClose('filter_models')"/>
+                                            </div>
+                                            <button type="button"
+                                                    t-att-class="'as_model_add_btn' + (this.state.wFilterModelCandidates.length ? '' : ' disabled')"
+                                                    t-on-click.stop="addSelectedFilterModels">Add Model Section</button>
                                         </div>
+                                        <div class="as_model_catalog_wrap">
+                                            <div t-if="this.state.wOpenField === 'filter_models'" class="as_dropdown as_selector_panel" t-on-mousedown.stop="">
+                                                <t t-foreach="this.getFiltered('filter_models')" t-as="model" t-key="model.id">
+                                                    <div class="as_dropdown_item" t-on-mousedown.prevent="() => this.selectOption('filter_models', model)">
+                                                        <i class="fa fa-cube as_dropdown_item_icon"/>
+                                                        <span class="as_dropdown_item_text">
+                                                            <span class="as_dropdown_item_title" t-esc="model.name"/>
+                                                            <span class="as_dropdown_item_sub" t-esc="model.model"/>
+                                                        </span>
+                                                    </div>
+                                                </t>
+                                                <div t-if="!this.getFiltered('filter_models').length" class="as_dropdown_empty">No results found.</div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <button type="button"
+                                                class="as_model_add_btn"
+                                                t-on-click.stop="() => this.openDropdown('filter_models')">+ Add Model Section</button>
                                     </t>
                                 </div>
                             </div>
@@ -1103,64 +1161,26 @@
                     <t t-elif="this.state.wizardStep === 4">
                         <div class="as_review_summary">
                             <h3 class="as_review_title">Summary</h3>
-                            <t t-if="this.state.wizardMode === 'edit' and this.state.activeRule">
-                                <div class="as_review_item">
-                                    <i class="fa fa-users as_review_icon"/>
-                                    <strong><t t-esc="this.state.activeRule.summary.users"/></strong>
-                                </div>
-                                <t t-if="this.state.activeRule.summary.menus">
+                            <t t-set="reviewRows" t-value="this.getReviewSummaryRows()"/>
+                            <t t-if="reviewRows.length">
+                                <t t-foreach="reviewRows" t-as="row" t-key="row.key">
                                     <div class="as_review_item">
-                                        <i class="fa fa-th-large as_review_icon"/>
-                                        <strong><t t-esc="this.state.activeRule.summary.menus"/></strong>
-                                    </div>
-                                </t>
-                                <t t-if="this.state.activeRule.summary.model">
-                                    <div class="as_review_item">
-                                        <i class="fa fa-file as_review_icon"/>
-                                        <div>
-                                            <div><strong>Model Access:</strong> <t t-esc="this.state.activeRule.summary.model"/></div>
-                                        </div>
-                                    </div>
-                                </t>
-                                <t t-if="this.state.activeRule.summary.fields">
-                                    <div class="as_review_item">
-                                        <i class="fa fa-table as_review_icon"/>
-                                        <span><strong>Fields:</strong> <t t-esc="this.state.activeRule.summary.fields"/></span>
-                                    </div>
-                                </t>
-                                <t t-if="this.state.activeRule.summary.buttons">
-                                    <div class="as_review_item">
-                                        <i class="fa fa-signal as_review_icon"/>
-                                        <span><t t-esc="this.state.activeRule.summary.buttons"/></span>
-                                    </div>
-                                </t>
-                                <t t-if="this.state.activeRule.summary.global">
-                                    <div class="as_review_item">
-                                        <i class="fa fa-clock-o as_review_icon"/>
-                                        <span><strong>Global:</strong> <t t-esc="this.state.activeRule.summary.global"/></span>
+                                        <i t-att-class="row.icon + ' as_review_icon'"/>
+                                        <span><strong><t t-esc="row.label"/>:</strong> <t t-esc="row.detail"/></span>
                                     </div>
                                 </t>
                             </t>
                             <t t-else="">
                                 <div class="as_review_item">
-                                    <i class="fa fa-users as_review_icon"/>
-                                    <t t-if="this.state.wRoles.length + this.state.wUsers.length > 0">
-                                        Users via <strong><t t-esc="this.state.wRoles.concat(this.state.wUsers).map(x => x.name).join(', ')"/></strong>
-                                    </t>
-                                    <t t-else=""><em>No audience selected</em></t>
+                                    <i class="fa fa-info-circle as_review_icon"/>
+                                    <span><em>No restrictions configured.</em></span>
                                 </div>
-                                <t t-if="this.state.wHideMenus.length > 0">
-                                    <div class="as_review_item">
-                                        <i class="fa fa-th-large as_review_icon"/>
-                                        <span><strong>Hide <t t-esc="this.state.wHideMenus.length"/> menus:</strong> <t t-esc="this.state.wHideMenus.map(m => m.name).join(', ')"/></span>
-                                    </div>
-                                </t>
                             </t>
                         </div>
 
                         <div class="as_review_warning">
                             <i class="fa fa-exclamation-triangle"/>
-                            <p>Restrictions are additive: if any active rule blocks an operation, it is blocked. Superuser, sudo automation, and explicit RBAC bypass context remain exempt. Changes take effect immediately on publish.</p>
+                            <p><t t-esc="this.getReviewWarningText()"/></p>
                         </div>
 
                         <button class="as_btn as_btn_outline as_btn_full" t-on-click="saveAsDraft">

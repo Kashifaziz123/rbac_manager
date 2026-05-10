@@ -1,6 +1,6 @@
 /* @odoo-module */
 
-import {Component, onWillStart, useState} from "@odoo/owl";
+import {Component, onWillStart, onWillUnmount, useState} from "@odoo/owl";
 import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
@@ -52,6 +52,10 @@ export class RBACAccessStudio extends Component {
             // Step 3 selections
             wHideMenus: [],
             wModelItems: [],
+            wModelCandidates: [],
+            wDomainCandidates: [],
+            wFieldModels: [],
+            wFieldModelCandidates: [],
             wFieldRules: [],
             wFieldModelId: '',
             wFieldModel: null,
@@ -62,13 +66,21 @@ export class RBACAccessStudio extends Component {
             wFieldExternalLink: false,
             wDomainRules: [],
             wDomainModel: null,
+            wDomainPickerOpen: false,
             wButtonRules: [],
+            wButtonModelCandidates: [],
             wButtonModel: null,
             wAllButtonChoices: [],
             wFilterRules: [],
+            wFilterModelCandidates: [],
             wFilterModel: null,
             wAllFilterChoices: [],
+            wFilterPickerOpen: false,
             wRestrictTab: 'menu',
+            wOpenModelId: null,
+            wOpenDomainId: null,
+            wOpenFilterModelId: null,
+            wOpenFieldModelId: null,
             // Step 3 global toggles
             wGlobalHideImport: false,
             wGlobalHideExport: false,
@@ -88,6 +100,30 @@ export class RBACAccessStudio extends Component {
                 menus: '', models: '', field_models: '', field_fields: '', domain_models: '',
                 button_models: '', button_nodes: '', filter_models: '', filter_nodes: '',
             },
+        });
+
+        this._onDocumentClick = (ev) => {
+            if (!this.state.wOpenField) {
+                return;
+            }
+            const root = ev.target?.closest?.('.as_wrap');
+            if (!root) {
+                this.closeDropdown();
+            }
+        };
+        this._onDocumentKeydown = (ev) => {
+            if (ev.key !== 'Escape') {
+                return;
+            }
+            if (this.state.wOpenField) {
+                this.closeDropdown();
+            }
+        };
+        document.addEventListener('click', this._onDocumentClick, true);
+        document.addEventListener('keydown', this._onDocumentKeydown, true);
+        onWillUnmount(() => {
+            document.removeEventListener('click', this._onDocumentClick, true);
+            document.removeEventListener('keydown', this._onDocumentKeydown, true);
         });
 
         onWillStart(async () => {
@@ -136,13 +172,22 @@ export class RBACAccessStudio extends Component {
         Object.assign(this.state, {
             wName: '', wDesc: '', wType: 'Restriction', wPriority: 'Normal (50)', wActivate: true,
             wRoles: [], wDepts: [], wUsers: [], wCompanies: [], wExclude: [],
-            wHideMenus: [], wModelItems: [], wFieldRules: [],
+            wHideMenus: [], wModelItems: [], wModelCandidates: [], wFieldRules: [],
+            wDomainCandidates: [],
+            wFieldModels: [], wFieldModelCandidates: [],
             wFieldModelId: '', wFieldModel: null, wFieldItems: [], wAllFieldChoices: [],
             wFieldInvisible: true, wFieldReadonly: false, wFieldRequired: false, wFieldExternalLink: false,
             wDomainRules: [], wDomainModel: null,
-            wButtonRules: [], wButtonModel: null, wAllButtonChoices: [],
-            wFilterRules: [], wFilterModel: null, wAllFilterChoices: [],
+            wDomainPickerOpen: false,
+            wButtonRules: [], wButtonModelCandidates: [], wButtonModel: null, wAllButtonChoices: [],
+            wButtonPickerOpen: false,
+            wOpenButtonModelId: null,
+            wFilterRules: [], wFilterModelCandidates: [], wFilterModel: null, wAllFilterChoices: [],
+            wFilterPickerOpen: false,
+            wOpenFilterModelId: null,
             wRestrictTab: 'menu',
+            wOpenModelId: null,
+            wOpenDomainId: null,
             wGlobalHideImport: false, wGlobalHideExport: false,
             wGlobalHideSpreadsheet: false, wGlobalHideAddProperty: false,
             wGlobalDisableDevMode: false, wGlobalHideTechSettings: false,
@@ -178,10 +223,24 @@ export class RBACAccessStudio extends Component {
             wExclude:  (ad.exclude   || []).map(item => this._normalizeOption(item)),
             wHideMenus: (cfg.hide_menus || []).map(item => this._normalizeOption(item)),
             wModelItems: (cfg.models || []).map(item => this._normalizeModelOption(item, true)),
+            wModelCandidates: [],
+            wDomainCandidates: [],
+            wFieldModels: this._normalizeFieldModels(cfg.fields || []),
+            wFieldModelCandidates: [],
+            wOpenModelId: null,
+            wOpenDomainId: null,
+            wOpenFieldModelId: null,
             wFieldRules: this._normalizeFieldRules(cfg.fields || []),
             wDomainRules: this._normalizeDomainRules(cfg.domain_access || []),
+            wDomainPickerOpen: false,
             wButtonRules: this._normalizeButtonRules(cfg.button_tab_access || []),
+            wButtonModelCandidates: [],
+            wButtonPickerOpen: false,
+            wOpenButtonModelId: null,
             wFilterRules: this._normalizeFilterRules(cfg.filter_group_access || []),
+            wFilterModelCandidates: [],
+            wFilterPickerOpen: false,
+            wOpenFilterModelId: null,
             wGlobalHideImport: !!cfg.hide_import,
             wGlobalHideExport: !!cfg.hide_export,
             wGlobalHideSpreadsheet: !!cfg.hide_spreadsheet,
@@ -205,14 +264,14 @@ export class RBACAccessStudio extends Component {
 
     get modelAccessOptions() {
         return [
+            {key: 'restrict_create', label: 'Hide Create'},
+            {key: 'restrict_edit', label: 'Hide Edit'},
+            {key: 'restrict_delete', label: 'Hide Delete'},
+            {key: 'restrict_duplicate', label: 'Hide Duplicate'},
+            {key: 'restrict_archive', label: 'Hide Archive'},
+            {key: 'restrict_import', label: 'Hide Import'},
+            {key: 'restrict_export', label: 'Hide Export'},
             {key: 'readonly', label: 'Read-only'},
-            {key: 'restrict_create', label: 'Create'},
-            {key: 'restrict_edit', label: 'Edit'},
-            {key: 'restrict_delete', label: 'Delete'},
-            {key: 'restrict_archive', label: 'Archive'},
-            {key: 'restrict_duplicate', label: 'Duplicate'},
-            {key: 'restrict_import', label: 'Import'},
-            {key: 'restrict_export', label: 'Export'},
         ];
     }
 
@@ -262,6 +321,22 @@ export class RBACAccessStudio extends Component {
             }
         }
         return [...rulesByField.values()];
+    }
+
+    _normalizeFieldModels(items) {
+        const models = new Map();
+        for (const item of items || []) {
+            const modelId = item.model_id || item.id;
+            if (!modelId || models.has(String(modelId))) {
+                continue;
+            }
+            models.set(String(modelId), {
+                id: modelId,
+                name: item.model_name || item.name || item.model,
+                model: item.model,
+            });
+        }
+        return [...models.values()];
     }
 
     _normalizeDomainRule(item) {
@@ -422,7 +497,6 @@ export class RBACAccessStudio extends Component {
                     restrict_export: !!item.restrict_export,
                 })),
                 fields: this.state.wFieldRules
-                    .filter(item => this._fieldRuleHasAnyAttribute(item))
                     .map(item => ({
                     id: item.id,
                     model_id: item.model_id,
@@ -528,6 +602,220 @@ export class RBACAccessStudio extends Component {
         return 'low';
     }
 
+    _reviewPayload() {
+        return (this.state.wizardMode === 'edit' && this.state.activeRule) ? this.state.activeRule : this._buildRulePayload();
+    }
+
+    _reviewList(items, limit = 4) {
+        const names = (items || [])
+            .map(item => item?.name || item?.label || item?.model_name || item?.model || '')
+            .filter(Boolean);
+        if (!names.length) {
+            return '';
+        }
+        if (names.length <= limit) {
+            return names.join(', ');
+        }
+        return `${names.slice(0, limit).join(', ')} ...`;
+    }
+
+    _reviewCountSuffix(count, singular, plural = null) {
+        return `${count} ${count === 1 ? singular : (plural || `${singular}s`)}`;
+    }
+
+    _reviewAudienceSummary(audience) {
+        const parts = [];
+        const roles = (audience?.roles || []);
+        const users = (audience?.users || []);
+        const depts = (audience?.depts || []);
+        const companies = (audience?.companies || []);
+        const exclude = (audience?.exclude || []);
+        if (roles.length) {
+            parts.push(`${this._reviewCountSuffix(roles.length, 'role')} (${this._reviewList(roles, 3)})`);
+        }
+        if (users.length) {
+            parts.push(`${this._reviewCountSuffix(users.length, 'direct user')} (${this._reviewList(users, 3)})`);
+        }
+        if (depts.length) {
+            parts.push(`${this._reviewCountSuffix(depts.length, 'department')} (${this._reviewList(depts, 3)})`);
+        }
+        if (companies.length) {
+            parts.push(`${this._reviewCountSuffix(companies.length, 'company')} (${this._reviewList(companies, 3)})`);
+        }
+        if (exclude.length) {
+            parts.push(`${this._reviewCountSuffix(exclude.length, 'excluded user')} (${this._reviewList(exclude, 3)})`);
+        }
+        return parts.join(' + ') || 'All users';
+    }
+
+    _reviewMenuSummary(config) {
+        const menus = config?.hide_menus || [];
+        if (!menus.length) {
+            return '';
+        }
+        return `Hide ${this._reviewCountSuffix(menus.length, 'menu')}: ${this._reviewList(menus, 6)}`;
+    }
+
+    _reviewModelAccessSummary(config) {
+        const models = config?.models || [];
+        if (!models.length) {
+            return '';
+        }
+        const segments = [];
+        const labels = [
+            ['readonly', 'Read-only'],
+            ['restrict_create', 'Hide Create'],
+            ['restrict_edit', 'Hide Edit'],
+            ['restrict_delete', 'Hide Delete'],
+            ['restrict_archive', 'Hide Archive'],
+            ['restrict_duplicate', 'Hide Duplicate'],
+            ['restrict_import', 'Hide Import'],
+            ['restrict_export', 'Hide Export'],
+        ];
+        for (const model of models) {
+            if (!model) {
+                continue;
+            }
+            const flags = labels
+                .filter(([key]) => model[key])
+                .map(([, label]) => label);
+            if (flags.length) {
+                segments.push(`${model.model_name || model.name || model.model} — ${flags.join(', ')}`);
+            }
+        }
+        return segments.join(' · ') || '';
+    }
+
+    _reviewFieldAccessSummary(config) {
+        const rules = config?.fields || [];
+        if (!rules.length) {
+            return '';
+        }
+        const buckets = {
+            invisible: [],
+            readonly: [],
+            required: [],
+            external_link: [],
+        };
+        for (const rule of rules) {
+            const fields = (rule?.fields || []).map(field => field?.name || field?.field_name || '').filter(Boolean);
+            if (!fields.length) {
+                continue;
+            }
+            for (const key of Object.keys(buckets)) {
+                if (rule?.[key]) {
+                    buckets[key].push(...fields);
+                }
+            }
+        }
+        const parts = [];
+        if (buckets.invisible.length) parts.push(`${this._reviewCountSuffix(buckets.invisible.length, 'hidden')} (${this._reviewList(buckets.invisible, 4)})`);
+        if (buckets.readonly.length) parts.push(`${this._reviewCountSuffix(buckets.readonly.length, 'readonly field')} (${this._reviewList(buckets.readonly, 4)})`);
+        if (buckets.required.length) parts.push(`${this._reviewCountSuffix(buckets.required.length, 'required field')} (${this._reviewList(buckets.required, 4)})`);
+        if (buckets.external_link.length) parts.push(`${this._reviewCountSuffix(buckets.external_link.length, 'external link removed field')} (${this._reviewList(buckets.external_link, 4)})`);
+        return parts.join(', ');
+    }
+
+    _reviewButtonSummary(config) {
+        const rules = config?.button_tab_access || [];
+        if (!rules.length) {
+            return '';
+        }
+        const buttons = [];
+        const tabs = [];
+        for (const rule of rules) {
+            const modelLabel = rule?.model_name || rule?.name || rule?.model || 'Model';
+            const buttonNames = (rule?.nodes || []).filter(node => node.node_type === 'button').map(node => node.name || node.attribute_string || node.attribute_name || '').filter(Boolean);
+            const tabNames = (rule?.nodes || []).filter(node => node.node_type === 'tab').map(node => node.name || node.attribute_string || node.attribute_name || '').filter(Boolean);
+            if (buttonNames.length) {
+                buttons.push(`${modelLabel} — ${this._reviewList(buttonNames, 4)}`);
+            }
+            if (tabNames.length) {
+                tabs.push(`${modelLabel} — ${this._reviewList(tabNames, 4)}`);
+            }
+        }
+        const parts = [];
+        if (buttons.length) parts.push(`Buttons hidden: ${buttons.join(' · ')}`);
+        if (tabs.length) parts.push(`Tabs hidden: ${tabs.join(' · ')}`);
+        return parts.join(' · ');
+    }
+
+    _reviewDomainSummary(config) {
+        const rules = config?.domain_access || [];
+        if (!rules.length) {
+            return '';
+        }
+        return `Domain access: ${rules.map(rule => rule?.model_name || rule?.name || rule?.model || 'Model').join(' · ')}`;
+    }
+
+    _reviewFilterSummary(config) {
+        const rules = config?.filter_group_access || [];
+        if (!rules.length) {
+            return '';
+        }
+        const filters = [];
+        const groups = [];
+        for (const rule of rules) {
+            const modelLabel = rule?.model_name || rule?.name || rule?.model || 'Model';
+            const filterNames = (rule?.nodes || []).filter(node => node.node_type === 'filter').map(node => node.name || node.attribute_string || node.attribute_name || '').filter(Boolean);
+            const groupNames = (rule?.nodes || []).filter(node => node.node_type === 'group').map(node => node.name || node.attribute_string || node.attribute_name || '').filter(Boolean);
+            if (filterNames.length) {
+                filters.push(`${modelLabel} — ${this._reviewList(filterNames, 4)}`);
+            }
+            if (groupNames.length) {
+                groups.push(`${modelLabel} — ${this._reviewList(groupNames, 4)}`);
+            }
+        }
+        const parts = [];
+        if (filters.length) parts.push(`Filters hidden: ${filters.join(' · ')}`);
+        if (groups.length) parts.push(`Group-by hidden: ${groups.join(' · ')}`);
+        return parts.join(' · ');
+    }
+
+    _reviewGlobalSummary(config) {
+        const labels = [
+            ['force_readonly', 'Force read-only'],
+            ['hide_import', 'Hide Import'],
+            ['hide_export', 'Hide Export'],
+            ['hide_spreadsheet', 'Hide Spreadsheet'],
+            ['hide_add_property', 'Hide Add Property'],
+            ['disable_dev_mode', 'Disable Dev Mode'],
+            ['hide_technical_settings', 'Hide Technical Settings'],
+            ['hide_chatter', 'Hide Chatter'],
+            ['hide_send_message', 'Hide Send Message'],
+            ['hide_log_note', 'Hide Log Note'],
+            ['hide_activity', 'Hide Activity'],
+        ];
+        const active = labels.filter(([key]) => !!config?.[key]).map(([, label]) => `${label} ✓`);
+        return active.join(', ');
+    }
+
+    getReviewSummaryRows() {
+        const payload = this._reviewPayload();
+        const config = payload?.config || {};
+        const audience = payload?.audience_detail || {};
+        const rows = [];
+        const addRow = (key, icon, label, detail) => {
+            if (detail) {
+                rows.push({key, icon, label, detail});
+            }
+        };
+        addRow('audience', 'fa fa-users', 'Audience', this._reviewAudienceSummary(audience));
+        addRow('menus', 'fa fa-th-large', 'Hide Menus', this._reviewMenuSummary(config));
+        addRow('model', 'fa fa-file', 'Model Access', this._reviewModelAccessSummary(config));
+        addRow('fields', 'fa fa-table', 'Fields', this._reviewFieldAccessSummary(config));
+        addRow('buttons', 'fa fa-signal', 'Button/Tab', this._reviewButtonSummary(config));
+        addRow('domain', 'fa fa-filter', 'Domain Access', this._reviewDomainSummary(config));
+        addRow('filter', 'fa fa-search-minus', 'Filter/Group By', this._reviewFilterSummary(config));
+        addRow('global', 'fa fa-clock-o', 'Global', this._reviewGlobalSummary(config));
+        return rows;
+    }
+
+    getReviewWarningText() {
+        const count = this.getReviewSummaryRows().length;
+        return `This rule overrides role permissions across ${count} restriction categor${count === 1 ? 'y' : 'ies'}. Changes take effect immediately on publish. Use "Save as Draft" to test first.`;
+    }
+
     async saveAsDraft() {
         this.state.wActivate = false;
         await this.saveRule();
@@ -541,10 +829,10 @@ export class RBACAccessStudio extends Component {
             users: this.state.wUsers, companies: this.state.wCompanies,
             exclude: this.state.wExclude, menus: this.state.wHideMenus,
             models: this.state.wModelItems, field_fields: this.state.wFieldItems,
+            button_models: this.state.wButtonPickerOpen ? this.state.wButtonModelCandidates : (this.state.wButtonModel ? [this.state.wButtonModel] : []),
             domain_models: this.state.wDomainRules,
-            button_models: this.state.wButtonModel ? [this.state.wButtonModel] : [],
+            filter_models: this.state.wFilterPickerOpen ? this.state.wFilterModelCandidates : (this.state.wFilterModel ? [this.state.wFilterModel] : []),
             button_nodes: this._currentButtonRule()?.nodes || [],
-            filter_models: this.state.wFilterModel ? [this.state.wFilterModel] : [],
             filter_nodes: this._currentFilterRule()?.nodes || [],
         };
         return map[field] || [];
@@ -567,6 +855,34 @@ export class RBACAccessStudio extends Component {
         const src = this._sourceList(field);
         const sel = this._selectedList(field);
         const selIds = new Set(sel.map(s => s.id));
+        if (field === 'field_models') {
+            for (const item of this.state.wFieldModelCandidates || []) {
+                selIds.add(item.id);
+            }
+            for (const item of this.state.wFieldModels || []) {
+                selIds.add(item.id);
+            }
+        }
+        if (field === 'domain_models') {
+            for (const item of this.state.wDomainCandidates || []) {
+                selIds.add(item.id);
+            }
+        }
+        if (field === 'models') {
+            for (const item of this.state.wModelCandidates || []) {
+                selIds.add(item.id);
+            }
+        }
+        if (field === 'button_models') {
+            for (const item of this.state.wButtonModelCandidates || []) {
+                selIds.add(item.id);
+            }
+        }
+        if (field === 'filter_models') {
+            for (const item of this.state.wFilterModelCandidates || []) {
+                selIds.add(item.id);
+            }
+        }
         const q = (this.state.wSearches[field] || '').toLowerCase().trim();
         let filtered = src.filter(opt => !selIds.has(opt.id));
         if (field === 'field_fields' && this.state.wFieldModel) {
@@ -598,6 +914,8 @@ export class RBACAccessStudio extends Component {
         const selectedId = this.state.wFieldModel?.id;
         const q = (this.state.wSearches.field_models || '').toLowerCase().trim();
         let models = this.state.wAllModels.filter(model => model.id !== selectedId);
+        const selectedIds = new Set((this.state.wFieldModels || []).map(item => item.id));
+        models = models.filter(model => !selectedIds.has(model.id));
         if (q) {
             models = models.filter((model) => {
                 const name = (model.name || '').toLowerCase();
@@ -608,12 +926,24 @@ export class RBACAccessStudio extends Component {
         return models.slice(0, 60);
     }
 
+    get modelAccessPendingCount() {
+        return this.state.wModelCandidates.length;
+    }
+
     openDropdown(field) {
         this.state.wOpenField = field;
+        if (field === 'button_models') {
+            this.state.wButtonPickerOpen = true;
+        } else if (field === 'filter_models') {
+            this.state.wFilterPickerOpen = true;
+        }
     }
 
     closeDropdown() {
         this.state.wOpenField = '';
+        this.state.wButtonPickerOpen = !!this.state.wButtonModelCandidates.length;
+        this.state.wDomainPickerOpen = !!this.state.wDomainCandidates.length;
+        this.state.wFilterPickerOpen = !!this.state.wFilterModelCandidates.length;
     }
 
     blurActiveInput() {
@@ -631,17 +961,34 @@ export class RBACAccessStudio extends Component {
 
     selectOption(field, opt) {
         if (field === 'field_fields') {
-            this.addFieldRuleFromField(opt);
+            const candidate = {
+                id: opt.id,
+                name: opt.name,
+                field_name: opt.field_name,
+                ttype: opt.ttype,
+            };
+            const exists = this.state.wFieldItems.some(item => item.id === candidate.id) ||
+                this.fieldRulesForModel(this.state.wFieldModel?.id).some(rule => (rule.fields || []).some(field => String(field.id) === String(candidate.id)));
+            if (!exists) {
+                this.state.wFieldItems.push(candidate);
+            }
             this.state.wSearches[field] = '';
-            this.state.wOpenField = '';
-            this.blurActiveInput();
+            this.state.wOpenField = 'field_fields';
             return;
         }
         if (field === 'domain_models') {
-            this.addDomainRule(opt);
+            const candidate = this._normalizeOption(opt);
+            const exists = this.state.wDomainCandidates.some(item => item.id === candidate.id) ||
+                this.state.wDomainRules.some(rule => rule.model === candidate.model);
+            if (!exists) {
+                this.state.wDomainCandidates.push({
+                    ...candidate,
+                    model: opt.model,
+                });
+            }
             this.state.wSearches[field] = '';
-            this.state.wOpenField = '';
-            this.blurActiveInput();
+            this.state.wDomainPickerOpen = true;
+            this.state.wOpenField = 'domain_models';
             return;
         }
         if (field === 'button_nodes') {
@@ -659,20 +1006,54 @@ export class RBACAccessStudio extends Component {
             return;
         }
         if (field === 'button_models') {
-            this.selectButtonModel(opt);
+            const candidate = this._normalizeModelOption(opt, false);
+            const exists = this.state.wButtonModelCandidates.some(item => item.id === candidate.id) ||
+                this.state.wButtonRules.some(item => item.model === candidate.model);
+            if (!exists) {
+                this.state.wButtonModelCandidates.push(candidate);
+            }
+            this.state.wSearches[field] = '';
+            this.state.wButtonPickerOpen = true;
+            this.state.wOpenField = 'button_models';
             return;
         }
         if (field === 'filter_models') {
-            this.selectFilterModel(opt);
+            const candidate = this._normalizeModelOption(opt, false);
+            const exists = this.state.wFilterModelCandidates.some(item => item.id === candidate.id) ||
+                this.state.wFilterRules.some(item => item.model === candidate.model);
+            if (!exists) {
+                this.state.wFilterModelCandidates.push(candidate);
+            }
+            this.state.wSearches[field] = '';
+            this.state.wFilterPickerOpen = true;
+            this.state.wOpenField = 'filter_models';
+            return;
+        }
+        if (field === 'field_models') {
+            const candidate = this._normalizeModelOption(opt, false);
+            const exists = this.state.wFieldModelCandidates.some(item => item.id === candidate.id) ||
+                this.state.wFieldModels.some(item => item.id === candidate.id);
+            if (!exists) {
+                this.state.wFieldModelCandidates.push(candidate);
+            }
+            this.state.wSearches[field] = '';
+            this.state.wOpenField = 'field_models';
+            return;
+        }
+        if (field === 'models') {
+            const candidate = this._normalizeModelOption(opt, false);
+            const exists = this.state.wModelCandidates.some(item => item.id === candidate.id) ||
+                this.state.wModelItems.some(item => item.id === candidate.id);
+            if (!exists) {
+                this.state.wModelCandidates.push(candidate);
+            }
+            this.state.wSearches[field] = '';
+            this.state.wOpenField = 'models';
             return;
         }
         const list = this._selectedList(field);
         if (!list.find(i => i.id === opt.id)) {
-            if (field === 'models') {
-                list.push(this._normalizeModelOption(opt, true));
-            } else {
-                list.push({id: opt.id, name: opt.name, model: opt.model});
-            }
+            list.push({id: opt.id, name: opt.name, model: opt.model});
         }
         this.state.wSearches[field] = '';
         this.state.wOpenField = '';
@@ -680,6 +1061,13 @@ export class RBACAccessStudio extends Component {
     }
 
     onTokenizerKeydown(ev, field) {
+        if (field === 'models' && ev.key === 'Backspace' && !(this.state.wSearches[field] || '').length) {
+            if (this.state.wModelCandidates.length) {
+                ev.preventDefault();
+                this.state.wModelCandidates.pop();
+            }
+            return;
+        }
         if (ev.key !== 'Backspace' || (this.state.wSearches[field] || '').length) {
             return;
         }
@@ -690,6 +1078,52 @@ export class RBACAccessStudio extends Component {
         }
     }
 
+    addSelectedModelAccess() {
+        const candidates = this.state.wModelCandidates || [];
+        if (!candidates.length) {
+            this.openDropdown('models');
+            return;
+        }
+        const next = [];
+        for (const candidate of candidates) {
+            if (!this.state.wModelItems.find(item => item.id === candidate.id)) {
+                next.unshift(this._normalizeModelOption(candidate, true));
+            }
+        }
+        if (next.length) {
+            this.state.wModelItems.unshift(...next);
+        }
+        this.state.wModelCandidates = [];
+        this.state.wSearches.models = '';
+        this.state.wOpenField = '';
+        this.state.wOpenModelId = null;
+        this.blurActiveInput();
+    }
+
+    removePendingModel(modelId) {
+        const idx = this.state.wModelCandidates.findIndex(item => item.id === modelId);
+        if (idx >= 0) {
+            this.state.wModelCandidates.splice(idx, 1);
+        }
+    }
+
+    clearModelCandidates() {
+        this.state.wModelCandidates = [];
+        this.state.wSearches.models = '';
+    }
+
+    setOpenModelCard(modelId, isOpen) {
+        this.state.wOpenModelId = isOpen ? modelId : (String(this.state.wOpenModelId) === String(modelId) ? null : this.state.wOpenModelId);
+    }
+
+    isModelCardOpen(modelId) {
+        return String(this.state.wOpenModelId) === String(modelId);
+    }
+
+    toggleModelCard(modelId) {
+        this.state.wOpenModelId = String(this.state.wOpenModelId) === String(modelId) ? null : modelId;
+    }
+
     toggleModelAccess(modelId, key) {
         const item = this.state.wModelItems.find(model => model.id === modelId);
         if (item) {
@@ -697,8 +1131,109 @@ export class RBACAccessStudio extends Component {
         }
     }
 
+    modelRestrictionCount(model) {
+        return this.modelAccessOptions.filter(opt => !!model[opt.key]).length;
+    }
+
     get selectedFieldModelName() {
         return this.state.wFieldModel?.name || '';
+    }
+
+    fieldRulesForModel(modelId) {
+        return this.state.wFieldRules.filter(rule => String(rule.model_id) === String(modelId));
+    }
+
+    fieldRuleCountForModel(modelId) {
+        return this.fieldRulesForModel(modelId).length;
+    }
+
+    isFieldModelCardOpen(modelId) {
+        return String(this.state.wOpenFieldModelId) === String(modelId);
+    }
+
+    toggleFieldModelCard(model) {
+        const nextOpen = String(this.state.wOpenFieldModelId) === String(model.id) ? null : model.id;
+        this.state.wOpenFieldModelId = nextOpen;
+        this.state.wFieldModel = nextOpen ? model : null;
+        this.state.wFieldModelId = nextOpen ? String(model.id) : '';
+        this.state.wFieldItems = [];
+        this.state.wSearches.field_fields = '';
+        this.state.wOpenField = nextOpen ? 'field_fields' : '';
+        if (nextOpen) {
+            void this.openFieldPickerForModel(model);
+        }
+    }
+
+    async openFieldPickerForModel(model) {
+        if (!model) return;
+        const sameModel = String(this.state.wFieldModelId) === String(model.id);
+        this.state.wFieldModel = model;
+        this.state.wFieldModelId = String(model.id);
+        this.state.wOpenFieldModelId = model.id;
+        this.state.wOpenField = 'field_fields';
+        if (!sameModel) {
+            this.state.wFieldItems = [];
+            this.state.wSearches.field_fields = '';
+            this.state.wAllFieldChoices = [];
+        }
+        if (!this.state.wAllFieldChoices.length || !sameModel) {
+            try {
+                this.state.wAllFieldChoices = await this.orm.call('rbac.model', 'get_access_studio_model_fields', [], {
+                    model_id: Number(model.id),
+                });
+            } catch (error) {
+                console.warn('Field choices load failed:', error);
+                this.notification.add(_t("Field list could not be loaded. Restart/upgrade rbac_manager if this was just installed."), {
+                    type: "danger",
+                });
+            }
+        }
+    }
+
+    removeFieldModelSection(modelId) {
+        this.state.wFieldModels = this.state.wFieldModels.filter(item => String(item.id) !== String(modelId));
+        this.state.wFieldRules = this.state.wFieldRules.filter(rule => String(rule.model_id) !== String(modelId));
+        if (String(this.state.wOpenFieldModelId) === String(modelId)) {
+            this.state.wOpenFieldModelId = null;
+            this.state.wFieldModel = null;
+            this.state.wFieldModelId = '';
+            this.state.wFieldItems = [];
+            this.state.wSearches.field_fields = '';
+            this.state.wOpenField = '';
+        }
+    }
+
+    addSelectedFieldModels() {
+        const candidates = this.state.wFieldModelCandidates || [];
+        if (!candidates.length) {
+            this.openDropdown('field_models');
+            return;
+        }
+        const next = [];
+        for (const candidate of candidates) {
+            if (!this.state.wFieldModels.find(item => item.id === candidate.id)) {
+                next.unshift(this._normalizeModelOption(candidate, true));
+            }
+        }
+        if (next.length) {
+            this.state.wFieldModels.unshift(...next);
+        }
+        this.state.wFieldModelCandidates = [];
+        this.state.wSearches.field_models = '';
+        this.state.wOpenField = '';
+        this.blurActiveInput();
+    }
+
+    removePendingFieldModel(modelId) {
+        const idx = this.state.wFieldModelCandidates.findIndex(item => item.id === modelId);
+        if (idx >= 0) {
+            this.state.wFieldModelCandidates.splice(idx, 1);
+        }
+    }
+
+    clearFieldModelCandidates() {
+        this.state.wFieldModelCandidates = [];
+        this.state.wSearches.field_models = '';
     }
 
     async selectFieldModel(model) {
@@ -726,10 +1261,12 @@ export class RBACAccessStudio extends Component {
 
     async selectButtonModel(model) {
         this.state.wButtonModel = model || null;
+        this.state.wOpenButtonModelId = model ? model.id : null;
         this.state.wAllButtonChoices = [];
         this.state.wSearches.button_models = '';
         this.state.wSearches.button_nodes = '';
         this.state.wOpenField = model ? 'button_nodes' : '';
+        this.state.wButtonPickerOpen = false;
         if (!model) return;
         try {
             this.state.wAllButtonChoices = await this.orm.call('rbac.model', 'get_access_studio_view_nodes', [], {
@@ -745,10 +1282,12 @@ export class RBACAccessStudio extends Component {
 
     async selectFilterModel(model) {
         this.state.wFilterModel = model || null;
+        this.state.wOpenFilterModelId = model ? model.id : null;
         this.state.wAllFilterChoices = [];
         this.state.wSearches.filter_models = '';
         this.state.wSearches.filter_nodes = '';
         this.state.wOpenField = model ? 'filter_nodes' : '';
+        this.state.wFilterPickerOpen = false;
         if (!model) return;
         try {
             this.state.wAllFilterChoices = await this.orm.call('rbac.model', 'get_access_studio_search_nodes', [], {
@@ -794,53 +1333,70 @@ export class RBACAccessStudio extends Component {
     onButtonModelInput(ev) {
         this.state.wSearches.button_models = ev.target.value;
         this.state.wOpenField = 'button_models';
+        this.state.wButtonPickerOpen = true;
     }
 
     onButtonModelKeydown(ev) {
-        if (ev.key !== 'Backspace' || (this.state.wSearches.button_models || '').length || !this.state.wButtonModel) {
+        if (ev.key !== 'Backspace' || (this.state.wSearches.button_models || '').length) {
             return;
         }
-        ev.preventDefault();
-        this.clearButtonModel();
+        if (this.state.wButtonModelCandidates.length) {
+            ev.preventDefault();
+            this.state.wButtonModelCandidates.pop();
+            if (!this.state.wButtonModelCandidates.length) {
+                this.state.wButtonPickerOpen = false;
+            }
+        }
     }
 
     clearButtonModel() {
         this.state.wButtonModel = null;
+        this.state.wOpenButtonModelId = null;
         this.state.wAllButtonChoices = [];
         this.state.wSearches.button_models = '';
         this.state.wSearches.button_nodes = '';
         this.state.wOpenField = '';
+        this.state.wButtonPickerOpen = true;
     }
 
     onFilterModelInput(ev) {
         this.state.wSearches.filter_models = ev.target.value;
         this.state.wOpenField = 'filter_models';
+        this.state.wFilterPickerOpen = true;
     }
 
     onFilterModelKeydown(ev) {
-        if (ev.key !== 'Backspace' || (this.state.wSearches.filter_models || '').length || !this.state.wFilterModel) {
+        if (ev.key !== 'Backspace' || (this.state.wSearches.filter_models || '').length) {
             return;
         }
-        ev.preventDefault();
-        this.clearFilterModel();
+        if (this.state.wFilterModelCandidates.length) {
+            ev.preventDefault();
+            this.state.wFilterModelCandidates.pop();
+            if (!this.state.wFilterModelCandidates.length) {
+                this.state.wFilterPickerOpen = false;
+            }
+        }
     }
 
     clearFilterModel() {
         this.state.wFilterModel = null;
+        this.state.wOpenFilterModelId = null;
         this.state.wAllFilterChoices = [];
         this.state.wSearches.filter_models = '';
         this.state.wSearches.filter_nodes = '';
         this.state.wOpenField = '';
+        this.state.wFilterPickerOpen = true;
     }
 
     addFieldRule() {
         if (!this.state.wFieldModel || !this.state.wFieldItems.length) return;
-        if (!this._currentFieldRuleHasAnyAttribute()) return;
         for (const field of this.state.wFieldItems) {
             this.addFieldRuleFromField(field);
         }
         this.state.wFieldItems = [];
         this.state.wSearches.field_fields = '';
+        this.state.wOpenField = '';
+        this.blurActiveInput();
     }
 
     addFieldRuleFromField(field) {
@@ -859,7 +1415,7 @@ export class RBACAccessStudio extends Component {
                 field_name: field.field_name,
                 ttype: field.ttype,
             }],
-            invisible: true,
+            invisible: false,
             readonly: false,
             required: false,
             external_link: false,
@@ -957,6 +1513,148 @@ export class RBACAccessStudio extends Component {
         return this.state.wButtonRules.find(rule => rule.model === this.state.wButtonModel.model) || null;
     }
 
+    buttonRulesForModel(modelId) {
+        return this.state.wButtonRules.filter(rule => String(rule.model_id) === String(modelId));
+    }
+
+    buttonRuleCountForModel(modelId) {
+        return this.buttonRulesForModel(modelId).length;
+    }
+
+    isButtonModelCardOpen(modelId) {
+        return String(this.state.wOpenButtonModelId) === String(modelId);
+    }
+
+    toggleButtonModelCard(model) {
+        const nextOpen = String(this.state.wOpenButtonModelId) === String(model.id) ? null : model.id;
+        this.state.wOpenButtonModelId = nextOpen;
+        this.state.wButtonModel = nextOpen ? model : null;
+        this.state.wSearches.button_nodes = '';
+        this.state.wOpenField = nextOpen ? 'button_nodes' : '';
+        if (nextOpen) {
+            void this.selectButtonModel(model);
+        }
+    }
+
+    addSelectedButtonModels() {
+        const candidates = this.state.wButtonModelCandidates || [];
+        if (!candidates.length) {
+            this.openDropdown('button_models');
+            return;
+        }
+        const next = [];
+        for (const candidate of candidates) {
+            if (!this.state.wButtonRules.find(item => item.model === candidate.model)) {
+                next.unshift({
+                    id: candidate.id,
+                    model_id: candidate.id,
+                    model_name: candidate.name,
+                    model: candidate.model,
+                    nodes: [],
+                });
+            }
+        }
+        if (next.length) {
+            this.state.wButtonRules.unshift(...next);
+        }
+        this.state.wButtonModelCandidates = [];
+        this.state.wSearches.button_models = '';
+        this.state.wButtonPickerOpen = false;
+        this.state.wOpenField = '';
+        this.state.wOpenButtonModelId = next.length ? next[0].id : null;
+        if (next.length) {
+            this.state.wButtonModel = next[0];
+        }
+        this.blurActiveInput();
+    }
+
+    removePendingButtonModel(modelId) {
+        const idx = this.state.wButtonModelCandidates.findIndex(item => item.id === modelId);
+        if (idx >= 0) {
+            this.state.wButtonModelCandidates.splice(idx, 1);
+        }
+        if (!this.state.wButtonModelCandidates.length) {
+            this.state.wButtonPickerOpen = false;
+        }
+    }
+
+    clearButtonModelCandidates() {
+        this.state.wButtonModelCandidates = [];
+        this.state.wSearches.button_models = '';
+        this.state.wButtonPickerOpen = false;
+    }
+
+    filterRulesForModel(modelId) {
+        return this.state.wFilterRules.filter(rule => String(rule.model_id) === String(modelId));
+    }
+
+    filterRuleCountForModel(modelId) {
+        return this.filterRulesForModel(modelId).length;
+    }
+
+    isFilterModelCardOpen(modelId) {
+        return String(this.state.wOpenFilterModelId) === String(modelId);
+    }
+
+    toggleFilterModelCard(model) {
+        const nextOpen = String(this.state.wOpenFilterModelId) === String(model.id) ? null : model.id;
+        this.state.wOpenFilterModelId = nextOpen;
+        this.state.wFilterModel = nextOpen ? model : null;
+        this.state.wSearches.filter_nodes = '';
+        this.state.wOpenField = nextOpen ? 'filter_nodes' : '';
+        if (nextOpen) {
+            void this.selectFilterModel(model);
+        }
+    }
+
+    addSelectedFilterModels() {
+        const candidates = this.state.wFilterModelCandidates || [];
+        if (!candidates.length) {
+            this.openDropdown('filter_models');
+            return;
+        }
+        const next = [];
+        for (const candidate of candidates) {
+            if (!this.state.wFilterRules.find(item => item.model === candidate.model)) {
+                next.unshift({
+                    id: candidate.id,
+                    model_id: candidate.id,
+                    model_name: candidate.name,
+                    model: candidate.model,
+                    nodes: [],
+                });
+            }
+        }
+        if (next.length) {
+            this.state.wFilterRules.unshift(...next);
+        }
+        this.state.wFilterModelCandidates = [];
+        this.state.wSearches.filter_models = '';
+        this.state.wFilterPickerOpen = false;
+        this.state.wOpenField = '';
+        this.state.wOpenFilterModelId = next.length ? next[0].id : null;
+        if (next.length) {
+            this.state.wFilterModel = next[0];
+        }
+        this.blurActiveInput();
+    }
+
+    removePendingFilterModel(modelId) {
+        const idx = this.state.wFilterModelCandidates.findIndex(item => item.id === modelId);
+        if (idx >= 0) {
+            this.state.wFilterModelCandidates.splice(idx, 1);
+        }
+        if (!this.state.wFilterModelCandidates.length) {
+            this.state.wFilterPickerOpen = false;
+        }
+    }
+
+    clearFilterModelCandidates() {
+        this.state.wFilterModelCandidates = [];
+        this.state.wSearches.filter_models = '';
+        this.state.wFilterPickerOpen = false;
+    }
+
     addButtonNode(node) {
         if (!this.state.wButtonModel || !node || this._buttonNodeAlreadyConfigured(this.state.wButtonModel.model, node)) {
             return;
@@ -1000,6 +1698,13 @@ export class RBACAccessStudio extends Component {
     removeButtonRule(ruleId) {
         const idx = this.state.wButtonRules.findIndex(rule => rule.id === ruleId);
         if (idx >= 0) this.state.wButtonRules.splice(idx, 1);
+        if (String(this.state.wOpenButtonModelId) === String(ruleId)) {
+            this.state.wOpenButtonModelId = null;
+            this.state.wButtonModel = null;
+            this.state.wAllButtonChoices = [];
+            this.state.wSearches.button_nodes = '';
+            this.state.wOpenField = '';
+        }
     }
 
     _currentFilterRule() {
@@ -1051,24 +1756,46 @@ export class RBACAccessStudio extends Component {
     removeFilterRule(ruleId) {
         const idx = this.state.wFilterRules.findIndex(rule => rule.id === ruleId);
         if (idx >= 0) this.state.wFilterRules.splice(idx, 1);
+        if (String(this.state.wOpenFilterModelId) === String(ruleId)) {
+            this.state.wOpenFilterModelId = null;
+            this.state.wFilterModel = null;
+            this.state.wAllFilterChoices = [];
+            this.state.wSearches.filter_nodes = '';
+            this.state.wOpenField = '';
+        }
     }
 
     addDomainRule(model) {
-        if (!model || this.state.wDomainRules.some(rule => rule.model === model.model)) {
+        const items = Array.isArray(model) ? model : (model ? [model] : []);
+        const created = [];
+        for (const item of items) {
+            if (!item || this.state.wDomainRules.some(rule => rule.model === item.model) || created.some(rule => rule.model === item.model)) {
+                continue;
+            }
+            created.unshift({
+                id: item.id,
+                model_id: item.id,
+                name: item.name || 'Domain Rule',
+                model: item.model,
+                model_name: item.name || '',
+                read_right: true,
+                create_right: false,
+                write_right: false,
+                delete_right: false,
+                apply_domain: true,
+                domain: '[]',
+            });
+        }
+        if (created.length) {
+            this.state.wDomainRules.unshift(...created);
+            this.state.wOpenDomainId = created[0].id;
+            this.clearDomainCandidates();
+            this.state.wDomainPickerOpen = false;
+            this.state.wOpenField = '';
             return;
         }
-        this.state.wDomainRules.push({
-            id: model.id,
-            model_id: model.id,
-            name: model.name,
-            model: model.model,
-            read_right: true,
-            create_right: false,
-            write_right: false,
-            delete_right: false,
-            apply_domain: true,
-            domain: '[]',
-        });
+        this.state.wDomainPickerOpen = true;
+        this.state.wOpenField = 'domain_models';
     }
 
     toggleDomainRight(ruleId, key) {
@@ -1095,6 +1822,31 @@ export class RBACAccessStudio extends Component {
         }
     }
 
+    openDomainPicker(ruleId) {
+        this.state.wOpenDomainId = ruleId;
+        this.state.wOpenField = 'domain_models';
+        this.state.wDomainPickerOpen = true;
+    }
+
+    onDomainModelInput(ruleId, ev) {
+        this.state.wOpenDomainId = ruleId;
+        this.state.wSearches.domain_models = ev.target.value;
+        this.state.wOpenField = 'domain_models';
+        this.state.wDomainPickerOpen = true;
+    }
+
+    clearDomainModel(ruleId) {
+        const rule = this.state.wDomainRules.find(item => String(item.id) === String(ruleId));
+        if (!rule) return;
+        rule.model_id = '';
+        rule.name = 'Domain Rule';
+        rule.model = '';
+        rule.model_name = '';
+        this.state.wSearches.domain_models = '';
+        this.state.wOpenField = '';
+        this.state.wDomainPickerOpen = true;
+    }
+
     setDomainValue(ruleId, value) {
         const rule = this.state.wDomainRules.find(item => item.id === ruleId);
         if (rule) {
@@ -1105,6 +1857,37 @@ export class RBACAccessStudio extends Component {
     removeDomainRule(ruleId) {
         const idx = this.state.wDomainRules.findIndex(rule => rule.id === ruleId);
         if (idx >= 0) this.state.wDomainRules.splice(idx, 1);
+        if (String(this.state.wOpenDomainId) === String(ruleId)) {
+            this.state.wOpenDomainId = null;
+        }
+    }
+
+    removePendingDomainModel(modelId) {
+        const idx = this.state.wDomainCandidates.findIndex(item => item.id === modelId);
+        if (idx >= 0) {
+            this.state.wDomainCandidates.splice(idx, 1);
+        }
+        if (!this.state.wDomainCandidates.length) {
+            this.state.wDomainPickerOpen = false;
+        }
+    }
+
+    clearDomainCandidates() {
+        this.state.wDomainCandidates = [];
+        this.state.wSearches.domain_models = '';
+        this.state.wDomainPickerOpen = false;
+    }
+
+    toggleDomainCard(ruleId) {
+        this.state.wOpenDomainId = String(this.state.wOpenDomainId) === String(ruleId) ? null : ruleId;
+    }
+
+    isDomainCardOpen(ruleId) {
+        return String(this.state.wOpenDomainId) === String(ruleId);
+    }
+
+    isDomainPickerOpen(ruleId) {
+        return String(this.state.wOpenDomainId) === String(ruleId) && this.state.wOpenField === 'domain_models';
     }
 
     setModelPreset(modelId, preset) {
@@ -1126,6 +1909,9 @@ export class RBACAccessStudio extends Component {
         const list = this._selectedList(field);
         const idx = list.findIndex(i => i.id === id);
         if (idx >= 0) list.splice(idx, 1);
+        if (field === 'models' && String(this.state.wOpenModelId) === String(id)) {
+            this.state.wOpenModelId = null;
+        }
     }
 
     onTokenizerInput(ev, field) {

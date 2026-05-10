@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime
 from lxml import etree
 import json
+import pytz
 import time
 
 max_depth = 10
@@ -1206,6 +1207,13 @@ class RbacModel(models.Model):
                 'full_name': group.full_name or group.name or '',
                 'category': group.privilege_id.name if group.privilege_id else 'Other',
             })
+        companies = self.env['res.company'].sudo().search([], order='name')
+        calendars_data = []
+        if 'resource.calendar' in self.env.registry:
+            calendars = self.env['resource.calendar'].sudo().search([], order='name')
+            calendars_data = [{'id': calendar.id, 'name': calendar.name or ''} for calendar in calendars]
+        installed_langs = self.env['res.lang'].sudo().get_installed()
+        tz_names = sorted(pytz.all_timezones, key=lambda tz: tz if not tz.startswith('Etc/') else '_' + tz)
         return {
             'users': user_cards,
             'departments': departments,
@@ -1215,7 +1223,81 @@ class RbacModel(models.Model):
                 'permissions_count': len(role.group_ids),
             } for role in roles],
             'groups': request_groups,
+            'companies': [{'id': company.id, 'name': company.name or ''} for company in companies],
+            'languages': [{'code': code, 'name': name} for code, name in installed_langs],
+            'timezones': [{'value': tz, 'label': tz} for tz in tz_names],
+            'calendars': calendars_data,
+            'defaults': {
+                'company_id': self.env.company.id,
+                'company_ids': self.env.company.ids,
+                'lang': self.env.user.lang or 'en_US',
+                'tz': self.env.user.tz or 'UTC',
+                'notification_type': 'email',
+            },
         }
+
+    @api.model
+    def create_rbac_user_from_directory(self, values):
+        """Create a normal Odoo user from the custom RBAC Users drawer."""
+        values = values or {}
+        name = (values.get('name') or '').strip()
+        login = (values.get('login') or values.get('email') or '').strip()
+        email = (values.get('email') or '').strip()
+        if not name:
+            raise exceptions.UserError(_("User name is required."))
+        if not login:
+            raise exceptions.UserError(_("Email/login is required."))
+        if self.env['res.users'].sudo().search_count([('login', '=', login)]):
+            raise exceptions.UserError(_("A user with this login already exists."))
+
+        company_ids = [int(cid) for cid in values.get('company_ids') or [] if cid]
+        company_id = int(values.get('company_id') or 0)
+        if not company_ids and company_id:
+            company_ids = [company_id]
+        if not company_ids:
+            company_ids = self.env.company.ids
+        if not company_id or company_id not in company_ids:
+            company_id = company_ids[0]
+
+        user_vals = {
+            'name': name,
+            'login': login,
+            'email': email or login,
+            'is_user_role': False,
+            'active': True,
+            'company_id': company_id,
+            'company_ids': [(6, 0, company_ids)],
+            'lang': values.get('lang') or self.env.user.lang or 'en_US',
+            'tz': values.get('tz') or self.env.user.tz or 'UTC',
+        }
+        base_group = self.env.ref('base.group_user', raise_if_not_found=False)
+        if base_group:
+            user_vals['group_ids'] = [(6, 0, [base_group.id])]
+        if values.get('phone'):
+            user_vals['phone'] = values.get('phone')
+        if values.get('signature'):
+            user_vals['signature'] = values.get('signature')
+        if values.get('image_1920'):
+            user_vals['image_1920'] = values.get('image_1920')
+        if values.get('password'):
+            user_vals['new_password'] = values.get('password')
+        if 'notification_type' in self.env['res.users']._fields and values.get('notification_type'):
+            user_vals['notification_type'] = values.get('notification_type')
+        if 'resource_calendar_id' in self.env['res.users']._fields and values.get('resource_calendar_id'):
+            user_vals['resource_calendar_id'] = int(values.get('resource_calendar_id'))
+
+        user = self.env['res.users'].sudo().with_context(active_test=False).create(user_vals)
+        role_ids = [int(role_id) for role_id in values.get('role_ids') or [] if role_id]
+        for role in self.env['res.users'].sudo().with_context(active_test=False).browse(role_ids):
+            if role.exists() and role.is_user_role:
+                user.assign_role(role.id)
+        for group_id in [int(group_id) for group_id in values.get('extra_group_ids') or [] if group_id]:
+            user.add_direct_group_additions(group_id)
+        for group_id in [int(group_id) for group_id in values.get('excluded_group_ids') or [] if group_id]:
+            user.add_direct_group_exclusions(group_id)
+        if values.get('send_reset'):
+            user.action_reset_password()
+        return self._rbac_user_card(user)
 
     @api.model
     def get_rbac_user_card(self, user_id):

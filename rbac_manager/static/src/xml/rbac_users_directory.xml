@@ -8,6 +8,9 @@
             </div>
 
             <div class="ud_filters">
+                <button type="button" class="ud_create_btn" t-on-click="openCreateUser">
+                    Create
+                </button>
                 <div class="ud_search">
                     <i class="fa fa-search"/>
                     <input type="text" placeholder="Search users..." t-on-input="(ev) => this.onSearch(ev)"/>
@@ -82,6 +85,192 @@
             </div>
 
             <div t-att-class="'ud_overlay' + (state.panelOpen ? ' open' : '')" t-on-click="closePanel"/>
+            <div t-att-class="'ud_overlay' + (state.createOpen ? ' open' : '')" t-on-click="closeCreateUser"/>
+            <aside t-att-class="'ud_panel ud_create_panel' + (state.createOpen ? ' open' : '')">
+                <div class="ud_panel_head">
+                    <div class="ud_panel_icon"><i class="fa fa-user-plus"/></div>
+                    <div>
+                        <h2>Create User</h2>
+                        <p>Set identity, companies, preferences, and RBAC roles.</p>
+                    </div>
+                    <button class="ud_close" t-on-click="closeCreateUser"><i class="fa fa-times"/></button>
+                </div>
+                <div class="ud_panel_body">
+                    <div class="ud_create_summary">
+                        <div class="ud_create_avatar_block">
+                            <span class="ud_profile_avatar" t-att-style="state.createUser.image_1920 ? '' : this.avatarStyle(state.createUser.name || state.createUser.email || 'New User')">
+                                <img t-if="state.createUser.image_1920" t-att-src="'data:image/png;base64,' + state.createUser.image_1920" alt="User avatar"/>
+                                <t t-else="" t-esc="this.initials(state.createUser.name || state.createUser.email || 'New User')"/>
+                            </span>
+                            <label class="ud_avatar_upload">
+                                <i class="fa fa-camera"/>
+                                <input type="file" accept="image/*" t-on-change="(ev) => this.onCreateImageChange(ev)"/>
+                            </label>
+                        </div>
+                        <div>
+                            <h3><t t-esc="state.createUser.name || 'New user'"/></h3>
+                            <p><t t-esc="state.createUser.email || 'No email set'"/></p>
+                            <button t-if="state.createUser.image_1920" class="ud_link_btn" type="button" t-on-click="removeCreateImage">Remove image</button>
+                        </div>
+                    </div>
+
+                    <div class="ud_create_section">
+                        <div class="ud_section_label">Identity</div>
+                        <div class="ud_form_grid">
+                            <div t-att-class="'ud_form_group' + (state.createErrors.name ? ' invalid' : '')">
+                                <label>Name <span>*</span></label>
+                                <input class="ud_input" type="text" placeholder="Full name" t-att-value="state.createUser.name" t-on-input="(ev) => this.updateCreateField('name', ev.target.value)"/>
+                            </div>
+                            <div t-att-class="'ud_form_group' + (state.createErrors.email ? ' invalid' : '')">
+                                <label>Email <span>*</span></label>
+                                <input class="ud_input" type="email" placeholder="name@company.com" t-att-value="state.createUser.email" t-on-input="(ev) => this.updateCreateField('email', ev.target.value)"/>
+                            </div>
+                            <div t-att-class="'ud_form_group' + (state.createErrors.login ? ' invalid' : '')">
+                                <label>Login <span>*</span></label>
+                                <input class="ud_input" type="text" placeholder="Usually same as email" t-att-value="state.createUser.login" t-on-input="(ev) => this.updateCreateField('login', ev.target.value)"/>
+                            </div>
+                            <div class="ud_form_group">
+                                <label>Phone</label>
+                                <input class="ud_input" type="text" placeholder="Optional phone" t-att-value="state.createUser.phone" t-on-input="(ev) => this.updateCreateField('phone', ev.target.value)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ud_create_section">
+                        <div class="ud_section_head compact">
+                            <div class="ud_section_label">RBAC Roles</div>
+                            <span><t t-esc="(state.createUser.role_ids || []).length"/> selected</span>
+                        </div>
+                        <div class="ud_role_grid compact">
+                            <t t-foreach="state.roles" t-as="role" t-key="role.id">
+                                <button t-att-class="(state.createUser.role_ids || []).includes(role.id) ? 'checked' : ''" t-on-click="() => this.toggleCreateRole(role.id)">
+                                    <input type="checkbox" t-att-checked="(state.createUser.role_ids || []).includes(role.id) ? 'checked' : undefined"/>
+                                    <span><strong t-esc="role.name"/><small><t t-esc="role.permissions_count"/> permissions</small></span>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="ud_create_section">
+                        <div class="ud_section_label">Companies</div>
+                        <div t-att-class="'ud_company_grid' + (state.createErrors.company_ids ? ' invalid' : '')">
+                            <t t-foreach="state.companies" t-as="company" t-key="company.id">
+                                <button t-att-class="(state.createUser.company_ids || []).includes(company.id) ? 'checked' : ''" t-on-click="() => this.toggleCreateCompany(company.id)">
+                                    <input type="checkbox" t-att-checked="(state.createUser.company_ids || []).includes(company.id) ? 'checked' : undefined"/>
+                                    <span t-esc="company.name"/>
+                                </button>
+                            </t>
+                        </div>
+                        <div t-att-class="'ud_form_group' + (state.createErrors.company_id ? ' invalid' : '')">
+                            <label>Default Company <span>*</span></label>
+                            <select class="ud_input" t-att-value="state.createUser.company_id" t-on-change="(ev) => this.updateCreateField('company_id', Number(ev.target.value || 0))">
+                                <t t-foreach="state.companies.filter((company) => (state.createUser.company_ids || []).includes(company.id))" t-as="company" t-key="company.id">
+                                    <option t-att-value="company.id" t-att-selected="company.id === state.createUser.company_id ? 'selected' : undefined"><t t-esc="company.name"/></option>
+                                </t>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="ud_create_section">
+                        <div class="ud_section_label">Preferences, Notifications &amp; Calendar</div>
+                        <div class="ud_form_grid">
+                            <div class="ud_form_group">
+                                <label>Language</label>
+                                <select class="ud_input" t-on-change="(ev) => this.updateCreateField('lang', ev.target.value)">
+                                    <t t-foreach="state.languages" t-as="lang" t-key="lang.code">
+                                        <option t-att-value="lang.code" t-att-selected="lang.code === state.createUser.lang ? 'selected' : undefined"><t t-esc="lang.name"/></option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="ud_form_group">
+                                <label>Timezone</label>
+                                <select class="ud_input" t-on-change="(ev) => this.updateCreateField('tz', ev.target.value)">
+                                    <t t-foreach="state.timezones" t-as="tz" t-key="tz.value">
+                                        <option t-att-value="tz.value" t-att-selected="tz.value === state.createUser.tz ? 'selected' : undefined"><t t-esc="tz.label"/></option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="ud_form_group">
+                                <label>Notifications</label>
+                                <select class="ud_input" t-on-change="(ev) => this.updateCreateField('notification_type', ev.target.value)">
+                                    <option value="email" t-att-selected="state.createUser.notification_type === 'email' ? 'selected' : undefined">Handle by Emails</option>
+                                    <option value="inbox" t-att-selected="state.createUser.notification_type === 'inbox' ? 'selected' : undefined">Handle in Odoo</option>
+                                </select>
+                            </div>
+                            <div class="ud_form_group">
+                                <label>Working Calendar</label>
+                                <select class="ud_input" t-on-change="(ev) => this.updateCreateField('resource_calendar_id', Number(ev.target.value || 0))">
+                                    <option value="">Company default</option>
+                                    <t t-foreach="state.calendars" t-as="calendar" t-key="calendar.id">
+                                        <option t-att-value="calendar.id" t-att-selected="calendar.id === state.createUser.resource_calendar_id ? 'selected' : undefined"><t t-esc="calendar.name"/></option>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ud_create_section">
+                        <div class="ud_section_head compact">
+                            <div class="ud_section_label">Direct User Permissions</div>
+                            <span><t t-esc="(state.createUser.extra_group_ids || []).length"/> grants · <t t-esc="(state.createUser.excluded_group_ids || []).length"/> blocks</span>
+                        </div>
+                        <div class="ud_perm_tools compact">
+                            <div class="ud_search compact"><i class="fa fa-search"/><input type="text" placeholder="Search permissions..." t-on-input="(ev) => this.onCreatePermissionSearch(ev)"/></div>
+                            <select class="ud_select" t-on-change="(ev) => this.onCreatePermissionCategory(ev)">
+                                <option value="">All Applications</option>
+                                <t t-foreach="this.createPermissionCategories" t-as="category" t-key="category">
+                                    <option t-att-value="category"><t t-esc="category"/></option>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="ud_create_permission_grid">
+                            <t t-if="!this.createPermissionCatalog.length"><div class="ud_empty_inner">No permissions found.</div></t>
+                            <t t-foreach="this.createPermissionCatalog.slice(0, 30)" t-as="group" t-key="group.id">
+                                <div t-att-class="'ud_create_permission ' + this.createPermissionState(group.id)">
+                                    <div>
+                                        <strong t-esc="group.full_name"/>
+                                        <small t-esc="group.category"/>
+                                    </div>
+                                    <div class="ud_perm_choice_actions compact">
+                                        <button t-att-class="this.createPermissionState(group.id) === 'default' ? 'active' : ''" t-on-click="() => this.setCreatePermissionState(group.id, 'default')">Default</button>
+                                        <button t-att-class="this.createPermissionState(group.id) === 'extra' ? 'active extra' : 'extra'" t-on-click="() => this.setCreatePermissionState(group.id, 'extra')">Grant</button>
+                                        <button t-att-class="this.createPermissionState(group.id) === 'excluded' ? 'active excluded' : 'excluded'" t-on-click="() => this.setCreatePermissionState(group.id, 'excluded')">Block</button>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="ud_create_section">
+                        <div class="ud_section_label">Security</div>
+                        <div class="ud_form_grid">
+                            <div class="ud_form_group">
+                                <label>Temporary Password</label>
+                                <input class="ud_input" type="password" placeholder="Leave empty to invite by email" t-att-value="state.createUser.password" t-on-input="(ev) => this.updateCreateField('password', ev.target.value)"/>
+                            </div>
+                            <button type="button" t-att-class="'ud_toggle_card' + (state.createUser.send_reset ? ' checked' : '')" t-on-click="() => this.updateCreateField('send_reset', !state.createUser.send_reset)">
+                                <span><strong>Send password reset invite</strong><small>Recommended when no temporary password is set.</small></span>
+                                <i t-att-class="'fa ' + (state.createUser.send_reset ? 'fa-toggle-on' : 'fa-toggle-off')"/>
+                            </button>
+                        </div>
+                        <div class="ud_security_note">
+                            <div><i class="fa fa-shield"/> Two-factor authentication, passkeys, API keys, and active devices are managed after the user signs in.</div>
+                        </div>
+                        <div class="ud_form_group">
+                            <label>Email Signature</label>
+                            <textarea class="ud_input" rows="3" placeholder="Optional signature" t-att-value="state.createUser.signature" t-on-input="(ev) => this.updateCreateField('signature', ev.target.value)"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="ud_panel_footer">
+                    <button class="ud_footer_btn" t-on-click="closeCreateUser">Cancel</button>
+                    <button class="ud_done" t-on-click="createUser" t-att-disabled="state.saving ? 'disabled' : undefined">
+                        <t t-if="state.saving">Creating...</t>
+                        <t t-else="">Create User</t>
+                    </button>
+                </div>
+            </aside>
+
             <aside t-att-class="'ud_panel' + (state.panelOpen ? ' open' : '')">
                 <t t-if="state.activeUser">
                     <div class="ud_panel_head">

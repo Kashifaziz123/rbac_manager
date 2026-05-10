@@ -3,9 +3,11 @@
 import {Component, onMounted, onWillUnmount, useState} from "@odoo/owl";
 import {browser} from "@web/core/browser/browser";
 import {router} from "@web/core/browser/router";
+import {patch} from "@web/core/utils/patch";
 import {user} from "@web/core/user";
 import {useService} from "@web/core/utils/hooks";
 import {session} from "@web/session";
+import {Breadcrumbs} from "@web/search/breadcrumbs/breadcrumbs";
 import {WebClient} from "@web/webclient/webclient";
 import {UserMenu} from "@web/webclient/user_menu/user_menu";
 
@@ -41,6 +43,34 @@ function clearStoredMenusForCompanyChange() {
 
 clearStoredMenusForCompanyChange();
 
+patch(Breadcrumbs.prototype, {
+    setup() {
+        this.menuService = useService("menu");
+    },
+
+    get rbacRootBreadcrumb() {
+        const currentApp = this.menuService.getCurrentApp();
+        if (!currentApp || !visibleRootApp(currentApp)) {
+            return null;
+        }
+        const currentBreadcrumb = this.props.breadcrumbs.at(-1);
+        if (currentBreadcrumb?.name === currentApp.name) {
+            return null;
+        }
+        return currentApp;
+    },
+
+    openRbacRootBreadcrumb() {
+        const app = this.rbacRootBreadcrumb;
+        if (!app) {
+            return;
+        }
+        window.dispatchEvent(new CustomEvent("RBAC:OPEN-NAVIGATION", {
+            detail: {appId: app.id},
+        }));
+    },
+});
+
 export class RBACGlobalSidebar extends Component {
     static template = "rbac.GlobalSidebar";
 
@@ -58,16 +88,12 @@ export class RBACGlobalSidebar extends Component {
         this._onOpenNavigation = (ev) => this.openNavigation(ev.detail || {});
 
         onMounted(() => {
-            document.body.classList.add("rbac-global-shell-active");
             this.env.bus.addEventListener("MENUS:APP-CHANGED", this._onMenuChange);
             this.env.bus.addEventListener("ROUTE_CHANGE", this._onRouteChange);
             window.addEventListener("RBAC:OPEN-NAVIGATION", this._onOpenNavigation);
             this.syncFromMenuService();
-            this.syncPanelBodyClass();
         });
         onWillUnmount(() => {
-            document.body.classList.remove("rbac-global-shell-active");
-            document.body.classList.remove("rbac-panel-open");
             this.env.bus.removeEventListener("MENUS:APP-CHANGED", this._onMenuChange);
             this.env.bus.removeEventListener("ROUTE_CHANGE", this._onRouteChange);
             window.removeEventListener("RBAC:OPEN-NAVIGATION", this._onOpenNavigation);
@@ -236,11 +262,11 @@ export class RBACGlobalSidebar extends Component {
 
     togglePanel() {
         this.state.panelOpen = !this.state.panelOpen;
-        this.syncPanelBodyClass();
     }
 
     syncPanelBodyClass() {
-        document.body.classList.toggle("rbac-panel-open", Boolean(this.state.panelOpen));
+        // The global sidebar now lives inside the Odoo action area. Keep this
+        // hook for older callers without toggling full-shell body classes.
     }
 
     toggleSection(sectionId) {
