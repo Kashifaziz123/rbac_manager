@@ -5,12 +5,6 @@ body.rbac-global-hide-add-property .o_field_property_add {
     display: none !important;
 }
 
-body.rbac-global-shell-active .o_web_client {
-    flex-flow: column nowrap;
-    background: #f3f4f8;
-    font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
 .rsh_global_nav {
     display: flex;
     position: fixed;
@@ -299,10 +293,6 @@ body.rbac-panel-open .rsh_global_nav {
     width: 100%;
     background: transparent;
     text-align: left;
-}
-
-.o_main_navbar .o_menu_sections {
-    display: none !important;
 }
 
 .rsh_cp_root_breadcrumb {
@@ -629,19 +619,7 @@ body.rbac-panel-open .rsh_global_main {
     font-size: 11px;
 }
 
-body.rbac-global-shell-active .o_main_navbar {
-    display: none !important;
-}
-
-body.rbac-global-shell-active .o_control_panel {
-    border-top: 0;
-}
-
 @media (max-width: 768px) {
-    body.rbac-global-shell-active .o_web_client {
-        flex-flow: column nowrap;
-    }
-
     .rsh_global_nav {
         position: relative;
         width: 100%;

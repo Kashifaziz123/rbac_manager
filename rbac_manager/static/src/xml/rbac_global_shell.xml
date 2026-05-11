@@ -3,19 +3,33 @@
 
     <t t-inherit="web.WebClient" t-inherit-mode="extension">
         <xpath expr="//ActionContainer" position="replace">
-            <div class="rsh_child_shell">
-                <t t-if="!state.fullscreen">
-                    <RBACGlobalSidebar/>
-                </t>
-                <div class="rsh_child_content">
-                    <ActionContainer/>
+            <t t-if="this.rbacUsesSidebar">
+                <div class="rsh_child_shell">
+                    <t t-if="!state.fullscreen">
+                        <RBACGlobalSidebar/>
+                    </t>
+                    <div class="rsh_child_content">
+                        <ActionContainer/>
+                    </div>
                 </div>
-            </div>
+            </t>
+            <t t-else="">
+                <ActionContainer/>
+            </t>
         </xpath>
     </t>
 
     <t t-inherit="web.NavBar" t-inherit-mode="extension">
-        <xpath expr="//t[@t-if='currentAppSections.length' and @t-call='web.NavBar.SectionsMenu']" position="replace"/>
+        <xpath expr="//t[@t-if='currentAppSections.length' and @t-call='web.NavBar.SectionsMenu']" position="replace">
+            <t t-if="this.rbacCurrentAppUsesSidebar">
+                <!-- RBAC uses the custom secondary sidebar instead of Odoo's top sections. -->
+            </t>
+            <t t-else="">
+                <t t-if="currentAppSections.length" t-call="web.NavBar.SectionsMenu">
+                    <t t-set="sections" t-value="currentAppSections"/>
+                </t>
+            </t>
+        </xpath>
     </t>
 
     <t t-inherit="web.Breadcrumbs" t-inherit-mode="extension">

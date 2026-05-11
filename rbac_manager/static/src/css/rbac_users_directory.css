@@ -46,6 +46,22 @@
 .ud_list_actions_wrap {
     position: relative;
     z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ud_selected_badge {
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: #1f7ab8;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    box-shadow: 0 8px 18px rgba(31, 122, 184, .18);
 }
 
 .ud_create_btn {
@@ -75,24 +91,21 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 54px;
-    border: 1px solid var(--ud-accent);
+    height: 42px;
+    border: 1px solid var(--ud-border);
     border-radius: 8px;
-    background: var(--ud-accent);
-    color: #fff;
+    background: #fff;
+    color: var(--ud-text);
     padding: 0 16px;
     font: inherit;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
+    box-shadow: 0 8px 18px rgba(15, 20, 40, .06);
 }
 
-.ud_bulk_btn span {
-    min-width: 22px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .2);
-    padding: 2px 7px;
-    text-align: center;
+.ud_bulk_btn:hover {
+    background: #f7f8fb;
 }
 
 .ud_actions_menu.ud_bulk_menu {
@@ -411,6 +424,119 @@
     flex-wrap: wrap;
     gap: 8px;
 }
+
+.ud_role_editor {
+    position: relative;
+    padding-bottom: 12px;
+}
+
+.ud_role_editor:hover,
+.ud_role_editor:focus-within {
+    border-bottom: 1px solid var(--ud-border);
+}
+
+.ud_panel_roles.editable {
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+}
+
+.ud_role_tag.editable {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    min-height: 26px;
+    border-radius: 999px;
+    background: #f3eafd;
+    color: #6d3bdb;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #eadbff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ud_role_tag.editable > span {
+    padding: 4px 10px 4px 12px;
+}
+
+.ud_role_tag.editable small {
+    color: currentColor;
+    font-size: 11px;
+    opacity: .9;
+}
+
+.ud_role_tag.editable button {
+    width: 30px;
+    align-self: stretch;
+    border: 0;
+    border-left: 1px solid #d8c4fa;
+    background: transparent;
+    color: #5b31cf;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.ud_role_tag.editable button:hover {
+    background: rgba(91, 49, 207, .08);
+}
+
+.ud_role_inline_input {
+    min-width: 42px;
+    flex: 1 1 80px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ud-text);
+    font: inherit;
+    padding: 4px 0;
+}
+
+.ud_role_picker {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    background: #fff;
+    border: 1px solid var(--ud-border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(15, 20, 40, .14);
+    padding: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.ud_role_picker_item {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--ud-text);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ud_role_picker_item:hover {
+    background: var(--ud-accent-soft);
+}
+
+.ud_role_picker_item strong,
+.ud_role_picker_item small {
+    display: block;
+}
+
+.ud_role_picker_item small {
+    color: var(--ud-text2);
+    margin-top: 2px;
+}
+
 
 .ud_stats {
     display: grid;

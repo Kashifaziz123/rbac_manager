@@ -72,6 +72,8 @@ export class RBACUsersDirectory extends Component {
             selectedRoleIds: [],
             roleSearch: "",
             roleFilter: "all",
+            panelRoleSearch: "",
+            panelRolePickerOpen: false,
             permissionModalOpen: false,
             selectedExtraIds: [],
             selectedExcludedIds: [],
@@ -94,6 +96,9 @@ export class RBACUsersDirectory extends Component {
                 if (this.state.listActionOpen && !ev.target.closest(".ud_list_actions_wrap")) {
                     this.state.listActionOpen = false;
                 }
+                if (this.state.panelRolePickerOpen && !ev.target.closest(".ud_role_editor")) {
+                    this.state.panelRolePickerOpen = false;
+                }
             };
             this._onDocumentKeydown = (ev) => {
                 if (ev.key === "Escape" && this.state.actionOpen) {
@@ -101,6 +106,9 @@ export class RBACUsersDirectory extends Component {
                 }
                 if (ev.key === "Escape" && this.state.listActionOpen) {
                     this.state.listActionOpen = false;
+                }
+                if (ev.key === "Escape" && this.state.panelRolePickerOpen) {
+                    this.state.panelRolePickerOpen = false;
                 }
             };
             document.addEventListener("click", this._onDocumentClick);
@@ -146,6 +154,15 @@ export class RBACUsersDirectory extends Component {
     get selectedUsers() {
         const selected = new Set(this.state.selectedUserIds);
         return (this.state.users || []).filter((user) => selected.has(user.id));
+    }
+
+    get isSingleSelection() {
+        return this.state.selectedUserIds.length === 1;
+    }
+
+    get selectedPrimaryUser() {
+        const userId = this.state.selectedUserIds[0];
+        return (this.state.users || []).find((user) => user.id === userId) || null;
     }
 
     get allFilteredSelected() {
@@ -200,6 +217,16 @@ export class RBACUsersDirectory extends Component {
             const matchesQuery = !query || `${role.name || ""}`.toLowerCase().includes(query);
             return matchesFilter && matchesQuery;
         });
+    }
+
+    get panelAvailableRoles() {
+        const assignedIds = new Set((this.state.activeUser?.roles || []).map((role) => role.id));
+        const query = this.state.panelRoleSearch.trim().toLowerCase();
+        return (this.state.roles || []).filter((role) => {
+            if (assignedIds.has(role.id)) return false;
+            const text = `${role.name || ""}`.toLowerCase();
+            return !query || text.includes(query);
+        }).slice(0, 12);
     }
 
     get roleSummary() {
@@ -453,6 +480,8 @@ export class RBACUsersDirectory extends Component {
         this.state.permTab = "all";
         this.state.actionOpen = false;
         this.state.listActionOpen = false;
+        this.state.panelRoleSearch = "";
+        this.state.panelRolePickerOpen = false;
         this.resetActivity();
         this.loadUserActivity(false);
     }
@@ -460,6 +489,44 @@ export class RBACUsersDirectory extends Component {
     closePanel() {
         this.state.panelOpen = false;
         this.state.actionOpen = false;
+        this.state.panelRolePickerOpen = false;
+    }
+
+    openPanelRolePicker() {
+        this.state.panelRolePickerOpen = true;
+    }
+
+    onPanelRoleSearch(ev) {
+        this.state.panelRoleSearch = ev.target.value || "";
+        this.state.panelRolePickerOpen = true;
+    }
+
+    async assignPanelRole(roleId) {
+        const user = this.state.activeUser;
+        if (!user || !roleId || this.state.saving) return;
+        this.state.saving = true;
+        try {
+            await this.orm.call("res.users", "assign_role", [user.id], {role_id: roleId});
+            this.state.panelRoleSearch = "";
+            this.state.panelRolePickerOpen = false;
+            await this.refreshActiveUser();
+            this.notification.add(_t("Role assigned."), {type: "success"});
+        } finally {
+            this.state.saving = false;
+        }
+    }
+
+    async removePanelRole(roleId) {
+        const user = this.state.activeUser;
+        if (!user || !roleId || this.state.saving) return;
+        this.state.saving = true;
+        try {
+            await this.orm.call("res.users", "remove_role", [user.id], {role_id: roleId});
+            await this.refreshActiveUser();
+            this.notification.add(_t("Role removed."), {type: "success"});
+        } finally {
+            this.state.saving = false;
+        }
     }
 
     setPermTab(tab) {
@@ -671,6 +738,85 @@ export class RBACUsersDirectory extends Component {
         this.notification.add(_t("Open one user to manage direct permission grants/exclusions. Bulk permission edits need stricter review."), {type: "info"});
     }
 
+    setActiveSelectedUser() {
+        const user = this.selectedPrimaryUser;
+        if (!user) {
+            this.notification.add(_t("Select one user first."), {type: "warning"});
+            return null;
+        }
+        this.state.activeUser = user;
+        return user;
+    }
+
+    bulkGrantAll() {
+        const users = [...this.selectedUsers];
+        this.state.listActionOpen = false;
+        this.confirmAction(_t("Grant All Permissions"), _t("Grant all available permissions to %s selected users?", users.length), _t("Grant All"), async () => {
+            for (const user of users) {
+                await this.orm.call("res.users", "grant_all_permissions", [user.id]);
+            }
+            this.notification.add(_t("All permissions granted to selected users."), {type: "success"});
+            this.state.selectedUserIds = [];
+            await this.loadData();
+        });
+    }
+
+    bulkRevokeAll() {
+        const users = [...this.selectedUsers];
+        this.state.listActionOpen = false;
+        this.confirmAction(_t("Revoke All Permissions"), _t("Revoke roles, extras, and exclusions for %s selected users?", users.length), _t("Revoke All"), async () => {
+            for (const user of users) {
+                await this.orm.call("res.users", "revoke_all_permissions", [user.id]);
+            }
+            this.notification.add(_t("Permissions revoked for selected users."), {type: "warning"});
+            this.state.selectedUserIds = [];
+            await this.loadData();
+        }, true);
+    }
+
+    openSelectedCloneModal() {
+        if (!this.setActiveSelectedUser()) return;
+        this.state.cloneModalOpen = true;
+        this.state.listActionOpen = false;
+    }
+
+    openSelectedPermissionModal() {
+        if (!this.setActiveSelectedUser()) return;
+        this.state.selectedExtraIds = [...(this.state.activeUser?.extra_group_ids || [])];
+        this.state.selectedExcludedIds = [...(this.state.activeUser?.excluded_group_ids || [])];
+        this.state.permissionSearch = "";
+        this.state.permissionCategory = "";
+        this.state.permissionStateFilter = "all";
+        this.state.permissionModalOpen = true;
+        this.state.listActionOpen = false;
+    }
+
+    async exportSelectedPermissions() {
+        const user = this.setActiveSelectedUser();
+        if (!user) return;
+        this.state.listActionOpen = false;
+        await download({
+            data: {
+                data: JSON.stringify(await this.orm.call("rbac.model", "export_permissions_csv", [], {user_id: user.id})),
+            },
+            url: "/web/export/csv",
+        });
+    }
+
+    async changeSelectedPassword() {
+        const user = this.setActiveSelectedUser();
+        if (!user) return;
+        this.state.listActionOpen = false;
+        await this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Change Password",
+            res_model: "change.password.wizard",
+            views: [[false, "form"]],
+            target: "new",
+            context: {active_model: "res.users", active_ids: [user.id]},
+        });
+    }
+
     closeRoleModal() {
         this.state.roleModalOpen = false;
     }
@@ -747,6 +893,35 @@ export class RBACUsersDirectory extends Component {
         this.confirmAction(_t("Archive Users"), _t("Archive %s selected users?", users.length), _t("Archive"), async () => {
             await this.orm.write("res.users", users.map((user) => user.id), {active: false});
             this.notification.add(_t("Selected users archived."), {type: "warning"});
+            this.state.selectedUserIds = [];
+            await this.loadData();
+        }, true);
+    }
+
+    bulkDisable2FA() {
+        const users = [...this.selectedUsers];
+        this.state.listActionOpen = false;
+        this.confirmAction(_t("Disable Two-Factor Auth"), _t("Disable two-factor authentication for %s selected users?", users.length), _t("Disable"), async () => {
+            for (const user of users) {
+                await this.orm.call("res.users", "action_totp_disable", [[user.id]]);
+            }
+            this.notification.add(_t("Two-factor authentication disabled for selected users."), {type: "success"});
+            this.state.selectedUserIds = [];
+            await this.loadData();
+        }, true);
+    }
+
+    bulkInvite2FA() {
+        this.state.listActionOpen = false;
+        this.notification.add(_t("Odoo sends 2FA enrollment from each user's preferences/security flow."), {type: "info"});
+    }
+
+    bulkDeleteUsers() {
+        const users = [...this.selectedUsers];
+        this.state.listActionOpen = false;
+        this.confirmAction(_t("Delete Users"), _t("Permanently delete %s selected users?", users.length), _t("Delete"), async () => {
+            await this.orm.call("res.users", "unlink", [users.map((user) => user.id)]);
+            this.notification.add(_t("Selected users deleted."), {type: "success"});
             this.state.selectedUserIds = [];
             await this.loadData();
         }, true);

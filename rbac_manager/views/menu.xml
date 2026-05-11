@@ -3,6 +3,7 @@
     <data>
         <!-- Root RBAC menu -->
         <menuitem id="menu_rbac_root" name="RBAC" sequence="100" groups="base.group_system"
+                  action="rbac_manager.action_rbac_dashboard"
                   web_icon="rbac_manager,static/description/lock.svg"/>
 
         <!-- RBAC sub-menus under root -->

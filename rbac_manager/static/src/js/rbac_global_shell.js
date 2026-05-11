@@ -8,6 +8,8 @@ import {user} from "@web/core/user";
 import {useService} from "@web/core/utils/hooks";
 import {session} from "@web/session";
 import {Breadcrumbs} from "@web/search/breadcrumbs/breadcrumbs";
+import {menuService as odooMenuService} from "@web/webclient/menus/menu_service";
+import {NavBar} from "@web/webclient/navbar/navbar";
 import {WebClient} from "@web/webclient/webclient";
 import {UserMenu} from "@web/webclient/user_menu/user_menu";
 
@@ -27,6 +29,80 @@ function visibleRootApp(app) {
     return xmlid !== "menu_root" && xmlid !== "base.menu_root";
 }
 
+function isRbacRootApp(app) {
+    const name = String(app?.name || "").trim().toLowerCase();
+    const xmlid = String(app?.xmlid || "").trim().toLowerCase();
+    return name === "rbac" || xmlid.includes("rbac");
+}
+
+function getMenuChildRecords(menuService, menu) {
+    if (!menu) {
+        return [];
+    }
+    if (Array.isArray(menu.childrenTree)) {
+        return menu.childrenTree;
+    }
+    return (menu.children || [])
+        .map((id) => menuService.getMenu(id))
+        .filter(Boolean);
+}
+
+function findFirstActionMenu(menuService, menu) {
+    if (!menu) {
+        return null;
+    }
+    const children = getMenuChildRecords(menuService, menu);
+    const dashboard = children.find((child) => {
+        const name = String(child.name || "").trim().toLowerCase();
+        const xmlid = String(child.xmlid || "").trim().toLowerCase();
+        return child.actionID && (name === "dashboard" || xmlid.includes("menu_dashboard"));
+    });
+    if (dashboard) {
+        return dashboard;
+    }
+    if (menu.actionID) {
+        return menu;
+    }
+    for (const child of children) {
+        const found = findFirstActionMenu(menuService, child);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
+}
+
+function findMenuByActionId(menuService, menu, actionId) {
+    if (!menu || !actionId) {
+        return null;
+    }
+    if (String(menu.actionID) === String(actionId)) {
+        return menu;
+    }
+    for (const child of getMenuChildRecords(menuService, menu)) {
+        const found = findMenuByActionId(menuService, child, actionId);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
+}
+
+function getActionableMenu(menuService, menu) {
+    if (!menu) {
+        return null;
+    }
+    const hasChildren = Boolean(getMenuChildRecords(menuService, menu).length);
+    return hasChildren && !menu.actionID ? findFirstActionMenu(menuService, menu) || menu : menu;
+}
+
+function findMenuByXmlid(menuService, xmlid) {
+    if (!xmlid) {
+        return null;
+    }
+    return menuService.getAll().find((menu) => String(menu.xmlid || "") === String(xmlid)) || null;
+}
+
 function activeCompanyCacheKey() {
     return (user.activeCompanies || []).map((company) => company.id).join("-") || String(user.activeCompany?.id || "");
 }
@@ -43,6 +119,18 @@ function clearStoredMenusForCompanyChange() {
 
 clearStoredMenusForCompanyChange();
 
+const originalMenuServiceStart = odooMenuService.start;
+odooMenuService.start = async function (...args) {
+    const service = await originalMenuServiceStart.apply(this, args);
+    const originalSelectMenu = service.selectMenu.bind(service);
+    service.selectMenu = async function (menu) {
+        const menuRecord = typeof menu === "number" ? service.getMenu(menu) : menu;
+        const target = getActionableMenu(service, menuRecord) || menuRecord;
+        return originalSelectMenu(target);
+    };
+    return service;
+};
+
 patch(Breadcrumbs.prototype, {
     setup() {
         this.menuService = useService("menu");
@@ -51,6 +139,9 @@ patch(Breadcrumbs.prototype, {
     get rbacRootBreadcrumb() {
         const currentApp = this.menuService.getCurrentApp();
         if (!currentApp || !visibleRootApp(currentApp)) {
+            return null;
+        }
+        if (!isRbacRootApp(currentApp)) {
             return null;
         }
         const currentBreadcrumb = this.props.breadcrumbs.at(-1);
@@ -68,6 +159,118 @@ patch(Breadcrumbs.prototype, {
         window.dispatchEvent(new CustomEvent("RBAC:OPEN-NAVIGATION", {
             detail: {appId: app.id},
         }));
+    },
+});
+
+patch(WebClient.prototype, {
+    setup() {
+        super.setup(...arguments);
+        this.rbacMenuService = useService("menu");
+        this.rbacShellState = useState({usesSidebar: false});
+        this._syncRbacShellState = () => {
+            const currentApp = this.rbacMenuService.getCurrentApp();
+            this.rbacShellState.usesSidebar = isRbacRootApp(currentApp);
+            browser.setTimeout(() => this._ensureRootAppAction(), 0);
+            browser.setTimeout(() => this._ensureRootAppAction(), 120);
+            browser.setTimeout(() => this._ensureRootAppAction(), 350);
+        };
+        this._onMenuContainerClick = (ev) => this._redirectContainerMenuClick(ev);
+        onMounted(() => {
+            this.env.bus.addEventListener("MENUS:APP-CHANGED", this._syncRbacShellState);
+            this.env.bus.addEventListener("ROUTE_CHANGE", this._syncRbacShellState);
+            window.addEventListener("pointerdown", this._onMenuContainerClick, true);
+            window.addEventListener("click", this._onMenuContainerClick, true);
+            this._syncRbacShellState();
+        });
+        onWillUnmount(() => {
+            this.env.bus.removeEventListener("MENUS:APP-CHANGED", this._syncRbacShellState);
+            this.env.bus.removeEventListener("ROUTE_CHANGE", this._syncRbacShellState);
+            window.removeEventListener("pointerdown", this._onMenuContainerClick, true);
+            window.removeEventListener("click", this._onMenuContainerClick, true);
+        });
+    },
+
+    get rbacUsesSidebar() {
+        return this.rbacShellState.usesSidebar || isRbacRootApp(this.rbacMenuService.getCurrentApp());
+    },
+
+    _loadDefaultApp() {
+        const root = this.rbacMenuService.getMenu("root");
+        const firstApp = root?.children?.[0] ? this.rbacMenuService.getMenu(root.children[0]) : null;
+        const target = getActionableMenu(this.rbacMenuService, firstApp);
+        if (target) {
+            return this.rbacMenuService.selectMenu(target);
+        }
+    },
+
+    _redirectContainerMenuClick(ev) {
+        if (!(ev.target instanceof HTMLElement)) {
+            return;
+        }
+        const menuEl = ev.target.closest("[data-section], [data-menu-xmlid]");
+        const menuId = Number(menuEl?.dataset.section || 0);
+        const xmlid = menuEl?.dataset.menuXmlid;
+        const menu = (
+            menuId ? this.rbacMenuService.getMenu(menuId) : findMenuByXmlid(this.rbacMenuService, xmlid)
+        ) || this._findClickedRootApp(ev.target);
+        if (!menu || menu.actionID || !getMenuChildRecords(this.rbacMenuService, menu).length) {
+            return;
+        }
+        const target = findFirstActionMenu(this.rbacMenuService, menu);
+        if (!target?.actionID) {
+            return;
+        }
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        this.rbacMenuService.selectMenu(target);
+    },
+
+    _findClickedRootApp(target) {
+        const clickable = target.closest(".o_app, .o_menu_brand, .dropdown-item, a, button, [role='menuitem']");
+        const label = String(clickable?.textContent || "").trim().toLowerCase();
+        if (!label) {
+            return null;
+        }
+        return this.rbacMenuService.getApps().find((app) => String(app.name || "").trim().toLowerCase() === label) || null;
+    },
+
+    _ensureRootAppAction() {
+        const currentApp = this.rbacMenuService.getCurrentApp();
+        if (!currentApp) {
+            return;
+        }
+        const routeMenuId = Number(router.current.menu_id || 0);
+        if (routeMenuId && routeMenuId !== currentApp.id) {
+            return;
+        }
+        const target = currentApp.actionID ? currentApp : findFirstActionMenu(this.rbacMenuService, currentApp);
+        if (!target?.actionID) {
+            return;
+        }
+        const currentActionId = this.actionService?.currentController?.action?.id;
+        if (currentActionId && findMenuByActionId(this.rbacMenuService, currentApp, currentActionId)) {
+            return;
+        }
+        this.rbacMenuService.selectMenu(target);
+    },
+});
+
+patch(NavBar.prototype, {
+    onNavBarDropdownItemSelection(menu) {
+        const target = getActionableMenu(this.menuService, menu);
+        if (!target) {
+            return;
+        }
+        this.menuService.selectMenu(target);
+    },
+
+    getMenuItemHref(payload) {
+        const target = getActionableMenu(this.menuService, payload) || payload;
+        return `/odoo/${target.actionPath || "action-" + target.actionID}`;
+    },
+
+    get rbacCurrentAppUsesSidebar() {
+        return isRbacRootApp(this.currentApp);
     },
 });
 
@@ -154,9 +357,7 @@ export class RBACGlobalSidebar extends Component {
     }
 
     isRbacMenu(menu) {
-        const name = String(menu?.name || "").trim().toLowerCase();
-        const xmlid = String(menu?.xmlid || "").trim().toLowerCase();
-        return name === "rbac" || xmlid.includes("rbac");
+        return isRbacRootApp(menu);
     }
 
     hasMenuIconData(menu) {
@@ -265,8 +466,9 @@ export class RBACGlobalSidebar extends Component {
     }
 
     syncPanelBodyClass() {
-        // The global sidebar now lives inside the Odoo action area. Keep this
-        // hook for older callers without toggling full-shell body classes.
+        // The secondary sidebar now lives inside the RBAC action area. Clear
+        // older body-level shell flags so non-RBAC apps keep Odoo's navbar.
+        document.body.classList.remove("rbac-global-shell-active", "rbac-panel-open");
     }
 
     toggleSection(sectionId) {
@@ -767,6 +969,7 @@ export class RBACGlobalTopbar extends Component {
         }
         return null;
     }
+
 }
 
 WebClient.components = {

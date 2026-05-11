@@ -22,16 +22,25 @@
                     </t>
                 </select>
                 <div t-if="state.selectedUserIds.length" class="ud_list_actions_wrap">
+                    <span class="ud_selected_badge"><t t-esc="state.selectedUserIds.length"/> selected</span>
                     <button class="ud_bulk_btn" type="button" t-on-click="toggleListActions">
-                        <i class="fa fa-cog"/> Actions <span><t t-esc="state.selectedUserIds.length"/></span>
+                        <i class="fa fa-cog"/> Action
                     </button>
                     <div t-att-class="'ud_actions_menu ud_bulk_menu' + (state.listActionOpen ? ' open' : '')">
                         <div class="ud_menu_label">Permission Actions</div>
-                        <button t-on-click="openBulkRoleModal"><i class="fa fa-star-o"/> Assign Roles</button>
-                        <button t-on-click="openBulkPermissionModal"><i class="fa fa-key"/> Manage Direct Permissions</button>
+                        <button t-on-click="bulkGrantAll"><i class="fa fa-check-circle-o"/> Grant All Permissions</button>
+                        <button class="danger" t-on-click="bulkRevokeAll"><i class="fa fa-ban"/> Revoke All Permissions</button>
+                        <button t-if="this.isSingleSelection" t-on-click="openSelectedCloneModal"><i class="fa fa-clone"/> Clone Permissions from User</button>
+                        <button t-on-click="openBulkRoleModal"><i class="fa fa-star-o"/> Bulk Role Assignment</button>
+                        <button t-if="this.isSingleSelection" t-on-click="openSelectedPermissionModal"><i class="fa fa-key"/> Manage Direct Permissions</button>
+                        <button t-if="this.isSingleSelection" t-on-click="exportSelectedPermissions"><i class="fa fa-download"/> Export Permissions</button>
                         <div class="ud_menu_label border">Default</div>
+                        <button t-if="this.isSingleSelection" t-on-click="changeSelectedPassword"><i class="fa fa-lock"/> Change Password</button>
                         <button t-on-click="bulkResetPassword"><i class="fa fa-envelope-o"/> Send Password Reset</button>
-                        <button class="danger" t-on-click="bulkArchiveUsers"><i class="fa fa-archive"/> Archive Selected</button>
+                        <button t-on-click="bulkDisable2FA"><i class="fa fa-shield"/> Disable Two-Factor Auth</button>
+                        <button t-on-click="bulkInvite2FA"><i class="fa fa-shield"/> Invite to Use 2FA</button>
+                        <button t-on-click="bulkArchiveUsers"><i class="fa fa-archive"/> Archive</button>
+                        <button class="danger" t-on-click="bulkDeleteUsers"><i class="fa fa-trash-o"/> Delete</button>
                     </div>
                 </div>
             </div>
@@ -299,13 +308,37 @@
 
                         <div class="ud_section_head">
                             <div class="ud_section_label">Assigned Roles</div>
-                            <button class="ud_inline_btn" t-on-click="openRoleModal">Manage Roles</button>
                         </div>
-                        <div class="ud_panel_roles">
-                            <t t-if="!(state.activeUser.roles || []).length"><span class="ud_muted">No roles assigned.</span></t>
-                            <t t-foreach="state.activeUser.roles || []" t-as="role" t-key="role.id">
-                                <span class="ud_role_tag"><t t-esc="role.name"/> <small>(<t t-esc="role.permissions_count"/> perms)</small></span>
-                            </t>
+                        <div class="ud_role_editor">
+                            <div class="ud_panel_roles editable">
+                                <t t-foreach="state.activeUser.roles || []" t-as="role" t-key="role.id">
+                                    <span class="ud_role_tag editable">
+                                        <span><t t-esc="role.name"/> <small>(<t t-esc="role.permissions_count"/> perms)</small></span>
+                                        <button type="button" t-on-click="() => this.removePanelRole(role.id)" t-att-disabled="state.saving ? 'disabled' : undefined">
+                                            <i class="fa fa-times"/>
+                                        </button>
+                                    </span>
+                                </t>
+                                <input type="text"
+                                       class="ud_role_inline_input"
+                                       t-att-value="state.panelRoleSearch"
+                                       t-on-click="openPanelRolePicker"
+                                       t-on-focus="openPanelRolePicker"
+                                       t-on-input="onPanelRoleSearch"/>
+                            </div>
+                            <div t-if="state.panelRolePickerOpen" class="ud_role_picker">
+                                <t t-if="!this.panelAvailableRoles.length">
+                                    <div class="ud_empty_inner compact">No roles available.</div>
+                                </t>
+                                <t t-foreach="this.panelAvailableRoles" t-as="role" t-key="role.id">
+                                    <button type="button" class="ud_role_picker_item" t-on-mousedown.prevent="() => this.assignPanelRole(role.id)">
+                                        <span>
+                                            <strong t-esc="role.name"/>
+                                            <small><t t-esc="role.permissions_count"/> permissions</small>
+                                        </span>
+                                    </button>
+                                </t>
+                            </div>
                         </div>
 
                         <div class="ud_stats">
